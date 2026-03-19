@@ -81,6 +81,8 @@ The helper waits until the snapshot base header is present, then runs
 `loadtxoutset`. On a fresh node this usually means waiting for header sync first.
 If the datadir starts downloading blocks before the base header arrives, rerun the
 snapshot load on a fresh datadir after wiping `blocks/` and `chainstate/`.
+The helper now waits up to 15 minutes by default and prints header progress while
+it is trying to reach the snapshot base.
 
 After that, continue with the normal wallet and mining steps below.
 
@@ -133,6 +135,11 @@ rng-doctor
 `rng-doctor` verifies the live genesis hash, checks peer connectivity, reports
 sync state, and shows whether mining is running in RandomX `fast` mode. On the
 current operator-seeded network, low peer counts are expected.
+
+If `rng-start-miner` or `rng-load-bootstrap` reports an RPC credential mismatch
+or says RPC never became ready, another local `rngd` is probably already using
+the default RPC port `8432`. Stop that node or set a different `rpcport=` in
+your `rng.conf` before retrying.
 
 ### 3. Manual wallet and payout address flow
 

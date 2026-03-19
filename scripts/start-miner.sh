@@ -122,10 +122,17 @@ daemon() {
 }
 
 wait_for_rpc() {
+    local rpc_output
+
     for _ in $(seq 1 30); do
-        if cli getblockcount >/dev/null 2>&1; then
+        if rpc_output="$(cli getblockcount 2>&1)"; then
             return 0
         fi
+        case "$rpc_output" in
+            *"Incorrect rpcuser or rpcpassword"*)
+                error "RPC endpoint rejected this node's credentials. Another rngd is probably already bound to this rpcport; stop it or change rpcport in rng.conf."
+                ;;
+        esac
         sleep 1
     done
     return 1
