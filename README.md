@@ -40,8 +40,9 @@ rng-start-miner
 ```
 
 The installer builds the live `main` branch by default, creates `~/.rng/rng.conf`,
-seeds it with the current operator seed peers, can load the bundled assumeutxo snapshot, and
-installs helper commands `rng-load-bootstrap`, `rng-start-miner`, and `rng-doctor`.
+seeds it with the current operator seed peers, can load the bundled chain bundle or
+assumeutxo snapshot, and installs helper commands `rng-load-bootstrap`,
+`rng-start-miner`, and `rng-doctor`.
 
 ### Option B: Verify-first installer
 

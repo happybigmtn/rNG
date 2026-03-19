@@ -19,7 +19,7 @@ CLI_ARGS=()
 
 usage() {
     cat <<'EOF'
-Load the bundled RNG assumeutxo snapshot.
+Load the bundled RNG chain bundle or assumeutxo snapshot.
 
 Usage:
   ./scripts/load-bootstrap.sh [--snapshot PATH] [--bundle PATH] [--datadir DIR] [--conf PATH]

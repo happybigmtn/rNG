@@ -529,8 +529,8 @@ print_next_steps() {
         echo "     $INSTALL_DIR/rng-doctor"
         echo ""
     fi
-    if [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then
-    echo "  5. Optional fast bootstrap from the bundled chain bundle or snapshot:"
+    if [ -f "$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE" ] || [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then
+        echo "  5. Optional fast bootstrap from the bundled chain bundle or snapshot:"
         if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
             echo "     $INSTALL_DIR/rng-load-bootstrap"
         fi
