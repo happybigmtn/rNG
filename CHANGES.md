@@ -67,7 +67,8 @@ Excessive per-block LWMA sync logging was also removed so fresh nodes do not flo
 - Client version string: `/RNG:3.0.0/`
 - Public default datadir: `~/.rng`
 - Public config file: `~/.rng/rng.conf`
-- Public seed peers currently come from the live Contabo fleet
+- Public operator seed peers currently come from the live Contabo fleet
+- The current live network is operator-seeded, so low peer counts and zero third-party miners are normal
 
 ## What Was Not Changed
 

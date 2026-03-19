@@ -50,7 +50,7 @@ RUN mkdir -p /home/rng/.rng && chown -R rng:rng /home/rng
 USER rng
 WORKDIR /home/rng
 
-# Default config with the live public peers
+# Default config with the live operator seed peers
 RUN printf 'server=1\nrpcuser=agent\nrpcpassword=changeme\nrpcbind=127.0.0.1\nrpcallowip=127.0.0.1\nminerandomx=fast\naddnode=95.111.239.142:8433\naddnode=161.97.114.192:8433\naddnode=185.218.126.23:8433\naddnode=185.239.209.227:8433\n' > /home/rng/.rng/rng.conf
 
 EXPOSE 8432 8433

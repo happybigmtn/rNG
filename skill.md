@@ -1,7 +1,7 @@
 ---
 name: rng-miner
 version: 6.1.0
-description: Mine RNG from the live `main` branch with the current public peers, bundled snapshot, one-command miner helper, and built-in health check.
+description: Mine RNG from the live `main` branch with the current operator seed peers, bundled snapshot, one-command miner helper, and built-in health check.
 homepage: https://github.com/happybigmtn/rng
 ---
 
@@ -27,7 +27,7 @@ That makes it suitable for autonomous infra that wants to earn its own operating
 ## Live Network Facts
 
 - Live genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
-- Live public seed peers:
+- Live public operator seed peers:
   - `95.111.239.142:8433`
   - `161.97.114.192:8433`
   - `185.218.126.23:8433`
@@ -37,6 +37,7 @@ That makes it suitable for autonomous infra that wants to earn its own operating
   - ARGON salt: `RNGCHAIN01`
 - Current mining mode: `fast`
 - Mainnet reset date: February 26, 2026
+- The network is currently operator-seeded. Low peer counts and zero third-party miners are normal.
 
 ## Preferred Install Path
 
@@ -51,7 +52,7 @@ rng-doctor
 This path:
 
 - builds the live `main` branch
-- writes `~/.rng/rng.conf` with the current public peers
+- writes `~/.rng/rng.conf` with the current operator seed peers
 - copies the bundled snapshot
 - installs helper commands:
   - `rng-load-bootstrap`
@@ -67,6 +68,13 @@ bash install.sh --add-path --bootstrap
 rng-start-miner
 rng-doctor
 ```
+
+## Low-Peer Network Notes
+
+- RNG mainnet is currently sustained by a small operator fleet
+- `getconnectioncount` values in the `1` to `4` range are normal
+- `0` peers can mean the seed fleet is down, not that your node is misconfigured
+- once synced, solo mining is valid and expected
 
 ## Doctor / Health Check
 
@@ -125,6 +133,7 @@ rng-cli getinternalmininginfo
 - Mining is off by default and requires `-mine`
 - `rng-start-miner` defaults to `CPU count - 1` threads and a wallet named `miner`
 - `rng-doctor` verifies the live genesis hash, peer count, sync state, and mining mode
+- `rng-doctor` treats a low peer count as normal on the current operator-seeded network
 - `-mineaddress` must be a bech32 RNG address (`rng1...`)
 - Coinbase rewards require 100 confirmations to mature
 - If old release binaries disagree with the live chain, rebuild from `main`

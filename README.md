@@ -9,9 +9,10 @@ As of March 19, 2026:
 - The `main` branch is the live-network reference.
 - RNG mainnet was restarted from genesis on February 26, 2026.
 - Expected genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
-- Public seed peers: `95.111.239.142:8433`, `161.97.114.192:8433`, `185.218.126.23:8433`, `185.239.209.227:8433`
+- Public operator seed peers: `95.111.239.142:8433`, `161.97.114.192:8433`, `185.218.126.23:8433`, `185.239.209.227:8433`
 - Live mainnet RandomX constants: genesis seed phrase `RNG Genesis Seed`, ARGON salt `RNGCHAIN01`
 - Live miners use RandomX `fast` mode.
+- The network is currently operator-seeded. Low peer counts and zero third-party miners are normal.
 - Source builds from `main` were verified against the first post-reset live headers on March 19, 2026.
 
 If you are mining today, use `./install.sh` or build from source. Tagged release binaries
@@ -29,7 +30,7 @@ rng-start-miner
 ```
 
 The installer builds the live `main` branch by default, creates `~/.rng/rng.conf`,
-seeds it with the current public peers, can load the bundled assumeutxo snapshot, and
+seeds it with the current operator seed peers, can load the bundled assumeutxo snapshot, and
 installs helper commands `rng-load-bootstrap`, `rng-start-miner`, and `rng-doctor`.
 
 ### Option B: Verify-first installer
@@ -110,6 +111,16 @@ rng-cli getinternalmininginfo
 The helper creates or loads a `miner` wallet, derives a payout address, restarts
 `rngd` with `-mine`, and defaults to `CPU count - 1` mining threads.
 
+### 2a. Low-Peer Network Expectations
+
+RNG mainnet is currently sustained by a small operator fleet rather than a broad public
+miner set.
+
+- `getconnectioncount` may stay in the `1` to `4` range for long stretches
+- `0` peers does not automatically mean your config is wrong; it can mean the public seed fleet is temporarily down
+- once you are synced, solo mining is valid and expected
+- new nodes sync fastest from the bundled snapshot plus the current addnode list
+
 ### 2b. Verify node health and miner status
 
 ```bash
@@ -120,7 +131,8 @@ rng-doctor
 ```
 
 `rng-doctor` verifies the live genesis hash, checks peer connectivity, reports
-sync state, and shows whether mining is running in RandomX `fast` mode.
+sync state, and shows whether mining is running in RandomX `fast` mode. On the
+current operator-seeded network, low peer counts are expected.
 
 ### 3. Manual wallet and payout address flow
 
@@ -149,6 +161,8 @@ rng-cli getinternalmininginfo
 The default `~/.rng/rng.conf` includes:
 
 ```ini
+# RNG live-mainnet config
+# Public peers below are operator-run seed nodes for the current low-peer network.
 server=1
 daemon=1
 rpcuser=agent

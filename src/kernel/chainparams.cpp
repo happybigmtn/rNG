@@ -156,7 +156,7 @@ public:
         assert(consensus.hashGenesisBlock == uint256{"83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4"});
         assert(genesis.hashMerkleRoot == uint256{"b713a92ad8104e5a1650d02f96df9cb18bd6a39a222829ba4e4b5e79e4de7232"});
 
-        // Public IPv4 seeds currently serving the live chain.
+        // Operator-run public IPv4 seeds currently serving the live chain.
         vSeeds.emplace_back("95.111.239.142");
         vSeeds.emplace_back("161.97.114.192");
         vSeeds.emplace_back("185.218.126.23");
