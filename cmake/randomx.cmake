@@ -12,6 +12,14 @@ function(add_randomx subdir)
   message("")
   message("Configuring RandomX subtree...")
 
+  get_filename_component(RANDOMX_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}" ABSOLUTE)
+  execute_process(
+    COMMAND ${CMAKE_COMMAND}
+      -DRANDOMX_SOURCE_DIR=${RANDOMX_SOURCE_DIR}
+      -P ${PROJECT_SOURCE_DIR}/cmake/script/PatchRandomX.cmake
+    COMMAND_ERROR_IS_FATAL ANY
+  )
+
   set(BUILD_SHARED_LIBS OFF)
   set(CMAKE_EXPORT_COMPILE_COMMANDS OFF)
 

@@ -212,6 +212,7 @@ cd rng
 if [ ! -f src/crypto/randomx/src/randomx.h ]; then
   git clone --branch v1.2.1 --depth 1 https://github.com/tevador/RandomX.git src/crypto/randomx
 fi
+# CMake rewrites the upstream RandomX salt to RNG's live mainnet salt automatically.
 cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
 cmake --build build -j"$(nproc)"
 sudo cp build/bin/rngd build/bin/rng-cli /usr/local/bin/
@@ -226,6 +227,7 @@ cd rng
 if [ ! -f src/crypto/randomx/src/randomx.h ]; then
   git clone --branch v1.2.1 --depth 1 https://github.com/tevador/RandomX.git src/crypto/randomx
 fi
+# CMake rewrites the upstream RandomX salt to RNG's live mainnet salt automatically.
 cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
 cmake --build build -j"$(sysctl -n hw.ncpu)"
 cp build/bin/rngd build/bin/rng-cli "$(brew --prefix)/bin/"
