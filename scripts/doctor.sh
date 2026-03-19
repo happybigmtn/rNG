@@ -131,8 +131,11 @@ main() {
     connection_count="$(cli getconnectioncount 2>/dev/null || echo 0)"
     if [ "${connection_count:-0}" -gt 0 ]; then
         info "Peer connections: $connection_count"
+        if [ "${connection_count:-0}" -le 4 ]; then
+            info "Low peer count is normal on the current operator-seeded network"
+        fi
     else
-        warn "No peer connections yet. Check firewall/routing and addnode peers."
+        warn "No peer connections yet. This can be normal if the operator seed fleet is down or you are bringing the chain back with very few public nodes."
     fi
 
     blockchaininfo="$(cli getblockchaininfo 2>/dev/null || true)"

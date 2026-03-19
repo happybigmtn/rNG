@@ -45,7 +45,8 @@ botcoin-cli -rpcwallet=<wallet_name> dumpwallet "$HOME/rng-backup-$TS/<wallet_na
 
 ## 3) Install RNG binaries and config
 
-Use `rngd` / `rng-cli` and `~/.rng/rng.conf`. Current public seed peers:
+Use `rngd` / `rng-cli` and `~/.rng/rng.conf`. Current public peers are operator-run
+seed nodes:
 
 ```ini
 addnode=95.111.239.142:8433
@@ -108,6 +109,10 @@ If you installed from this repo, the simplest path is:
 rng-start-miner
 rng-cli getinternalmininginfo
 ```
+
+Low peer counts are normal on the current operator-seeded network. If
+`getconnectioncount` stays at `0`, that usually means the public seed fleet is
+temporarily down, not that you are on the wrong chain.
 
 ## Guardrails
 
