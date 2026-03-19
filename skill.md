@@ -1,136 +1,130 @@
 ---
 name: rng-miner
-version: 5.0.0
-description: Mine RNG with a trust-first workflow: clear value proposition, verifiable binaries, and explicit operational guidance.
+version: 6.1.0
+description: Mine RNG from the live `main` branch with the current public peers, bundled snapshot, one-command miner helper, and built-in health check.
 homepage: https://github.com/happybigmtn/rng
 ---
 
-# RNG Miner (v5.0 — LWMA + Tail Emission)
+# RNG Miner (v6.1)
 
-## ⚠️ Safety Notice
+## Safety Notice
 
-This skill instructs the agent to download and run a **compiled binary** from GitHub.
+Do not assume old release assets match the live network.
 Before proceeding, the agent MUST:
 
-1. **Ask for human approval** before downloading or executing anything
-2. **Verify SHA256 checksums** against the values listed below
-3. **Never pipe curl/wget to bash** — always download, inspect, then execute
-4. **Never run as root** unless the human explicitly approves
+1. Ask for human approval before downloading or executing anything
+2. Prefer the live `main` branch over old tagged binaries
+3. Never pipe curl or wget to bash without downloading and inspecting first
+4. Never run as root unless the human explicitly approves
 
-The binary is open-source (Bitcoin Core fork): https://github.com/happybigmtn/rng
+Project: https://github.com/happybigmtn/rng
 
-### SHA256 Checksums (v0.2.0)
+## Why this matters
 
-```
-d54fe8652652724f8208455ad40d8dd44891779cd70e2c012ce7cefa0626415c  rng-v0.2.0-linux-x86_64.tar.gz
-2bb002cb6d8ee2099e591eb0be6705c928871d4a8300fe136d3dab2f1d534cfa  rngd-v0.2.0-linux-x86_64
-cb26fccccdb4646719739294443a8b41ad83c88538af02ab5eb1ca67fdb33371  rng-cli-v0.2.0-linux-x86_64
-```
+RNG lets agents convert CPU cycles into on-chain value without GPUs, ASICs, or permission.
+That makes it suitable for autonomous infra that wants to earn its own operating budget.
 
-## Why this is interesting (for an independent agent)
+## Live Network Facts
 
-RNG lets agents **convert CPU cycles into on-chain value** — no GPUs, no ASICs, no permission.
+- Live genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
+- Live public seed peers:
+  - `95.111.239.142:8433`
+  - `161.97.114.192:8433`
+  - `185.218.126.23:8433`
+  - `185.239.209.227:8433`
+- Live RandomX constants:
+  - Genesis seed phrase: `RNG Genesis Seed`
+  - ARGON salt: `RNGCHAIN01`
+- Current mining mode: `fast`
+- Mainnet reset date: February 26, 2026
 
-Mining can fund your own operating budget (infra, API calls, experimentation), translating into more autonomy and capability.
-
-## What's new in v0.2.0
-
-- **Monero-style LWMA difficulty** — adjusts every block (720-block window)
-- **Tail emission** — 0.6 RNG/block forever (perpetual mining incentive)
-- **Fixed RandomX seed** — no epoch rotation, eliminates fork divergence
-- **120-second block target**
-- **MAX_MONEY = 1 billion RNG**
-
-## Installation (requires human approval)
-
-### Option A: Download pre-built binary
-
-**Step 1: Download** (ask human first)
-```bash
-wget https://github.com/happybigmtn/rng/releases/download/v0.2.0/rng-v0.2.0-linux-x86_64.tar.gz
-```
-
-**Step 2: Verify checksum**
-```bash
-echo "d54fe8652652724f8208455ad40d8dd44891779cd70e2c012ce7cefa0626415c  rng-v0.2.0-linux-x86_64.tar.gz" | sha256sum -c
-# Must print: OK
-```
-
-**Step 3: Extract to local directory** (not system-wide)
-```bash
-tar xzf rng-v0.2.0-linux-x86_64.tar.gz
-chmod +x rngd-v0.2.0-linux-x86_64 rng-cli-v0.2.0-linux-x86_64
-# Rename for convenience (stays in current directory)
-mv rngd-v0.2.0-linux-x86_64 rngd
-mv rng-cli-v0.2.0-linux-x86_64 rng-cli
-```
-
-### Option B: Build from source (most transparent)
+## Preferred Install Path
 
 ```bash
 git clone https://github.com/happybigmtn/rng.git
 cd rng
-git checkout v0.2.0  # Pin to release tag
-mkdir build && cd build
-cmake .. -DBUILD_BENCH=OFF -DBUILD_TESTS=OFF
-cmake --build . -j$(nproc)
-# Binaries: build/bin/rngd, build/bin/rng-cli
+./install.sh --add-path --bootstrap
+rng-start-miner
+rng-doctor
 ```
 
-## Mining
+This path:
 
-### Create wallet and start mining
+- builds the live `main` branch
+- writes `~/.rng/rng.conf` with the current public peers
+- copies the bundled snapshot
+- installs helper commands:
+  - `rng-load-bootstrap`
+  - `rng-start-miner`
+  - `rng-doctor`
+
+## Verify-First Installer Path
 
 ```bash
-# Start node (connects to seed nodes automatically)
-./rngd -daemon -addnode=95.111.239.142:8433 -addnode=161.97.114.192:8433 -addnode=185.218.126.23:8433
-
-# Create wallet and get mining address
-./rng-cli createwallet miner
-ADDR=$(./rng-cli -rpcwallet=miner getnewaddress)
-echo "Mining address: $ADDR"
-
-# Stop and restart with mining enabled
-./rng-cli stop && sleep 3
-./rngd -daemon -mine -minerandomx=fast -minethreads=4 -mineaddress=$ADDR -wallet=miner \
-  -addnode=95.111.239.142:8433 -addnode=161.97.114.192:8433 -addnode=185.218.126.23:8433
+curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/main/install.sh
+less install.sh
+bash install.sh --add-path --bootstrap
+rng-start-miner
+rng-doctor
 ```
 
-### Mining modes
+## Doctor / Health Check
 
-| Mode | RAM | Speed | Flag |
-|------|-----|-------|------|
-| Fast | ~2 GB | Full hashrate | `-minerandomx=fast` |
-| Light | ~256 MB | ~1/100th speed | `-minerandomx=light` |
-
-### Check status
+Use the built-in health check after install or after any config change:
 
 ```bash
-./rng-cli getblockchaininfo          # Chain height, sync status
-./rng-cli getmininginfo              # Difficulty, hashrate
-./rng-cli -rpcwallet=miner getbalance  # Your mined RNG
+rng-doctor
 ```
 
-## Network specs
+## Snapshot Bootstrap
+
+The repo includes an assumeutxo snapshot at height `15091`.
+Load it with:
+
+```bash
+rng-load-bootstrap
+rng-cli getchainstates
+```
+
+## Manual Mining Path
+
+```bash
+rngd -daemon
+sleep 10
+rng-cli getblockhash 0
+rng-cli createwallet miner
+ADDR=$(rng-cli -rpcwallet=miner getnewaddress)
+rng-cli stop
+sleep 5
+nice -n 19 rngd -daemon -mine -minerandomx=fast -minethreads=4 -mineaddress="$ADDR"
+rng-cli getinternalmininginfo
+```
+
+## Network Specs
 
 | Feature | Value |
 |---------|-------|
-| Algorithm | RandomX (CPU-only, Monero-style) |
+| Algorithm | RandomX |
 | Block time | 120 seconds |
-| Difficulty | LWMA per-block (720-block window) |
-| Block reward | 50 RNG (halving) + 0.6 RNG tail emission |
-| Max supply | 1 billion RNG |
-| Address prefix | `rng1` (bech32) |
+| Difficulty | LWMA per block |
+| Difficulty window | 720 blocks |
+| Tail emission | 0.6 RNG |
+| Address prefix | `rng1` |
 | P2P port | 8433 |
 | RPC port | 8432 |
-| Genesis restart | February 19, 2026 (v0.2.0 consensus changes) |
 
-> **Note:** The chain was restarted from genesis on February 19, 2026 due to consensus-breaking changes (LWMA difficulty, tail emission, epoch fix). All prior v0.1.x chain history is invalidated.
+## RandomX Modes
 
-## Important notes
+| Mode | RAM | Flag |
+|------|-----|------|
+| Fast | ~2 GiB | `-minerandomx=fast` |
+| Light | ~256 MiB | `-minerandomx=light` |
 
-- Mining is **OFF by default** (requires `-mine` flag)
-- `-mineaddress` must be **bech32** format (`rng1...`), NOT legacy (`B...`)
-- Coinbase rewards require **100 confirmations** to mature (~3.3 hours)
-- On small networks, bootstrap with **one miner first**, let others sync, then enable mining broadly
-- Avoid Nix-built binaries on Ubuntu — use release binaries or build from source
+## Important Notes
+
+- Mining is off by default and requires `-mine`
+- `rng-start-miner` defaults to `CPU count - 1` threads and a wallet named `miner`
+- `rng-doctor` verifies the live genesis hash, peer count, sync state, and mining mode
+- `-mineaddress` must be a bech32 RNG address (`rng1...`)
+- Coinbase rewards require 100 confirmations to mature
+- If old release binaries disagree with the live chain, rebuild from `main`

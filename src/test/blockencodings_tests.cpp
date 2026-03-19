@@ -55,7 +55,7 @@ static CBlock BuildBlockTestCase(FastRandomContext& ctx) {
     assert(!mutated);
 
     // Use genesis seed hash for RandomX mining (isolated test block)
-    uint256 seed_hash = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
     while (true) {
         uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
         if (CheckProofOfWork(pow_hash, block.nBits, Params().GetConsensus())) {
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     assert(!mutated);
 
     // Use genesis seed hash for RandomX mining (isolated test block)
-    uint256 seed_hash = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
     while (true) {
         uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
         if (CheckProofOfWork(pow_hash, block.nBits, Params().GetConsensus())) {

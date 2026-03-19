@@ -1,113 +1,95 @@
-# RNG: Changes from Bitcoin Core v29
+# RNG: Changes From Bitcoin Core v29
 
-This document lists every modification made to Bitcoin Core to create RNG.
-Full transparency. No hidden changes. Verify everything yourself.
+This document describes the live RNG mainnet parameters as of March 19, 2026.
 
 ## Repository
 
-- **Base:** Bitcoin Core v29.0
-- **Fork date:** January 30, 2026
-- **Commit history:** Single squashed commit for clean start
+- Base: Bitcoin Core v29.0
+- Mainnet binary names: `rngd`, `rng-cli`
+- Mainnet default address prefix: `rng1`
+- Mainnet P2P port: `8433`
 
 ## Consensus Changes
 
-### 1. Block Time (60 seconds instead of 10 minutes)
+### 1. Proof Of Work
 
-**File:** `src/kernel/chainparams.cpp`
-```cpp
-// Before (Bitcoin)
-consensus.nPowTargetSpacing = 10 * 60; // 10 minutes
+RNG replaces Bitcoin's SHA256d proof of work with RandomX.
 
-// After (RNG)
-consensus.nPowTargetSpacing = 60; // 60 seconds
-```
+- Algorithm: RandomX
+- Target block interval: 120 seconds
+- Difficulty retarget: every block
+- Mainnet difficulty window: 720 blocks
+- Mainnet timestamp cut: 60 timestamps from each side of the sorted window
+- Live mainnet RandomX constants:
+  - Genesis seed phrase: `RNG Genesis Seed`
+  - ARGON salt: `RNGCHAIN01`
+  - Seed policy: fixed genesis seed at all heights
 
-### 2. Difficulty Adjustment Window (1 hour instead of 2 weeks)
+### 2. Fast Bootstrap Snapshot
 
-**File:** `src/kernel/chainparams.cpp`
-```cpp
-// Before (Bitcoin)
-consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // 2 weeks
+The repo now ships a supported assumeutxo snapshot for fast first sync:
 
-// After (RNG)
-consensus.nPowTargetTimespan = 60 * 60; // 1 hour (60 blocks)
-```
+- Snapshot height: `15091`
+- Snapshot base hash: `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb`
+- Snapshot txoutset hash: `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393`
 
-### 3. Proof of Work Algorithm (RandomX instead of SHA256)
+This lets a new node load a verified UTXO set with `loadtxoutset` and continue
+syncing near the tip instead of validating from height `0`.
 
-**Files:** 
-- `src/crypto/randomx_hash.cpp` (new)
-- `src/crypto/randomx_hash.h` (new)
-- `src/pow.cpp` (modified)
-- `cmake/randomx.cmake` (new)
+The repo also includes two setup helpers for the live network:
 
-RandomX is CPU-friendly, ASIC-resistant. Same algorithm used by Monero.
-Source: https://github.com/tevador/RandomX (MIT license)
+- `rng-load-bootstrap`
+- `rng-start-miner`
 
-### 4. Genesis Block
+Excessive per-block LWMA sync logging was also removed so fresh nodes do not flood
+`debug.log` during initial sync.
 
-**File:** `src/kernel/chainparams.cpp`
+### 3. Genesis Block
 
-- **Timestamp:** 1738195200 (January 30, 2026)
-- **Message:** "01100110 01110010 01100101 01100101"
-- **Reward:** 50 BTC (same as Bitcoin)
+- Genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
+- Coinbase message: `Life is a random number generator`
+- Genesis output: `OP_RETURN` commitment, making the genesis reward unspendable
+- Mainnet reset: February 26, 2026
 
-### 5. Network Magic Bytes
+### 4. Monetary Policy
 
-**File:** `src/kernel/chainparams.cpp`
-```cpp
-// Mainnet
-pchMessageStart[0] = 0xb0;
-pchMessageStart[1] = 0x7c;
-pchMessageStart[2] = 0x01;
-pchMessageStart[3] = 0x0e;
-```
+- Subsidy halving interval: `2,100,000` blocks
+- Tail emission: `0.6 RNG`
+- Smallest unit: `1 RNG = 100,000,000 roshi`
 
-### 6. Address Prefixes
+### 5. Script And Deployment Policy
 
-**File:** `src/kernel/chainparams.cpp`
-- Mainnet: `rng1` (bech32)
-- Testnet: `trng1` (bech32)
-- Regtest: `bcrt1` (unchanged)
+- BIP34, BIP65, BIP66, CSV, SegWit, and Taproot are active from genesis
+- `generatetoaddress` is intentionally available on mainnet
 
-## Branding Changes (Non-Consensus)
+## Branding And Operational Changes
 
-| File | Change |
-|------|--------|
-| `CMakeLists.txt` | CLIENT_NAME: "Bitcoin Core" → "RNG Core" |
-| `src/clientversion.cpp` | UA_NAME: "Satoshi" → "RNG" |
-| `src/qt/bitcoinunits.cpp` | Unit names: BTC → RNG |
+- Client version string: `/RNG:3.0.0/`
+- Public default datadir: `~/.rng`
+- Public config file: `~/.rng/rng.conf`
+- Public seed peers currently come from the live Contabo fleet
 
-## What Was NOT Changed
+## What Was Not Changed
 
-- **Cryptography:** Same secp256k1, same ECDSA signatures
-- **Transaction format:** Identical to Bitcoin
-- **Script system:** Same opcodes, same limits
-- **Block structure:** Same merkle tree, same header format
-- **Wallet format:** Same BIP32/39/44 derivation
-- **P2P protocol:** Same messages, different magic bytes
-- **RPC interface:** Same commands, same parameters
+- secp256k1 cryptography
+- Transaction and block structure
+- UTXO model
+- Wallet model and key formats
+- Bitcoin-derived RPC surface, except where RNG explicitly extends mining behavior
 
 ## Verification
 
 ```bash
-# Clone and verify yourself
-git clone https://github.com/happybigmtn/rng
+git clone https://github.com/happybigmtn/rng.git
 cd rng
-
-# Compare against Bitcoin Core v29
-git remote add bitcoin https://github.com/bitcoin/bitcoin
-git fetch bitcoin v29.0
-
-# See exact differences
-git diff bitcoin/v29.0..HEAD --stat
+./install.sh
+rngd -daemon
+sleep 10
+rng-cli getblockhash 0
 ```
 
-## License
+Expected genesis hash:
 
-Same as Bitcoin Core: MIT License
-
-## Security
-
-If you find a vulnerability, please report responsibly.
-See SECURITY.md for details.
+```text
+83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4
+```

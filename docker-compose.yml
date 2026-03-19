@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   rng:
-    image: ghcr.io/happybigmtn/rng:v1.0.0
+    build: .
+    image: rng:local
     container_name: rng
     restart: unless-stopped
     
@@ -37,25 +36,23 @@ volumes:
 # Usage:
 # ------
 # Start:
-#   docker-compose up -d
+#   docker compose up -d --build
 #
 # Check status:
-#   docker-compose exec rng rng-cli getblockchaininfo
+#   docker compose exec rng rng-cli getblockhash 0
+#   docker compose exec rng rng-cli getconnectioncount
 #
 # Create wallet:
-#   docker-compose exec rng rng-cli createwallet "miner"
+#   docker compose exec rng rng-cli createwallet "miner"
 #
 # Get address:
-#   docker-compose exec rng rng-cli -rpcwallet=miner getnewaddress
-#
-# Mine a block:
-#   docker-compose exec rng rng-cli -rpcwallet=miner generatetoaddress 1 "YOUR_ADDRESS"
+#   docker compose exec rng rng-cli -rpcwallet=miner getnewaddress
 #
 # View logs:
-#   docker-compose logs -f rng
+#   docker compose logs -f rng
 #
 # Stop:
-#   docker-compose down
+#   docker compose down
 #
 # Stop and remove data:
-#   docker-compose down -v
+#   docker compose down -v

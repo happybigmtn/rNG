@@ -20,13 +20,8 @@
  * - 2080 MiB dataset for fast mode (mining)
  * - 256 MiB cache for light mode (validation)
  *
- * RNG currently uses the default RandomX ARGON_SALT ("RandomX\x03").
- *
- * Seed hash rotation:
- * - Epoch: 2048 blocks (~34 hours at 60s blocks)
- * - Lag: 64 blocks (~1 hour) for pre-computation
- * - Key changes at: block_height % 2048 == 64
- * - Seed block: floor((block_height - 64 - 1) / 2048) * 2048
+ * RNG mainnet currently uses RandomX ARGON_SALT ("RNGCHAIN01")
+ * and a fixed genesis seed phrase for all block heights.
  */
 
 // Forward declarations from randomx.h
@@ -197,7 +192,7 @@ uint256 RandomXHashLight(std::span<const unsigned char> data, const uint256& see
 
 /**
  * Calculate the seed height for a given block height.
- * Seed rotates every 2048 blocks with a 64-block lag.
+ * RNG mainnet uses a fixed genesis seed, so this always returns 0.
  *
  * @param block_height Current block height
  * @return             Height of the block whose hash is used as seed
@@ -205,12 +200,12 @@ uint256 RandomXHashLight(std::span<const unsigned char> data, const uint256& see
 uint64_t GetRandomXSeedHeight(uint64_t block_height);
 
 /**
- * The epoch length for seed hash rotation (blocks).
+ * Historical epoch length constant retained for compatibility/tests.
  */
 constexpr uint64_t RANDOMX_EPOCH_LENGTH = 2048;
 
 /**
- * The lag before a new seed becomes active (blocks).
+ * Historical epoch lag constant retained for compatibility/tests.
  */
 constexpr uint64_t RANDOMX_EPOCH_LAG = 64;
 

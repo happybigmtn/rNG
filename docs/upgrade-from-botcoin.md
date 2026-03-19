@@ -45,12 +45,13 @@ botcoin-cli -rpcwallet=<wallet_name> dumpwallet "$HOME/rng-backup-$TS/<wallet_na
 
 ## 3) Install RNG binaries and config
 
-Use `rngd` / `rng-cli` and `~/.rng/rng.conf`. Example seed peers:
+Use `rngd` / `rng-cli` and `~/.rng/rng.conf`. Current public seed peers:
 
 ```ini
-addnode=185.218.126.23:8433
 addnode=95.111.239.142:8433
 addnode=161.97.114.192:8433
+addnode=185.218.126.23:8433
+addnode=185.239.209.227:8433
 ```
 
 ## 4) Wipe old chain state and start fresh
@@ -63,14 +64,31 @@ rm -f "$HOME/.rng/mempool.dat" "$HOME/.rng/anchors.dat"
 rngd -daemon
 ```
 
-## 5) Verify reset genesis
+## 5) Optional fast bootstrap
+
+If you cloned this repo, you can load the bundled assumeutxo snapshot before
+normal sync:
+
+```bash
+# from a repo checkout
+./scripts/load-bootstrap.sh
+
+# or after install
+rng-load-bootstrap
+rng-cli getchainstates
+```
+
+If blocks start downloading before the snapshot can load, wipe `blocks/` and
+`chainstate/` and retry on a fresh datadir.
+
+## 6) Verify reset genesis
 
 ```bash
 rng-cli getblockhash 0
 # expected: 83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4
 ```
 
-## 6) (Optional) import dumped keys
+## 7) (Optional) import dumped keys
 
 If you exported wallet dumps:
 
@@ -81,6 +99,15 @@ rng-cli -rpcwallet=restored importwallet "$HOME/rng-backup-<timestamp>/<wallet_n
 
 Imported keys do not restore old-chain balances; they restore key ownership on the
 new chain.
+
+## 8) Start mining quickly
+
+If you installed from this repo, the simplest path is:
+
+```bash
+rng-start-miner
+rng-cli getinternalmininginfo
+```
 
 ## Guardrails
 

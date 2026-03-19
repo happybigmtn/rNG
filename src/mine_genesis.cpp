@@ -13,13 +13,13 @@ extern "C" {
 #include "crypto/randomx/src/randomx.h"
 }
 
-// RNG genesis seed: SHA256("RNG Genesis Seed")
-// Precomputed: c7da9c30fb211702bf3f7e42f605f2168d131ee6fe36b9f621e4cd732464f3bd
+// Live chain genesis seed: Hash("RNG Genesis Seed")
+// Precomputed uint256 raw bytes: 7ab7582f07fce1d160661402a5263cef73c17c86aa1c81b0884ff84471b8df0b
 const uint8_t GENESIS_SEED[32] = {
-    0xc7, 0xda, 0x9c, 0x30, 0xfb, 0x21, 0x17, 0x02,
-    0xbf, 0x3f, 0x7e, 0x42, 0xf6, 0x05, 0xf2, 0x16,
-    0x8d, 0x13, 0x1e, 0xe6, 0xfe, 0x36, 0xb9, 0xf6,
-    0x21, 0xe4, 0xcd, 0x73, 0x24, 0x64, 0xf3, 0xbd
+    0x7a, 0xb7, 0x58, 0x2f, 0x07, 0xfc, 0xe1, 0xd1,
+    0x60, 0x66, 0x14, 0x02, 0xa5, 0x26, 0x3c, 0xef,
+    0x73, 0xc1, 0x7c, 0x86, 0xaa, 0x1c, 0x81, 0xb0,
+    0x88, 0x4f, 0xf8, 0x44, 0x71, 0xb8, 0xdf, 0x0b
 };
 
 // Block header structure (80 bytes)
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     uint32_t nTime = 1738195200;
 
     // Mainnet merkle root (computed from coinbase tx)
-    const char* merkle_root_hex = "90abe18522cab144a5901d694605664f7336860bd93292f161497fdf3a0c3750";
+    const char* merkle_root_hex = "b713a92ad8104e5a1650d02f96df9cb18bd6a39a222829ba4e4b5e79e4de7232";
 
     if (argc > 1) {
         // Allow specifying nBits for mainnet mining

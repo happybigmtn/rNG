@@ -1,153 +1,75 @@
 # Genesis Block Specification
 
-## Topic
-The first block in the RNG blockchain that establishes the chain's origin and initial state.
+This document reflects the live RNG mainnet chain as of March 19, 2026.
 
-## Behavioral Requirements
+## Mainnet Genesis
 
-### Genesis Block Parameters
+| Field | Value |
+|-------|-------|
+| Height | `0` |
+| Version | `0x20000000` |
+| Previous hash | `0x00...00` |
+| Timestamp message | `Life is a random number generator` |
+| Hash | `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4` |
+| Merkle root | `b713a92ad8104e5a1650d02f96df9cb18bd6a39a222829ba4e4b5e79e4de7232` |
+| Initial reward | `50 * COIN` |
+| Output type | `OP_RETURN` commitment |
 
-| Field | Value | Notes |
-|-------|-------|-------|
-| Block height | 0 | First block |
-| Version | 0x20000000 | BIP9 enabled |
-| Previous hash | 0x00...00 | 32 zero bytes |
-| Timestamp | TBD at launch | Unix timestamp |
-| Bits (difficulty) | See below | Initial target |
-| Nonce | Computed | Valid RandomX proof |
+## RandomX Parameters
 
-### Initial Difficulty Target
+The live chain uses RandomX for proof of work.
 
-**Target hardware**: Standard cloud VMs (4-8 cores, 16GB RAM)
+Externally verifiable mainnet constants:
 
-| Scenario | Target Hashrate | Difficulty |
-|----------|-----------------|------------|
-| Single VM mining | ~3,000 H/s | Very low |
-| Small launch network | ~50,000 H/s | Low |
-| Moderate network | ~500,000 H/s | Medium |
+- Genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
+- Merkle root: `b713a92ad8104e5a1650d02f96df9cb18bd6a39a222829ba4e4b5e79e4de7232`
+- RandomX genesis seed phrase: `RNG Genesis Seed`
+- RandomX ARGON salt: `RNGCHAIN01`
+- RandomX seed policy: fixed genesis seed for all heights
+- Bundled assumeutxo snapshot height: `15091`
 
-**Recommended initial difficulty**: Target **~10 blocks per hour** with a single 8-core VM.
+## Difficulty Parameters
 
-With 8 cores at ~600 H/s/core = ~4,800 H/s total:
-- 60 second target = need hash probability ~1/4,800 per attempt
-- Initial bits: `0x1f00ffff` (very low, adjusts quickly)
+Mainnet currently uses:
 
-The difficulty will auto-adjust after 2016 blocks based on actual hashrate.
+- Target block interval: `120` seconds
+- Per-block retargeting
+- Difficulty window: `720` blocks
+- Timestamp cut: `60`
 
-### Coinbase Transaction
+## Coinbase Structure
 
-```
-Version: 1
-Inputs: 1
-  - Previous output: 0x00...00 (null)
-  - Previous index: 0xFFFFFFFF
-  - Script: <height=0> "The Molty Manifesto - 2026: The first currency for AI agents"
-  - Sequence: 0xFFFFFFFF
-Outputs: 1
-  - Value: 50 BTC (5,000,000,000 roshis)
-  - Script: OP_RETURN <pubkey_hash>
-Locktime: 0
-```
+The genesis coinbase:
 
-**Coinbase message breakdown**:
-- `04` - push 4 bytes (height encoding)
-- `00000000` - height 0 (little-endian)
-- `4c` - push follows
-- `"The Molty Manifesto - 2026: The first currency for AI agents"`
+- uses the standard null prevout
+- embeds the message `Life is a random number generator`
+- creates a single `OP_RETURN` output
 
-### Genesis Output (Unspendable)
+The output is intentionally unspendable.
 
-The genesis coinbase output is **provably unspendable** using OP_RETURN:
-```
-OP_RETURN <founder_pubkey_commitment>
+## Reset History
+
+RNG mainnet was restarted from genesis on February 26, 2026.
+
+Operational checks for any new node:
+
+```bash
+rngd -daemon
+sleep 10
+rng-cli getblockhash 0
 ```
 
-This:
-- Makes genesis reward unspendable (Bitcoin convention)
-- Commits to a founder identity without revealing it
-- Total supply calculation: 21M minus 50 BTC genesis
+Expected result:
 
-### Genesis Block Hash Computation
-
-The genesis block hash is computed as:
-```
-genesis_hash = RandomX(block_header, seed_hash)
+```text
+83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4
 ```
 
-Where `seed_hash` for genesis is:
-```
-seed_hash = SHA256("RNG Genesis Seed")
-```
+## Supported Snapshot
 
-**Note**: Genesis is the only block where seed_hash is not derived from a previous block.
-
-### Merkle Root
-
-With single coinbase transaction:
-```
-merkle_root = SHA256d(coinbase_txid)
-```
-
-### Genesis Timestamp
-
-Requirements:
-- Must be in the past at launch time
-- Should reference a verifiable event (news headline, block hash)
-- Prevents claim of pre-mining
-
-**Recommendation**: Use Bitcoin block hash at specific height as timestamp proof:
-```
-"BTC block 900000: <hash_prefix>"
-```
-
-### Chainparams Integration
-
-```cpp
-// genesis block construction
-genesis = CreateGenesisBlock(
-    nTime,              // timestamp
-    nNonce,             // RandomX-valid nonce
-    nBits,              // initial difficulty
-    nVersion,           // 0x20000000
-    genesisReward       // 50 * COIN
-);
-
-consensus.hashGenesisBlock = genesis.GetHash();
-assert(consensus.hashGenesisBlock == uint256S("0x<computed_hash>"));
-assert(genesis.hashMerkleRoot == uint256S("0x<computed_merkle>"));
-```
-
-### Network-Specific Genesis
-
-| Network | Genesis Hash | Timestamp | Notes |
-|---------|--------------|-----------|-------|
-| Mainnet | TBD | Launch time | Production chain |
-| Testnet | TBD | Pre-launch | Public testing |
-| Regtest | Computed | Arbitrary | Local development |
-
-Regtest allows instant genesis computation with minimal difficulty.
-
-## Acceptance Criteria
-
-1. [ ] Genesis block has height 0
-2. [ ] Genesis previous hash is 32 zero bytes
-3. [ ] Genesis validates with RandomX proof-of-work
-4. [ ] Genesis coinbase contains "Molty Manifesto" message
-5. [ ] Genesis coinbase includes height 0 per BIP34
-6. [ ] Genesis reward is exactly 50 BTC
-7. [ ] Genesis output is provably unspendable (OP_RETURN)
-8. [ ] Genesis timestamp is reasonable
-9. [ ] All nodes produce identical genesis hash
-10. [ ] Genesis merkle root matches coinbase txid
-11. [ ] Chain builds correctly starting from genesis
-12. [ ] Mainnet/testnet/regtest have different genesis blocks
-
-## Test Scenarios
-
-- Start fresh node, verify genesis present at height 0
-- Verify genesis hash matches hardcoded constant
-- Parse genesis coinbase, verify message present
-- Attempt to spend genesis output, verify rejection
-- Compute genesis hash independently, verify match
-- Start two nodes, verify identical genesis
-- Verify genesis coinbase in `getrawtransaction` output
+| Field | Value |
+|-------|-------|
+| Height | `15091` |
+| Base hash | `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb` |
+| Serialized UTXO hash | `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393` |
+| Chain tx count | `15107` |

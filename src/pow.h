@@ -9,6 +9,7 @@
 #include <consensus/params.h>
 
 #include <cstdint>
+#include <string_view>
 
 class CBlockHeader;
 class CBlockIndex;
@@ -36,11 +37,13 @@ bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Par
 /**
  * Get the RandomX seed hash for a given block index.
  * The seed hash is derived from the block hash at the seed height.
- * For genesis block (height 0), uses SHA256("RNG Genesis Seed").
+ * For genesis block (height 0), uses Hash(kRandomXGenesisSeedPhrase).
  *
  * @param pindex Block index to get seed hash for
  * @return       The seed hash for RandomX
  */
+inline constexpr std::string_view kRandomXGenesisSeedPhrase{"RNG Genesis Seed"};
+
 uint256 GetRandomXSeedHash(const CBlockIndex* pindex);
 
 /**

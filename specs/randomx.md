@@ -22,28 +22,23 @@ RNG uses **RandomX** instead of Bitcoin's SHA-256d because:
 
 **Note**: These are the default RandomX parameters. Fast mode is required for competitive mining; light mode is sufficient for block validation.
 
-### Seed Key Rotation
-RandomX requires a "key" to initialize its dataset. This key MUST:
-- Change periodically (not be static)
-- Not be miner-selectable (to prevent ASIC optimization)
-- Derive from blockchain data
+### Seed Policy
+RNG mainnet currently uses a **fixed genesis seed** for all block heights.
 
-**RNG seed rotation (following Monero pattern):**
-- Epoch: **2048 blocks** (~34 hours at 60s blocks)
-- Lag: **64 blocks** (~1 hour) - allows nodes to pre-compute next dataset
-- Key changes when: `block_height % 2048 == 64`
-- Seed block: `seed_height = floor((block_height - 64 - 1) / 2048) * 2048`
-- Seed hash: Hash of the block header at seed_height
+**Live policy:**
+- Seed phrase: **`RNG Genesis Seed`**
+- Seed hash: `Hash("RNG Genesis Seed")` (Bitcoin-style double-SHA256)
+- Seed height: always `0`
+
+This preserves compatibility with the deployed v3.0.0 chain.
 
 ### RandomX Configuration
 
-RNG currently uses **default RandomX parameters**:
+RNG mainnet currently uses a **custom deployed salt**:
 
 | Parameter | Default | RNG | Purpose |
 |-----------|---------|---------|---------|
-| `RANDOMX_ARGON_SALT` | `"RandomX\x03"` | `"RandomX\x03"` | Standard RandomX salt |
-
-All parameters remain at RandomX defaults to preserve security properties validated by audits.
+| `RANDOMX_ARGON_SALT` | `"RandomX\x03"` | `"RNGCHAIN01"` | Mainnet compatibility salt |
 
 ### Performance Expectations
 
@@ -89,10 +84,10 @@ Based on official RandomX benchmarks (fast mode):
 4. [ ] Invalid RandomX proof-of-work is rejected
 5. [ ] Light mode validation works with 256 MiB memory
 6. [ ] Fast mode mining works with 2080 MiB memory
-7. [ ] Seed hash rotates correctly every 2048 blocks with 64-block lag
+7. [ ] Seed hash remains fixed at the genesis seed across all heights
 8. [ ] Dataset regenerates when seed hash changes
 9. [ ] Mining RPC produces valid RandomX proofs
-10. [ ] ARGON_SALT is set to `"RandomX\x03"` across builds
+10. [ ] ARGON_SALT is set to `"RNGCHAIN01"` across builds
 11. [ ] Difficulty adjustment works correctly with RandomX
 12. [ ] CPU mining achieves expected hashrate (~500-700 H/s per core)
 
@@ -100,12 +95,12 @@ Based on official RandomX benchmarks (fast mode):
 
 - Mine block with known seed, verify RandomX hash meets target
 - Submit block with invalid hash, verify rejection
-- Mine across seed rotation boundary (block 2048+64), verify dataset updates
+- Verify headers and full blocks remain valid across arbitrary heights with the fixed seed policy
 - Benchmark mining hashrate against expected values
 - Verify light mode validation on memory-constrained system (256 MiB)
 - Verify fast mode requires ~2 GiB memory allocation
 - Test with different CPU architectures (x86-64, ARM64 if available)
-- Verify RNG blocks rejected by Monero nodes (different salt)
+- Verify RNG blocks rejected by standard RandomX configurations (different salt)
 
 ## References
 

@@ -97,7 +97,7 @@ public:
         m_chain_type = ChainType::MAIN;
         consensus.signet_blocks = false;
         consensus.signet_challenge.clear();
-        consensus.nSubsidyHalvingInterval = 2100000; // RNG: 2.1M blocks (~4 years at 60s blocks)
+        consensus.nSubsidyHalvingInterval = 2100000; // RNG: 2.1M-block halving interval
         // RNG: No script flag exceptions - clean chain from genesis
         consensus.BIP34Height = 0; // RNG: All BIPs active from genesis
         consensus.BIP34Hash = uint256{}; // Will be set to genesis hash
@@ -156,15 +156,9 @@ public:
         assert(consensus.hashGenesisBlock == uint256{"83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4"});
         assert(genesis.hashMerkleRoot == uint256{"b713a92ad8104e5a1650d02f96df9cb18bd6a39a222829ba4e4b5e79e4de7232"});
 
-        // RNG seeds (canonical Contabo fleet)
-        vSeeds.emplace_back("95.111.227.14");
-        vSeeds.emplace_back("95.111.229.108");
+        // Public IPv4 seeds currently serving the live chain.
         vSeeds.emplace_back("95.111.239.142");
-        vSeeds.emplace_back("161.97.83.147");
-        vSeeds.emplace_back("161.97.97.83");
         vSeeds.emplace_back("161.97.114.192");
-        vSeeds.emplace_back("161.97.117.0");
-        vSeeds.emplace_back("194.163.144.177");
         vSeeds.emplace_back("185.218.126.23");
         vSeeds.emplace_back("185.239.209.227");
 
@@ -182,14 +176,22 @@ public:
         fDefaultConsistencyChecks = false;
         m_is_mockable_chain = false;
 
-        // RNG: No assumeutxo data yet for new chain
-        m_assumeutxo_data = {};
+        // Supported fast-bootstrap snapshot exported from the live chain on
+        // 2026-03-19. Nodes can load bootstrap/rng-mainnet-15091.utxo with
+        // loadtxoutset and continue syncing from this base height.
+        m_assumeutxo_data = {
+            AssumeutxoData{
+                .height = 15091,
+                .hash_serialized = AssumeutxoHash{uint256{"9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393"}},
+                .m_chain_tx_count = 15107,
+                .blockhash = uint256{"2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"},
+            },
+        };
 
-        // RNG: New chain, no transaction data yet
         chainTxData = ChainTxData{
-            .nTime    = 0,
-            .tx_count = 0,
-            .dTxRate  = 0.0,
+            .nTime    = 1773948965,
+            .tx_count = 15107,
+            .dTxRate  = 0.0084,
         };
 
         // RNG: Default header sync params

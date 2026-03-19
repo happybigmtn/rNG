@@ -15,8 +15,6 @@
 #include <streams.h>
 #include <uint256.h>
 #include <util/check.h>
-#include <logging.h>
-
 #include <algorithm>
 #include <vector>
 
@@ -122,14 +120,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     if (bnNew > bnPowLimit) bnNew = bnPowLimit;
     if (bnNew == 0) bnNew = 1;
 
-    unsigned int result = bnNew.GetCompact();
-
-    LogInfo("LWMA: length=%d cut=[%d,%d) time_span=%d total_work=%s next_diff=%s target=%s nBits=0x%08x\n",
-             length, cut_begin, cut_end, time_span,
-             total_work.GetHex(), next_difficulty.GetHex(),
-             bnNew.GetHex(), result);
-
-    return result;
+    return bnNew.GetCompact();
 }
 
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)
@@ -219,8 +210,8 @@ bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Par
 uint256 GetRandomXSeedHash(const CBlockIndex* pindex)
 {
     if (!pindex) {
-        // Genesis seed: SHA256("RNG Genesis Seed")
-        return Hash(std::string("RNG Genesis Seed"));
+        // Consensus constant: changing this phrase would fork the live chain.
+        return Hash(std::string(kRandomXGenesisSeedPhrase));
     }
 
     // Get seed height for this block
@@ -228,7 +219,7 @@ uint256 GetRandomXSeedHash(const CBlockIndex* pindex)
 
     if (seed_height == 0) {
         // Use genesis seed
-        return Hash(std::string("RNG Genesis Seed"));
+        return Hash(std::string(kRandomXGenesisSeedPhrase));
     }
 
     // Navigate to the seed block
@@ -239,7 +230,7 @@ uint256 GetRandomXSeedHash(const CBlockIndex* pindex)
 
     if (!seed_block || seed_block->nHeight != static_cast<int>(seed_height)) {
         // Shouldn't happen, but fallback to genesis seed
-        return Hash(std::string("RNG Genesis Seed"));
+        return Hash(std::string(kRandomXGenesisSeedPhrase));
     }
 
     // Return the block hash at seed height
@@ -267,7 +258,7 @@ bool CheckBlockProofOfWork(const CBlockHeader& header, const CBlockIndex* pindex
         uint64_t seed_height = GetRandomXSeedHeight(block_height);
 
         if (seed_height == 0) {
-            seed_hash = Hash(std::string("RNG Genesis Seed"));
+            seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
         } else {
             const CBlockIndex* seed_block = pindexPrev;
             while (seed_block && seed_block->nHeight > static_cast<int>(seed_height)) {
@@ -276,12 +267,12 @@ bool CheckBlockProofOfWork(const CBlockHeader& header, const CBlockIndex* pindex
             if (seed_block && seed_block->nHeight == static_cast<int>(seed_height)) {
                 seed_hash = seed_block->GetBlockHash();
             } else {
-                seed_hash = Hash(std::string("RNG Genesis Seed"));
+                seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
             }
         }
     } else {
         // Genesis block
-        seed_hash = Hash(std::string("RNG Genesis Seed"));
+        seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
     }
 
     // Compute RandomX PoW hash

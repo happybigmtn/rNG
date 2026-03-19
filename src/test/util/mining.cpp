@@ -74,7 +74,7 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
         uint256 seed_hash;
         if (seed_height == 0) {
             // Use genesis seed
-            seed_hash = Hash(std::string("RNG Genesis Seed"));
+            seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
         } else {
             // Use block hash at seed_height
             auto it = block_hashes.find(seed_height);
@@ -82,7 +82,7 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
                 seed_hash = it->second;
             } else {
                 // Fallback to genesis seed (shouldn't happen in normal test scenarios)
-                seed_hash = Hash(std::string("RNG Genesis Seed"));
+                seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
             }
         }
 

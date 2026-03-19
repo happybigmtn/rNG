@@ -1,49 +1,60 @@
 #!/usr/bin/env bash
-# RNG Universal Installer
-# Works on: Linux (x86_64, arm64), macOS (Intel, Apple Silicon), Windows (WSL)
-# Usage: curl -fsSL https://raw.githubusercontent.com/happybigmtn/rng/main/install.sh | bash
+# RNG installer
+# Works on Linux, macOS, and WSL.
+# Usage: download and inspect install.sh, then run it locally
 
-set -e
+set -euo pipefail
 
-VERSION="${RNG_VERSION:-v2.1.0}"
+RELEASE_VERSION="${RNG_VERSION:-}"
+SOURCE_REF="${RNG_SOURCE_REF:-main}"
 INSTALL_DIR="${RNG_INSTALL_DIR:-$HOME/.local/bin}"
 DATA_DIR="${RNG_DATA_DIR:-$HOME/.rng}"
 REPO="happybigmtn/rng"
 GITHUB_URL="https://github.com/$REPO"
+BOOTSTRAP_BASE_HASH="2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"
+TEMP_SOURCE_ROOT=""
+TEMP_RELEASE_ROOT=""
+SOURCE_DIR=""
+HELPER_SCRIPTS_INSTALLED=0
 
-# Flags (safe defaults)
+PUBLIC_SEEDS=(
+    "95.111.239.142:8433"
+    "161.97.114.192:8433"
+    "185.218.126.23:8433"
+    "185.239.209.227:8433"
+)
+
 FORCE=0
 ADD_PATH=0
 NO_VERIFY=0
 NO_CONFIG=0
+BOOTSTRAP=0
 
 usage() {
     cat <<'EOF'
-RNG Universal Installer
+RNG Installer
 
 Usage: ./install.sh [flags]
 
 Flags:
   --force       Reinstall even if rngd is already present
-  --add-path    Modify shell rc to add install dir to PATH (opt-in)
-  --no-verify   Skip checksum verification (NOT recommended)
+  --add-path    Add the install dir to PATH in your shell rc
+  --bootstrap   Load the bundled assumeutxo snapshot after install
+  --no-verify   Skip checksum verification for binary releases
   --no-config   Do not create ~/.rng/rng.conf
   -h, --help    Show this help
 
 Environment variables:
-  RNG_VERSION      Version to install (default: v2.1.0)
+  RNG_VERSION      Optional tagged release to install from GitHub releases
+  RNG_SOURCE_REF   Git ref to build from source (default: main)
   RNG_INSTALL_DIR  Install directory (default: ~/.local/bin)
   RNG_DATA_DIR     Data directory (default: ~/.rng)
 
 Examples:
-  # Quick install (verify checksums, no dotfile changes)
-  curl -fsSL .../install.sh | bash
-
-  # Install and add to PATH
   ./install.sh --add-path
-
-  # Reinstall specific version
-  RNG_VERSION=v1.0.0 ./install.sh --force
+  ./install.sh --add-path --bootstrap
+  RNG_VERSION=vX.Y.Z ./install.sh --force
+  RNG_SOURCE_REF=main ./install.sh
 EOF
 }
 
@@ -52,6 +63,7 @@ parse_args() {
         case "$1" in
             --force) FORCE=1 ;;
             --add-path) ADD_PATH=1 ;;
+            --bootstrap) BOOTSTRAP=1 ;;
             --no-verify) NO_VERIFY=1 ;;
             --no-config) NO_CONFIG=1 ;;
             -h|--help) usage; exit 0 ;;
@@ -61,7 +73,6 @@ parse_args() {
     done
 }
 
-# Colors
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -69,7 +80,6 @@ success() { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
-# Detect OS and architecture
 detect_platform() {
     OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
     ARCH="$(uname -m)"
@@ -97,7 +107,6 @@ detect_platform() {
     info "Detected platform: $PLATFORM"
 }
 
-# Check if binary release is available for this platform
 check_binary_available() {
     case "$PLATFORM" in
         linux-x86_64|linux-arm64|macos-x86_64|macos-arm64)
@@ -110,7 +119,6 @@ check_binary_available() {
     esac
 }
 
-# Require checksum tool unless --no-verify
 require_checksum_tool() {
     if [ "$NO_VERIFY" -eq 1 ]; then
         warn "Checksum verification disabled (--no-verify)"
@@ -122,7 +130,6 @@ require_checksum_tool() {
     error "No checksum tool found (sha256sum/shasum). Install one or rerun with --no-verify."
 }
 
-# Verify checksums (fail-closed unless --no-verify)
 verify_checksums() {
     if [ "$NO_VERIFY" -eq 1 ]; then
         warn "Skipping checksum verification"
@@ -140,16 +147,35 @@ verify_checksums() {
     success "Checksums verified"
 }
 
-# Download and install pre-built binary
+cleanup() {
+    [ -n "$TEMP_RELEASE_ROOT" ] && rm -rf "$TEMP_RELEASE_ROOT"
+    [ -n "$TEMP_SOURCE_ROOT" ] && rm -rf "$TEMP_SOURCE_ROOT"
+}
+
+trap cleanup EXIT
+
+cpu_count() {
+    nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 1
+}
+
+selected_source_ref() {
+    if [ -n "$RELEASE_VERSION" ]; then
+        printf '%s\n' "$RELEASE_VERSION"
+    else
+        printf '%s\n' "$SOURCE_REF"
+    fi
+}
+
 install_binary() {
-    info "Downloading RNG $VERSION for $PLATFORM..."
-    
-    TARBALL="rng-${VERSION}-${PLATFORM}.tar.gz"
-    URL="$GITHUB_URL/releases/download/${VERSION}/${TARBALL}"
-    
-    TMPDIR=$(mktemp -d)
-    cd "$TMPDIR"
-    
+    [ -n "$RELEASE_VERSION" ] || return 1
+    info "Downloading RNG $RELEASE_VERSION for $PLATFORM..."
+
+    TARBALL="rng-${RELEASE_VERSION}-${PLATFORM}.tar.gz"
+    URL="$GITHUB_URL/releases/download/${RELEASE_VERSION}/${TARBALL}"
+
+    TEMP_RELEASE_ROOT=$(mktemp -d)
+    cd "$TEMP_RELEASE_ROOT"
+
     if command -v curl &>/dev/null; then
         curl -fsSL -o "$TARBALL" "$URL" || return 1
     elif command -v wget &>/dev/null; then
@@ -157,29 +183,19 @@ install_binary() {
     else
         error "Neither curl nor wget found"
     fi
-    
     require_checksum_tool
-    
     tar -xzf "$TARBALL"
     cd release
-    
     verify_checksums
-    
-    # Install to user directory (no sudo needed)
+
     mkdir -p "$INSTALL_DIR"
     cp rngd rng-cli "$INSTALL_DIR/"
     chmod +x "$INSTALL_DIR/rngd" "$INSTALL_DIR/rng-cli"
-    
-    cd /
-    rm -rf "$TMPDIR"
-    
+
     return 0
 }
 
-# Build from source
-build_from_source() {
-    info "Building from source (this may take 10-15 minutes)..."
-    
+install_dependencies() {
     case "$OS" in
         linux|windows-wsl)
             if command -v apt-get &>/dev/null; then
@@ -202,41 +218,72 @@ build_from_source() {
             fi
             info "Installing dependencies via Homebrew..."
             brew install cmake boost openssl@3 libevent sqlite
-            OPENSSL_FLAG="-DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)"
             ;;
     esac
-    
-    TMPDIR=$(mktemp -d)
-    cd "$TMPDIR"
-    
-    info "Cloning repository..."
-    git clone --depth 1 "$GITHUB_URL.git" rng
-    cd rng
-    
-    info "Getting RandomX..."
-    git clone --branch v1.2.1 --depth 1 https://github.com/tevador/RandomX.git src/crypto/randomx
-    
-    info "Building..."
+}
+
+install_helper_scripts() {
+    if [ -z "$SOURCE_DIR" ] || [ ! -d "$SOURCE_DIR/scripts" ]; then
+        return
+    fi
+
+    mkdir -p "$INSTALL_DIR"
+    cp "$SOURCE_DIR/scripts/load-bootstrap.sh" "$INSTALL_DIR/rng-load-bootstrap"
+    cp "$SOURCE_DIR/scripts/start-miner.sh" "$INSTALL_DIR/rng-start-miner"
+    cp "$SOURCE_DIR/scripts/doctor.sh" "$INSTALL_DIR/rng-doctor"
+    chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" "$INSTALL_DIR/rng-doctor"
+    HELPER_SCRIPTS_INSTALLED=1
+    success "Installed helper commands rng-load-bootstrap, rng-start-miner, and rng-doctor"
+}
+
+prepare_source_tree() {
+    local source_ref
+    source_ref="$(selected_source_ref)"
+
+    if [ -f "$PWD/CMakeLists.txt" ] && [ -f "$PWD/install.sh" ] && [ -d "$PWD/src" ]; then
+        SOURCE_DIR="$PWD"
+        info "Using local source tree: $SOURCE_DIR"
+    else
+        TEMP_SOURCE_ROOT=$(mktemp -d)
+        SOURCE_DIR="$TEMP_SOURCE_ROOT/rng"
+        info "Cloning repository at $source_ref..."
+        git clone --depth 1 --branch "$source_ref" "$GITHUB_URL.git" "$SOURCE_DIR"
+    fi
+
+    if [ ! -f "$SOURCE_DIR/src/crypto/randomx/src/randomx.h" ]; then
+        info "Fetching RandomX source..."
+        rm -rf "$SOURCE_DIR/src/crypto/randomx"
+        git clone --branch v1.2.1 --depth 1 https://github.com/tevador/RandomX.git "$SOURCE_DIR/src/crypto/randomx"
+    fi
+}
+
+build_from_source() {
+    info "Building from source (this may take 10-15 minutes)..."
+    install_dependencies
+    prepare_source_tree
+
+    cd "$SOURCE_DIR"
+
+    OPENSSL_FLAG=()
+    if [ "$OS" = "macos" ]; then
+        OPENSSL_FLAG=(-DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)")
+    fi
+
     cmake -B build \
         -DBUILD_TESTING=OFF \
         -DENABLE_IPC=OFF \
         -DWITH_ZMQ=OFF \
         -DENABLE_WALLET=ON \
-        ${OPENSSL_FLAG:-}
-    
-    cmake --build build -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
-    
+        "${OPENSSL_FLAG[@]}"
+    cmake --build build -j"$(cpu_count)"
+
     mkdir -p "$INSTALL_DIR"
     cp build/bin/rngd build/bin/rng-cli "$INSTALL_DIR/"
     chmod +x "$INSTALL_DIR/rngd" "$INSTALL_DIR/rng-cli"
-    
-    cd /
-    rm -rf "$TMPDIR"
-    
+
     success "Built and installed from source"
 }
 
-# Create default config
 setup_config() {
     if [ "$NO_CONFIG" -eq 1 ]; then
         warn "Skipping config creation (--no-config)"
@@ -244,44 +291,39 @@ setup_config() {
     fi
     
     mkdir -p "$DATA_DIR"
-    
     if [ -f "$DATA_DIR/rng.conf" ]; then
         warn "Config already exists at $DATA_DIR/rng.conf"
         return
     fi
-    
+
     RPCPASS=$(openssl rand -hex 16 2>/dev/null || head -c 32 /dev/urandom | xxd -p | head -c 32)
-    
-    cat > "$DATA_DIR/rng.conf" << EOF
+
+    {
+        cat <<EOF
+# RNG public config
+# Current live genesis: 83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4
 server=1
 daemon=1
 rpcuser=agent
 rpcpassword=$RPCPASS
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
-addnode=95.111.227.14:8433
-addnode=95.111.229.108:8433
-addnode=95.111.239.142:8433
-addnode=161.97.83.147:8433
-addnode=161.97.97.83:8433
-addnode=161.97.114.192:8433
-addnode=161.97.117.0:8433
-addnode=194.163.144.177:8433
-addnode=185.218.126.23:8433
-addnode=185.239.209.227:8433
+minerandomx=fast
 EOF
-    
+        for seed in "${PUBLIC_SEEDS[@]}"; do
+            printf 'addnode=%s\n' "$seed"
+        done
+    } > "$DATA_DIR/rng.conf"
+
     success "Config created at $DATA_DIR/rng.conf"
 }
 
-# Add to PATH (only if --add-path)
 setup_path() {
     if [[ ":$PATH:" == *":$INSTALL_DIR:"* ]]; then
-        return  # Already in PATH
+        return
     fi
-    
     warn "$INSTALL_DIR is not in your PATH"
-    
+
     if [ "$ADD_PATH" -eq 1 ]; then
         SHELL_RC=""
         if [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
@@ -305,21 +347,94 @@ setup_path() {
     fi
 }
 
-# Verify installation
 verify_install() {
     export PATH="$INSTALL_DIR:$PATH"
-    
     if ! command -v rngd &>/dev/null; then
         error "rngd not found after installation"
     fi
-    
+
     info "Verifying installation..."
     "$INSTALL_DIR/rngd" --version
     success "RNG installed successfully!"
 }
 
-# Print next steps
+install_bootstrap_snapshot() {
+    local source_snapshot dest_snapshot
+
+    source_snapshot="$SOURCE_DIR/bootstrap/rng-mainnet-15091.utxo"
+    dest_snapshot="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
+
+    if [ -n "$SOURCE_DIR" ] && [ -f "$source_snapshot" ]; then
+        mkdir -p "$DATA_DIR/bootstrap"
+        cp "$source_snapshot" "$dest_snapshot"
+        chmod 644 "$dest_snapshot"
+        success "Bundled snapshot copied to $dest_snapshot"
+    fi
+}
+
+load_bootstrap() {
+    local current_height snapshot_path
+
+    snapshot_path="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
+    if [ ! -f "$snapshot_path" ]; then
+        warn "Bundled snapshot not found at $snapshot_path"
+        return
+    fi
+
+    info "Starting daemon for snapshot load..."
+    "$INSTALL_DIR/rngd" -daemon
+
+    info "Waiting for RPC..."
+    for _ in $(seq 1 30); do
+        if "$INSTALL_DIR/rng-cli" getblockcount >/dev/null 2>&1; then
+            break
+        fi
+        sleep 1
+    done
+
+    if ! "$INSTALL_DIR/rng-cli" getblockcount >/dev/null 2>&1; then
+        warn "RPC did not become ready; skipping bootstrap load"
+        return
+    fi
+
+    current_height="$("$INSTALL_DIR/rng-cli" getblockcount)"
+    if [ "$current_height" -gt 0 ]; then
+        warn "Datadir already has blocks (height $current_height); skipping bootstrap load"
+        return
+    fi
+
+    info "Waiting for snapshot base header $BOOTSTRAP_BASE_HASH..."
+    for _ in $(seq 1 120); do
+        if "$INSTALL_DIR/rng-cli" getblockheader "$BOOTSTRAP_BASE_HASH" false >/dev/null 2>&1; then
+            break
+        fi
+        sleep 2
+    done
+
+    if ! "$INSTALL_DIR/rng-cli" getblockheader "$BOOTSTRAP_BASE_HASH" false >/dev/null 2>&1; then
+        warn "Snapshot base header is not available yet; let headers sync and rerun the load command later"
+        return
+    fi
+
+    current_height="$("$INSTALL_DIR/rng-cli" getblockcount)"
+    if [ "$current_height" -gt 0 ]; then
+        warn "Datadir advanced to height $current_height before the snapshot could be loaded"
+        warn "Stop the node, wipe blocks/chainstate, and rerun the snapshot load on a fresh datadir"
+        return
+    fi
+
+    info "Loading bundled assumeutxo snapshot..."
+    "$INSTALL_DIR/rng-cli" -rpcclienttimeout=0 loadtxoutset "$snapshot_path"
+    success "Snapshot loaded"
+}
+
 print_next_steps() {
+    local threads
+    threads="$(cpu_count)"
+    if [ "$threads" -gt 1 ]; then
+        threads=$((threads - 1))
+    fi
+
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}  RNG installed successfully!${NC}"
@@ -329,40 +444,63 @@ print_next_steps() {
     echo ""
     echo "Next steps:"
     echo ""
-    echo "  1. Start the daemon:"
+    echo "  1. Start the daemon and verify the live genesis:"
     echo "     $INSTALL_DIR/rngd -daemon"
+    echo "     sleep 10"
+    echo "     $INSTALL_DIR/rng-cli getblockhash 0"
+    echo "     # expected: 83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4"
     echo ""
-    echo "  2. Check status (wait 10s for startup):"
+    echo "  2. Check peer connectivity:"
+    echo "     $INSTALL_DIR/rng-cli getconnectioncount"
     echo "     $INSTALL_DIR/rng-cli getblockchaininfo"
     echo ""
-    echo "  3. Create wallet and mine:"
+    if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
+        echo "  3. Run the built-in health check:"
+        echo "     $INSTALL_DIR/rng-doctor"
+        echo ""
+        echo "  4. Fast miner setup:"
+        echo "     $INSTALL_DIR/rng-start-miner"
+        echo "     $INSTALL_DIR/rng-doctor"
+        echo ""
+    fi
+    if [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then
+        echo "  5. Optional fast bootstrap from the bundled snapshot:"
+        if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
+            echo "     $INSTALL_DIR/rng-load-bootstrap"
+        fi
+        echo "     # or manually wait until this succeeds before loading the snapshot:"
+        echo "     $INSTALL_DIR/rng-cli getblockheader \"$BOOTSTRAP_BASE_HASH\" false"
+        echo "     $INSTALL_DIR/rng-cli -rpcclienttimeout=0 loadtxoutset \"$DATA_DIR/bootstrap/rng-mainnet-15091.utxo\""
+        echo "     $INSTALL_DIR/rng-cli getchainstates"
+        echo ""
+    fi
+    echo "  6. Create a miner wallet and payout address manually:"
     echo "     $INSTALL_DIR/rng-cli createwallet \"miner\""
     echo "     ADDR=\$($INSTALL_DIR/rng-cli -rpcwallet=miner getnewaddress)"
-    echo "     $INSTALL_DIR/rng-cli -rpcwallet=miner generatetoaddress 1 \"\$ADDR\""
     echo ""
-    echo "  4. Stop daemon:"
+    echo "  7. Restart with the internal miner manually:"
     echo "     $INSTALL_DIR/rng-cli stop"
+    echo "     sleep 5"
+    echo "     nice -n 19 $INSTALL_DIR/rngd -daemon -mine -mineaddress=\"\$ADDR\" -minethreads=$threads -minerandomx=fast"
+    echo ""
+    echo "  8. Monitor mining:"
+    echo "     $INSTALL_DIR/rng-doctor"
     echo ""
     echo "Uninstall:"
     echo "  rm -rf $INSTALL_DIR/rng* $DATA_DIR"
     echo ""
-    echo "Docs: https://github.com/$REPO"
-    echo "Skill: https://clawhub.ai/happybigmtn/rng-miner"
-    echo ""
 }
 
-# Main
 main() {
     parse_args "$@"
-    
+
     echo ""
     echo "╔══════════════════════════════════════════╗"
-    echo "║  RNG Installer                       ║"
-    echo "║  The cryptocurrency for AI agents        ║"
+    echo "║  RNG Installer                           ║"
+    echo "║  CPU-mineable for AI agents              ║"
     echo "╚══════════════════════════════════════════╝"
     echo ""
-    
-    # Check if already installed (idempotent)
+
     if command -v rngd &>/dev/null && [ "$FORCE" -ne 1 ]; then
         INSTALLED_VERSION=$(rngd --version 2>/dev/null | head -1 || echo "unknown")
         success "RNG already installed: $INSTALLED_VERSION"
@@ -371,25 +509,29 @@ main() {
         info "To uninstall: rm -rf $INSTALL_DIR/rng* $DATA_DIR"
         exit 0
     fi
-    
+
     detect_platform
-    
-    # Try binary first, fall back to source
-    if check_binary_available; then
+
+    if [ -n "$RELEASE_VERSION" ] && check_binary_available; then
         if install_binary; then
-            success "Installed from pre-built binary"
+            success "Installed from binary release $RELEASE_VERSION"
         else
-            warn "Binary download failed, building from source..."
+            warn "Binary download failed, building $RELEASE_VERSION from source..."
             build_from_source
         fi
     else
-        warn "No pre-built binary for $PLATFORM, building from source..."
+        info "Building live network source from $(selected_source_ref)"
         build_from_source
     fi
-    
+
     setup_config
+    install_bootstrap_snapshot
+    install_helper_scripts
     setup_path
     verify_install
+    if [ "$BOOTSTRAP" -eq 1 ]; then
+        load_bootstrap
+    fi
     print_next_steps
 }
 

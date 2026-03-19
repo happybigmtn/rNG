@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <crypto/randomx_hash.h>
 #include <hash.h>
 #include <pow.h>
@@ -9,6 +10,7 @@
 #include <streams.h>
 #include <test/util/setup_common.h>
 #include <uint256.h>
+#include <util/strencodings.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -30,7 +32,7 @@ BOOST_AUTO_TEST_CASE(randomx_known_vector)
     std::vector<uint8_t> header(80, 0);
 
     // Use genesis seed
-    uint256 seed = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed = Hash(std::string(kRandomXGenesisSeedPhrase));
 
     // Compute hash twice
     uint256 hash1 = RandomXHash(header, seed);
@@ -54,7 +56,7 @@ BOOST_AUTO_TEST_CASE(randomx_different_input)
 {
     std::vector<uint8_t> header1(80, 0);
     std::vector<uint8_t> header2(80, 1); // Different content
-    uint256 seed = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed = Hash(std::string(kRandomXGenesisSeedPhrase));
 
     uint256 hash1 = RandomXHash(header1, seed);
     uint256 hash2 = RandomXHash(header2, seed);
@@ -87,7 +89,7 @@ BOOST_AUTO_TEST_CASE(randomx_different_seed)
 BOOST_AUTO_TEST_CASE(randomx_light_mode)
 {
     std::vector<uint8_t> header(80, 0);
-    uint256 seed = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed = Hash(std::string(kRandomXGenesisSeedPhrase));
 
     // Light mode should work (uses 256 MiB cache)
     uint256 hash = RandomXHashLight(header, seed);
@@ -178,7 +180,7 @@ BOOST_AUTO_TEST_CASE(get_block_pow_hash)
     header.nBits = 0x207fffff;
     header.nNonce = 0;
 
-    uint256 seed = Hash(std::string("RNG Genesis Seed"));
+    uint256 seed = Hash(std::string(kRandomXGenesisSeedPhrase));
     uint256 pow_hash = GetBlockPoWHash(header, seed);
 
     // Hash should not be zero
@@ -196,15 +198,32 @@ BOOST_AUTO_TEST_CASE(get_block_pow_hash)
 
 /**
  * Test: Genesis seed hash computation
- * Acceptance: Genesis seed is SHA256("RNG Genesis Seed").
+ * Acceptance: Genesis seed is SHA256(kRandomXGenesisSeedPhrase).
  */
 BOOST_AUTO_TEST_CASE(genesis_seed_hash)
 {
     // GetRandomXSeedHash with null pindex should return genesis seed
-    uint256 expected = Hash(std::string("RNG Genesis Seed"));
+    uint256 expected = Hash(std::string(kRandomXGenesisSeedPhrase));
     uint256 actual = GetRandomXSeedHash(nullptr);
 
     BOOST_CHECK_EQUAL(actual, expected);
+}
+
+/**
+ * Test: Known live mainnet header validates under the shipped PoW constants.
+ * Acceptance: The first post-reset mainnet block must not regress to high-hash.
+ */
+BOOST_AUTO_TEST_CASE(live_mainnet_block1_pow)
+{
+    const auto main_params = CreateChainParams(*m_node.args, ChainType::MAIN);
+    const auto seed = Hash(std::string(kRandomXGenesisSeedPhrase));
+
+    CBlockHeader header;
+    DataStream stream{ParseHex("00000020e4ac366d49bc6b6b10e9aa1818f6d8e5619b7e06807938078cc85df882a4a683318e090ca2ec77a92235340ccdd778612b1b061a9a2084c367de15d09959fb53a3d8a069ffff7f2003000000")};
+    stream >> header;
+
+    BOOST_CHECK_EQUAL(header.GetHash().GetHex(), "ea5820b9302d87b6fcece3a8fa5ff7dbd5df2c1c6e377ea7e471e8912139b46b");
+    BOOST_CHECK(CheckProofOfWork(GetBlockPoWHash(header, seed), header.nBits, main_params->GetConsensus()));
 }
 
 // =============================================================================

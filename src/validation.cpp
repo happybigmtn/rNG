@@ -4091,21 +4091,13 @@ std::vector<unsigned char> ChainstateManager::GenerateCoinbaseCommitment(CBlock&
 }
 
 
-// Forward declaration for RandomX PoW hash
-uint256 GetBlockPoWHash(const CBlockHeader& header, const uint256& seed_hash);
-
 bool HasValidProofOfWork(std::span<const CBlockHeader> headers, const Consensus::Params& consensusParams)
 {
-    // For header validation, we need to use RandomX PoW
-    // For genesis epoch (blocks 0-2111), use the genesis seed
-    uint256 genesis_seed = Hash(std::string("RNG Genesis Seed"));
+    // Header relay uses the same fixed genesis seed as full block validation.
+    uint256 genesis_seed = Hash(std::string(kRandomXGenesisSeedPhrase));
     
     for (const auto& header : headers) {
-        // For now, assume we are in genesis epoch (seed_height = 0)
-        // TODO: Handle seed rotation for blocks >= 2112
-        uint256 seed_hash = genesis_seed;
-        
-        uint256 pow_hash = GetBlockPoWHash(header, seed_hash);
+        uint256 pow_hash = GetBlockPoWHash(header, genesis_seed);
         if (!CheckProofOfWork(pow_hash, header.nBits, consensusParams)) {
             return false;
         }
