@@ -1,8 +1,16 @@
-# RNG Bootstrap Snapshot
+# RNG Bootstrap Assets
 
-This directory contains a bundled assumeutxo snapshot for fast RNG mainnet bootstrap.
+This directory contains bundled live-mainnet bootstrap assets.
 
-Snapshot metadata:
+Bundled datadir archive metadata:
+
+| Field | Value |
+|-------|-------|
+| Height | `15244` |
+| File | `rng-mainnet-15244-datadir.tar.gz` |
+| File SHA256 | `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d` |
+
+Assumeutxo snapshot metadata:
 
 | Field | Value |
 |-------|-------|
@@ -24,5 +32,7 @@ rng-load-bootstrap
 rng-doctor
 ```
 
-If the datadir starts downloading blocks before the snapshot loads, wipe `blocks/`
-and `chainstate/` and retry on a fresh datadir.
+On a fresh datadir, the helper prefers the bundled datadir archive first. That
+bundle alone is enough to bring a node up near tip. If the bundle is unavailable
+or you are retrying on a partially initialized datadir, it falls back to the
+assumeutxo snapshot path.

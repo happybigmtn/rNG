@@ -9,6 +9,38 @@ This document describes the live RNG mainnet parameters as of March 19, 2026.
 - Mainnet default address prefix: `rng1`
 - Mainnet P2P port: `8433`
 
+## Exact Delta From Upstream Bitcoin Core
+
+### Consensus and Chain Identity
+
+- Replaced SHA256d proof of work with RandomX
+- Added RNG-specific genesis block and canonical coinbase message
+- Changed mainnet network magic bytes, default ports, and Bech32 HRP
+- Enabled BIP34, BIP65, BIP66, CSV, SegWit, and Taproot from genesis
+- Added RNG-specific assumeutxo metadata for the live chain
+
+### Mining Behavior
+
+- Added internal RandomX mining RPC/status surface via `getinternalmininginfo`
+- Added `-mine`, `-mineaddress`, `-minethreads`, `-minerandomx`, and `-minepriority` runtime handling for RNG's live miner workflow
+- Default live mode is RandomX `fast`
+
+### Repository and Distribution
+
+- Renamed public binaries and datadir conventions from Bitcoin defaults to RNG defaults
+- Added repo-bundled bootstrap assets for the live chain:
+  - near-tip datadir archive
+  - assumeutxo snapshot
+- Added installer and operator helpers for mining/bootstrap/health checks
+- Added CMake-time patching of upstream RandomX so fresh clones build the live chain without a dirty nested checkout
+
+### Kept From Upstream
+
+- UTXO transaction model
+- Bitcoin script engine and transaction/block serialization
+- Wallet/key model and most Bitcoin-derived RPC semantics
+- secp256k1 cryptography, mempool policy structure, P2P protocol shape, and node architecture unless RNG-specific notes above say otherwise
+
 ## Consensus Changes
 
 ### 1. Proof Of Work
@@ -27,14 +59,18 @@ RNG replaces Bitcoin's SHA256d proof of work with RandomX.
 
 ### 2. Fast Bootstrap Snapshot
 
-The repo now ships a supported assumeutxo snapshot for fast first sync:
+The repo now ships supported bootstrap assets for fast first sync:
+
+- Near-tip datadir archive height: `15244`
+- Near-tip datadir archive SHA256: `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d`
 
 - Snapshot height: `15091`
 - Snapshot base hash: `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb`
 - Snapshot txoutset hash: `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393`
 
-This lets a new node load a verified UTXO set with `loadtxoutset` and continue
-syncing near the tip instead of validating from height `0`.
+This lets a new node either unpack a near-tip chain bundle immediately or load a
+verified UTXO set with `loadtxoutset` and continue syncing near the tip instead of
+validating from height `0`.
 
 The repo also includes two setup helpers for the live network:
 

@@ -13,6 +13,7 @@ REPO="happybigmtn/rng"
 GITHUB_URL="https://github.com/$REPO"
 BOOTSTRAP_BASE_HASH="2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"
 BOOTSTRAP_BASE_HEIGHT="15091"
+CHAIN_BUNDLE_ARCHIVE="rng-mainnet-15244-datadir.tar.gz"
 BOOTSTRAP_HEADER_WAIT_SECONDS="${RNG_BOOTSTRAP_HEADER_WAIT_SECONDS:-900}"
 TEMP_SOURCE_ROOT=""
 TEMP_RELEASE_ROOT=""
@@ -387,10 +388,12 @@ verify_install() {
 }
 
 install_bootstrap_snapshot() {
-    local source_snapshot dest_snapshot
+    local source_snapshot dest_snapshot source_bundle dest_bundle
 
     source_snapshot="$SOURCE_DIR/bootstrap/rng-mainnet-15091.utxo"
     dest_snapshot="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
+    source_bundle="$SOURCE_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE"
+    dest_bundle="$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE"
 
     if [ -n "$SOURCE_DIR" ] && [ -f "$source_snapshot" ]; then
         mkdir -p "$DATA_DIR/bootstrap"
@@ -398,19 +401,32 @@ install_bootstrap_snapshot() {
         chmod 644 "$dest_snapshot"
         success "Bundled snapshot copied to $dest_snapshot"
     fi
+    if [ -n "$SOURCE_DIR" ] && [ -f "$source_bundle" ]; then
+        mkdir -p "$DATA_DIR/bootstrap"
+        cp "$source_bundle" "$dest_bundle"
+        chmod 644 "$dest_bundle"
+        success "Bundled chain bundle copied to $dest_bundle"
+    fi
 }
 
 load_bootstrap() {
-    local current_height snapshot_path rpc_output current_headers header_wait_loops wait_step
+    local current_height snapshot_path bundle_path rpc_output current_headers header_wait_loops wait_step
 
     snapshot_path="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
-    if [ ! -f "$snapshot_path" ]; then
-        warn "Bundled snapshot not found at $snapshot_path"
+    bundle_path="$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE"
+    if [ ! -f "$bundle_path" ] && [ ! -f "$snapshot_path" ]; then
+        warn "No bundled chain bundle or snapshot found under $DATA_DIR/bootstrap"
         return
     fi
 
+    if [ -f "$bundle_path" ] && [ ! -d "$DATA_DIR/blocks" ] && [ ! -d "$DATA_DIR/chainstate" ]; then
+        info "Extracting bundled chain bundle from $bundle_path..."
+        mkdir -p "$DATA_DIR"
+        tar -xzf "$bundle_path" -C "$DATA_DIR"
+    fi
+
     info "Starting daemon for snapshot load..."
-    "$INSTALL_DIR/rngd" -daemon
+    "$INSTALL_DIR/rngd" -daemon -listen=0 -discover=0
 
     info "Waiting for RPC..."
     for _ in $(seq 1 30); do
@@ -433,7 +449,12 @@ load_bootstrap() {
 
     current_height="$("$INSTALL_DIR/rng-cli" getblockcount)"
     if [ "$current_height" -gt 0 ]; then
-        warn "Datadir already has blocks (height $current_height); skipping bootstrap load"
+        info "Datadir already has blocks at height $current_height; snapshot load is not needed"
+        return
+    fi
+
+    if [ ! -f "$snapshot_path" ]; then
+        warn "Bundled snapshot not found at $snapshot_path; leaving the extracted chain bundle in place"
         return
     fi
 
@@ -509,7 +530,7 @@ print_next_steps() {
         echo ""
     fi
     if [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then
-        echo "  5. Optional fast bootstrap from the bundled snapshot:"
+    echo "  5. Optional fast bootstrap from the bundled chain bundle or snapshot:"
         if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
             echo "     $INSTALL_DIR/rng-load-bootstrap"
         fi

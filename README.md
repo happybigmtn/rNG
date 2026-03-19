@@ -18,6 +18,16 @@ As of March 19, 2026:
 If you are mining today, use `./install.sh` or build from source. Tagged release binaries
 and container images may lag behind the live network.
 
+## Upstream Delta
+
+RNG is a fork of Bitcoin Core `v29.0`, not a rewrite. The exact changes from upstream
+are documented in [CHANGES.md](./CHANGES.md). In short:
+
+- PoW changed from SHA256d to RandomX with RNG-specific seed/salt constants
+- mainnet identity changed: genesis block, network magic, ports, HRP, binary names, datadir
+- chain defaults changed: bootstrap assets, seed peers, mining mode, live-network helpers
+- transaction format, script engine, UTXO model, wallet model, and most RPC semantics remain Bitcoin-derived
+
 ## Mine From This Repo
 
 ### Option A: Clone and install
@@ -59,9 +69,20 @@ rng-start-miner
 rng-doctor
 ```
 
-### Fast bootstrap from the bundled snapshot
+### Fast bootstrap from the bundled chain bundle or snapshot
 
-The repo includes a verified assumeutxo snapshot at height `15091`:
+The repo includes two bootstrap assets:
+
+- A bundled near-tip datadir archive at height `15244`
+- A verified assumeutxo snapshot at height `15091`
+
+Bundled datadir archive metadata:
+
+- Height: `15244`
+- File: `bootstrap/rng-mainnet-15244-datadir.tar.gz`
+- File SHA256: `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d`
+
+Assumeutxo snapshot metadata:
 
 - Base hash: `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb`
 - UTXO hash: `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393`
@@ -77,12 +98,11 @@ rng-load-bootstrap
 rng-cli getchainstates
 ```
 
-The helper waits until the snapshot base header is present, then runs
-`loadtxoutset`. On a fresh node this usually means waiting for header sync first.
-If the datadir starts downloading blocks before the base header arrives, rerun the
-snapshot load on a fresh datadir after wiping `blocks/` and `chainstate/`.
-The helper now waits up to 15 minutes by default and prints header progress while
-it is trying to reach the snapshot base.
+On a fresh datadir, the helper first extracts the bundled near-tip datadir archive.
+If that archive is unavailable, or if you are retrying on a partially initialized
+datadir, it falls back to the assumeutxo snapshot path. The bundle alone is enough
+to come up near tip. The snapshot path still waits for the snapshot base header and
+now waits up to 15 minutes by default while printing header progress.
 
 After that, continue with the normal wallet and mining steps below.
 
@@ -191,11 +211,15 @@ The installer also drops two helper commands into the install dir:
 
 ## Bundled Snapshot
 
-The repo ships `bootstrap/rng-mainnet-15091.utxo`, exported from the live chain on
-March 19, 2026.
+The repo ships:
+
+- `bootstrap/rng-mainnet-15244-datadir.tar.gz`
+- `bootstrap/rng-mainnet-15091.utxo`
 
 | Field | Value |
 |------|------|
+| Chain bundle height | `15244` |
+| Chain bundle SHA256 | `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d` |
 | Height | `15091` |
 | Base hash | `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb` |
 | Serialized UTXO hash | `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393` |
