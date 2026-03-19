@@ -12,6 +12,8 @@ DATA_DIR="${RNG_DATA_DIR:-$HOME/.rng}"
 REPO="happybigmtn/rng"
 GITHUB_URL="https://github.com/$REPO"
 BOOTSTRAP_BASE_HASH="2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"
+BOOTSTRAP_BASE_HEIGHT="15091"
+BOOTSTRAP_HEADER_WAIT_SECONDS="${RNG_BOOTSTRAP_HEADER_WAIT_SECONDS:-900}"
 TEMP_SOURCE_ROOT=""
 TEMP_RELEASE_ROOT=""
 SOURCE_DIR=""
@@ -29,6 +31,7 @@ ADD_PATH=0
 NO_VERIFY=0
 NO_CONFIG=0
 BOOTSTRAP=0
+SKIP_DEPS=0
 
 usage() {
     cat <<'EOF'
@@ -40,6 +43,7 @@ Flags:
   --force       Reinstall even if rngd is already present
   --add-path    Add the install dir to PATH in your shell rc
   --bootstrap   Load the bundled assumeutxo snapshot after install
+  --skip-deps   Do not auto-install build dependencies
   --no-verify   Skip checksum verification for binary releases
   --no-config   Do not create ~/.rng/rng.conf
   -h, --help    Show this help
@@ -49,6 +53,7 @@ Environment variables:
   RNG_SOURCE_REF   Git ref to build from source (default: main)
   RNG_INSTALL_DIR  Install directory (default: ~/.local/bin)
   RNG_DATA_DIR     Data directory (default: ~/.rng)
+  RNG_BOOTSTRAP_HEADER_WAIT_SECONDS  Max wait for snapshot base header (default: 900)
 
 Examples:
   ./install.sh --add-path
@@ -64,6 +69,7 @@ parse_args() {
             --force) FORCE=1 ;;
             --add-path) ADD_PATH=1 ;;
             --bootstrap) BOOTSTRAP=1 ;;
+            --skip-deps) SKIP_DEPS=1 ;;
             --no-verify) NO_VERIFY=1 ;;
             --no-config) NO_CONFIG=1 ;;
             -h|--help) usage; exit 0 ;;
@@ -148,8 +154,13 @@ verify_checksums() {
 }
 
 cleanup() {
-    [ -n "$TEMP_RELEASE_ROOT" ] && rm -rf "$TEMP_RELEASE_ROOT"
-    [ -n "$TEMP_SOURCE_ROOT" ] && rm -rf "$TEMP_SOURCE_ROOT"
+    if [ -n "$TEMP_RELEASE_ROOT" ]; then
+        rm -rf "$TEMP_RELEASE_ROOT"
+    fi
+    if [ -n "$TEMP_SOURCE_ROOT" ]; then
+        rm -rf "$TEMP_SOURCE_ROOT"
+    fi
+    return 0
 }
 
 trap cleanup EXIT
@@ -196,6 +207,22 @@ install_binary() {
 }
 
 install_dependencies() {
+    local compiler_found=0
+
+    if [ "$SKIP_DEPS" -eq 1 ]; then
+        warn "Skipping dependency installation (--skip-deps)"
+        return
+    fi
+
+    if command -v c++ &>/dev/null || command -v g++ &>/dev/null || command -v clang++ &>/dev/null; then
+        compiler_found=1
+    fi
+
+    if command -v cmake &>/dev/null && command -v git &>/dev/null && [ "$compiler_found" -eq 1 ]; then
+        info "Existing build toolchain detected; skipping package-manager dependency install"
+        return
+    fi
+
     case "$OS" in
         linux|windows-wsl)
             if command -v apt-get &>/dev/null; then
@@ -374,7 +401,7 @@ install_bootstrap_snapshot() {
 }
 
 load_bootstrap() {
-    local current_height snapshot_path
+    local current_height snapshot_path rpc_output current_headers header_wait_loops wait_step
 
     snapshot_path="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
     if [ ! -f "$snapshot_path" ]; then
@@ -387,9 +414,15 @@ load_bootstrap() {
 
     info "Waiting for RPC..."
     for _ in $(seq 1 30); do
-        if "$INSTALL_DIR/rng-cli" getblockcount >/dev/null 2>&1; then
+        if rpc_output="$("$INSTALL_DIR/rng-cli" getblockcount 2>&1)"; then
             break
         fi
+        case "$rpc_output" in
+            *"Incorrect rpcuser or rpcpassword"*)
+                warn "RPC credentials were rejected on the default port. Another rngd is probably already running on this machine; skipping bootstrap auto-load."
+                return
+                ;;
+        esac
         sleep 1
     done
 
@@ -405,15 +438,25 @@ load_bootstrap() {
     fi
 
     info "Waiting for snapshot base header $BOOTSTRAP_BASE_HASH..."
-    for _ in $(seq 1 120); do
+    header_wait_loops=$((BOOTSTRAP_HEADER_WAIT_SECONDS / 2))
+    if [ "$header_wait_loops" -lt 1 ]; then
+        header_wait_loops=1
+    fi
+
+    for wait_step in $(seq 1 "$header_wait_loops"); do
         if "$INSTALL_DIR/rng-cli" getblockheader "$BOOTSTRAP_BASE_HASH" false >/dev/null 2>&1; then
             break
+        fi
+        if [ $((wait_step % 15)) -eq 0 ]; then
+            current_headers="$("$INSTALL_DIR/rng-cli" getchainstates 2>/dev/null | sed -n 's/.*"headers"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p' | head -1)"
+            current_headers="${current_headers:-0}"
+            info "Still waiting for snapshot base header; headers=$current_headers/$BOOTSTRAP_BASE_HEIGHT"
         fi
         sleep 2
     done
 
     if ! "$INSTALL_DIR/rng-cli" getblockheader "$BOOTSTRAP_BASE_HASH" false >/dev/null 2>&1; then
-        warn "Snapshot base header is not available yet; let headers sync and rerun the load command later"
+        warn "Snapshot base header is not available yet after ${BOOTSTRAP_HEADER_WAIT_SECONDS}s; let headers sync and rerun the load command later"
         return
     fi
 
