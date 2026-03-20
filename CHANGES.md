@@ -32,7 +32,7 @@ This document describes the live RNG mainnet parameters as of March 19, 2026.
   - near-tip datadir archive
   - assumeutxo snapshot
 - Added installer and operator helpers for mining/bootstrap/health checks
-- Added CMake-time patching of upstream RandomX so fresh clones build the live chain without a dirty nested checkout
+- Added CMake-time patching of an isolated RandomX build-tree copy so fresh clones build the live chain without dirtying the vendored checkout
 
 ### Kept From Upstream
 
@@ -104,7 +104,7 @@ Excessive per-block LWMA sync logging was also removed so fresh nodes do not flo
 - Public default datadir: `~/.rng`
 - Public config file: `~/.rng/rng.conf`
 - Public operator seed peers currently come from the live Contabo fleet
-- The current live network is operator-seeded, so low peer counts and zero third-party miners are normal
+- The current live network is small and operator-seeded, so low peer counts are normal and additional public miners materially improve resilience
 
 ## What Was Not Changed
 

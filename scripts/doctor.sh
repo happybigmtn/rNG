@@ -9,6 +9,7 @@ RNG_DATADIR="${RNG_DATADIR:-}"
 RNG_CONF="${RNG_CONF:-}"
 CLI_ARGS=()
 HEALTHY=1
+CONFIG_PATH=""
 
 usage() {
     cat <<'EOF'
@@ -80,27 +81,51 @@ extract_json_bool() {
 }
 
 show_config_seeds() {
-    local conf_path
+    resolve_config_path
 
-    conf_path="$HOME/.rng/rng.conf"
-    if [ -n "$RNG_CONF" ]; then
-        conf_path="$RNG_CONF"
-    elif [ -n "$RNG_DATADIR" ] && [ -f "$RNG_DATADIR/rng.conf" ]; then
-        conf_path="$RNG_DATADIR/rng.conf"
-    fi
-
-    if [ ! -f "$conf_path" ]; then
-        warn "Config not found at $conf_path"
+    if [ ! -f "$CONFIG_PATH" ]; then
+        warn "Config not found at $CONFIG_PATH"
         return
     fi
 
-    info "Configured addnode peers from $conf_path:"
-    grep '^addnode=' "$conf_path" || warn "No addnode entries found in $conf_path"
+    info "Configured addnode peers from $CONFIG_PATH:"
+    grep '^addnode=' "$CONFIG_PATH" || warn "No addnode entries found in $CONFIG_PATH"
+}
+
+resolve_config_path() {
+    CONFIG_PATH="$HOME/.rng/rng.conf"
+    if [ -n "$RNG_CONF" ]; then
+        CONFIG_PATH="$RNG_CONF"
+    elif [ -n "$RNG_DATADIR" ] && [ -f "$RNG_DATADIR/rng.conf" ]; then
+        CONFIG_PATH="$RNG_DATADIR/rng.conf"
+    fi
+}
+
+config_value() {
+    local key
+
+    key="$1"
+    resolve_config_path
+    if [ ! -f "$CONFIG_PATH" ]; then
+        return 1
+    fi
+
+    sed -n "s/^[[:space:]]*$key[[:space:]]*=[[:space:]]*//p" "$CONFIG_PATH" | tail -1
+}
+
+count_localaddresses() {
+    awk '
+        /"localaddresses"[[:space:]]*:/ {in_local=1; next}
+        in_local && /"address"[[:space:]]*:/ {count++}
+        in_local && /^[[:space:]]*]/ {in_local=0}
+        END {print count + 0}
+    '
 }
 
 main() {
     local version_line genesis_hash connection_count blockchaininfo mininginfo
-    local chain_name blocks headers ibd running fast_mode threads
+    local chain_name blocks headers ibd running fast_mode threads networkinfo
+    local inbound outbound localaddresses listen_value
 
     parse_args "$@"
     append_common_args
@@ -148,6 +173,22 @@ main() {
     [ -n "$blocks" ] && info "Blocks: $blocks"
     [ -n "$headers" ] && info "Headers: $headers"
     [ -n "$ibd" ] && info "Initial block download: $ibd"
+
+    networkinfo="$(cli getnetworkinfo 2>/dev/null || true)"
+    inbound="$(printf '%s\n' "$networkinfo" | extract_json_number connections_in | head -1)"
+    outbound="$(printf '%s\n' "$networkinfo" | extract_json_number connections_out | head -1)"
+    localaddresses="$(printf '%s\n' "$networkinfo" | count_localaddresses)"
+    listen_value="$(config_value listen || true)"
+
+    [ -n "$inbound" ] && info "Inbound peers: $inbound"
+    [ -n "$outbound" ] && info "Outbound peers: $outbound"
+    info "Advertised local addresses: ${localaddresses:-0}"
+
+    if [ "${listen_value:-1}" = "0" ]; then
+        warn "Config sets listen=0. This node can mine, but it will not accept inbound peers."
+    elif [ "${localaddresses:-0}" -eq 0 ] || [ "${inbound:-0}" -eq 0 ]; then
+        info "This node is not currently visible as a public peer. If this is a public VPS, keep listen=1 and open TCP/8433 to help decentralize the network."
+    fi
 
     mininginfo="$(cli getinternalmininginfo 2>/dev/null || true)"
     if [ -n "$mininginfo" ]; then

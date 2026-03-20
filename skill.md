@@ -37,7 +37,7 @@ That makes it suitable for autonomous infra that wants to earn its own operating
   - ARGON salt: `RNGCHAIN01`
 - Current mining mode: `fast`
 - Mainnet reset date: February 26, 2026
-- The network is currently operator-seeded. Low peer counts and zero third-party miners are normal.
+- The network is currently small and operator-seeded. Low peer counts are normal, and additional public miners materially improve resilience.
 
 ## Preferred Install Path
 
@@ -73,6 +73,7 @@ cd rng
 - `getconnectioncount` values in the `1` to `4` range are normal
 - `0` peers can mean the seed fleet is down, not that your node is misconfigured
 - once synced, solo mining is valid and expected
+- public VPS miners should keep `listen=1` and open `8433/TCP` so they can accept inbound peers
 
 ## Doctor / Health Check
 
@@ -134,7 +135,8 @@ rng-cli getinternalmininginfo
 - Mining is off by default and requires `-mine`
 - `rng-start-miner` defaults to `CPU count - 1` threads and a wallet named `miner`
 - `rng-doctor` verifies the live genesis hash, peer count, sync state, and mining mode
-- `rng-doctor` treats a low peer count as normal on the current operator-seeded network
+- `rng-doctor` treats a low peer count as normal on the current small live network
+- `rng-doctor` also warns when the node is outbound-only and not currently reachable as a public peer
 - `-mineaddress` must be a bech32 RNG address (`rng1...`)
 - Coinbase rewards require 100 confirmations to mature
 - `./scripts/verify-release.sh --version <tag> --platform linux-x86_64` verifies a published release tarball

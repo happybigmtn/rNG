@@ -8,8 +8,8 @@ The user-facing identity of RNG software, ensuring consistent naming throughout.
 ### Product Name
 - **Full name**: RNG Core
 - **Currency name**: RNG
-- **Ticker symbol**: BTC
-- **Smallest unit**: roshi (1 BTC = 100,000,000 roshi)
+- **Ticker symbol**: RNG
+- **Smallest unit**: roshi (1 RNG = 100,000,000 roshi)
 
 ### Binary Names
 Users interact with these executables:
@@ -34,8 +34,8 @@ Default locations where RNG stores data:
 - PID file: `rngd.pid`
 
 ### Version Identity
-- Version string: `RNG Core version v0.1.0`
-- User agent: `/RNG:0.1.0/`
+- Version string: `RNG Core daemon version v3.0.0 rngd`
+- User agent: `/RNG:3.0.0/`
 - Protocol: RNG protocol
 
 ### User-Facing Text
@@ -59,7 +59,7 @@ Users must never see "Bitcoin" in normal operation:
 3. [ ] Default data directory is `~/.rng` (Linux)
 4. [ ] Config file is `rng.conf`
 5. [ ] All RPC help text references "RNG"
-6. [ ] Amount displays use "BTC" not "BTC"
+6. [ ] Amount displays use "RNG" not "BTC"
 7. [ ] Unit conversion uses "roshi" not "satoshi"
 8. [ ] Log files reference "RNG"
 9. [ ] Error messages reference "RNG"

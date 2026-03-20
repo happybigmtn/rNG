@@ -3,6 +3,9 @@
 ## Topic
 The parameters for RNG's test and development networks.
 
+Mainnet currently targets 120-second blocks. Testnet and regtest intentionally
+use faster 60-second spacing so public testing and local development stay more responsive.
+
 ## Behavioral Requirements
 
 ### Network Overview

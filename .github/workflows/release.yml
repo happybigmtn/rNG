@@ -58,6 +58,9 @@ jobs:
           cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON ${OPENSSL_FLAG}
           cmake --build build -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) --target rngd rng-cli
 
+      - name: Verify RandomX vendored checkout stayed clean
+        run: git diff --exit-code -- src/crypto/randomx
+
       - name: Set up QEMU
         if: matrix.build_mode == 'docker-arm64'
         uses: docker/setup-qemu-action@v3
@@ -155,3 +158,5 @@ jobs:
             ### Bundled bootstrap assets
             - `rng-mainnet-15244-datadir.tar.gz`
             - `rng-mainnet-15091.utxo`
+            - `rngd.service`
+            - `PUBLIC-NODE.md`

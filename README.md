@@ -12,7 +12,7 @@ As of March 19, 2026:
 - Public operator seed peers: `95.111.239.142:8433`, `161.97.114.192:8433`, `185.218.126.23:8433`, `185.239.209.227:8433`
 - Live mainnet RandomX constants: genesis seed phrase `RNG Genesis Seed`, ARGON salt `RNGCHAIN01`
 - Live miners use RandomX `fast` mode.
-- The network is currently operator-seeded. Low peer counts and zero third-party miners are normal.
+- The network is currently small and operator-seeded. Low peer counts are normal, and additional public miners materially improve resilience.
 - Source builds from `main` were verified against the first post-reset live headers on March 19, 2026, but `main` should now be treated as prerelease/development state rather than the public install target.
 
 If you are mining today, use the latest tagged release unless you are explicitly validating unreleased source changes.
@@ -163,6 +163,17 @@ miner set.
 - once you are synced, solo mining is valid and expected
 - new nodes sync fastest from the bundled snapshot plus the current addnode list
 
+### 2c. Help the network as a public peer
+
+If you are mining on a public VPS, do not stop at outbound-only sync:
+
+- keep `listen=1` in `rng.conf`
+- open `8433/TCP` on your host firewall and cloud security group
+- verify `rng-cli getnetworkinfo` eventually shows nonzero `connections_in` or a non-empty `localaddresses` list
+- use the packaged systemd unit at [`contrib/init/rngd.service`](./contrib/init/rngd.service) for long-running hosts
+
+See [doc/public-node.md](./doc/public-node.md) for a full public-node checklist.
+
 ### 2b. Verify node health and miner status
 
 ```bash
@@ -173,8 +184,8 @@ rng-doctor
 ```
 
 `rng-doctor` verifies the live genesis hash, checks peer connectivity, reports
-sync state, and shows whether mining is running in RandomX `fast` mode. On the
-current operator-seeded network, low peer counts are expected.
+sync state, shows whether mining is running in RandomX `fast` mode, and warns
+when the node is mining privately but not reachable for inbound peers.
 
 If `rng-start-miner` or `rng-load-bootstrap` reports an RPC credential mismatch
 or says RPC never became ready, another local `rngd` is probably already using
@@ -216,6 +227,7 @@ rpcuser=agent
 rpcpassword=<generated>
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
+listen=1
 minerandomx=fast
 addnode=95.111.239.142:8433
 addnode=161.97.114.192:8433
@@ -236,6 +248,7 @@ Tagged releases ship with:
 - deterministic binary tarballs from `scripts/build-release.sh`
 - published `SHA256SUMS`
 - GitHub build provenance attestations
+- bundled `rngd.service` and public-node guidance for VPS operators
 
 Verify a published release with:
 

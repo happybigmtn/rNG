@@ -40,7 +40,7 @@ The block header is **80 bytes** (identical to Bitcoin):
 ### Timestamp Rules
 - Must be greater than median of last 11 blocks (MTP)
 - Must not be more than 2 hours in the future
-- Target spacing: 60 seconds (see consensus.md)
+- Target spacing: 120 seconds on mainnet (see consensus.md)
 
 ### Difficulty Target (bits)
 - Uses Bitcoin's compact encoding
