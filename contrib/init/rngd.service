@@ -1,0 +1,55 @@
+# It is not recommended to modify this file in-place, because it will
+# be overwritten during package upgrades. If you want to add further
+# options or overwrite existing ones then use
+# $ systemctl edit rngd.service
+# See "man systemd.service" for details.
+
+[Unit]
+Description=RNG daemon
+Documentation=https://github.com/happybigmtn/rng/blob/main/doc/init.md
+
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/rngd -pid=/run/rngd/rngd.pid \
+                        -conf=/etc/rng/rng.conf \
+                        -datadir=/var/lib/rngd \
+                        -startupnotify='systemd-notify --ready' \
+                        -shutdownnotify='systemd-notify --stopping'
+
+ExecStartPre=!/bin/chgrp rng /etc/rng
+
+Type=notify
+NotifyAccess=all
+PIDFile=/run/rngd/rngd.pid
+
+Restart=on-failure
+TimeoutStartSec=infinity
+TimeoutStopSec=600
+
+User=rng
+Group=rng
+UMask=0077
+
+RuntimeDirectory=rngd
+RuntimeDirectoryMode=0710
+
+ConfigurationDirectory=rng
+ConfigurationDirectoryMode=0710
+
+StateDirectory=rngd
+StateDirectoryMode=0710
+
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateDevices=true
+SystemCallArchitectures=native
+
+# RandomX validation and mining use JIT-generated code. Do not enable
+# MemoryDenyWriteExecute here or RandomX fast mode will fail.
+
+[Install]
+WantedBy=multi-user.target

@@ -4,6 +4,11 @@
 
 RNG is a Bitcoin fork with **RandomX proof-of-work** optimized for AI agents. This document indexes all specifications required to launch.
 
+The live-network source of truth is the code in `src/`, plus the public
+operator docs in `README.md` and `CHANGES.md`. The `specs/` directory is useful
+reference material, but some files began as early planning docs and may lag the
+live chain unless explicitly updated.
+
 ## Specification Status
 
 | Spec | File | Status | Description |
@@ -27,13 +32,13 @@ RNG is a Bitcoin fork with **RandomX proof-of-work** optimized for AI agents. Th
 
 | Parameter | Value |
 |-----------|-------|
-| **Block time** | 60 seconds |
-| **Block reward** | 50 BTC (halves every 2.1M blocks) |
-| **Max supply** | 21,000,000 BTC |
+| **Block time** | 120 seconds |
+| **Block reward** | 50 RNG (halves every 2.1M blocks, floor 0.6 RNG) |
+| **Supply model** | Halving schedule plus perpetual 0.6 RNG tail emission |
 | **PoW algorithm** | RandomX |
 | **Dataset memory** | 2080 MiB (mining) / 256 MiB (validation) |
 | **Seed rotation** | Every 2048 blocks + 64 block lag |
-| **Difficulty retarget** | Every 2016 blocks |
+| **Difficulty retarget** | Every block (LWMA-style windowing) |
 | **Max block weight** | 4,000,000 WU |
 | **Coinbase maturity** | 100 blocks |
 | **Minimum fee** | 1 roshi/vbyte |
@@ -136,5 +141,5 @@ src/
 
 ---
 
-*Last updated: 2026-01-31*
+*Last updated: 2026-03-19*
 | **P2P Atomic Swaps** | [swaps.md](swaps.md) | ✅ Complete | BTC↔BTC trustless exchange |

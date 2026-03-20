@@ -14,8 +14,10 @@ Before cutting a tag:
 3. Run the targeted consensus/miner checks:
    - `./build/bin/test_bitcoin --run_test=randomx_tests`
    - `python3 test/functional/feature_internal_miner.py --configfile=build/test/config.ini`
-4. Ensure the bootstrap assets in [`bootstrap/`](/bootstrap) are current and their metadata in [`README.md`](/README.md) matches.
-5. Update release notes or the security review note if any RNG-specific consensus or miner behavior changed.
+4. Confirm a clean configure/build does not dirty `src/crypto/randomx`:
+   - `git diff --exit-code -- src/crypto/randomx`
+5. Ensure the bootstrap assets in [`bootstrap/`](/bootstrap) are current and their metadata in [`README.md`](/README.md) matches.
+6. Update release notes or the security review note if any RNG-specific consensus or miner behavior changed.
 
 ## Cut a release
 

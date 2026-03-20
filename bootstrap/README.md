@@ -38,3 +38,6 @@ or you are retrying on a partially initialized datadir, it falls back to the
 assumeutxo snapshot path. On a tagged binary install, `rng-load-bootstrap`
 will download the release-matched assets automatically if they are not already
 present under `~/.rng/bootstrap`.
+
+If you are bootstrapping a public VPS miner, keep `listen=1` in `rng.conf` and
+open `8433/TCP` after the node is up so it can contribute inbound connectivity.

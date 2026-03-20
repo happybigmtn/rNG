@@ -50,7 +50,7 @@ RNG uses **Bitcoin's transaction format** unchanged:
 - Sequence number enables RBF and relative timelocks
 
 ### Output Rules
-- Value must be ≥ 0 and ≤ 21,000,000 BTC
+- Value must be ≥ 0 and within RNG's consensus `MoneyRange` sanity bound
 - Sum of outputs must not exceed sum of inputs
 - Standard output types: P2PKH, P2SH, P2WPKH, P2WSH, P2TR
 

@@ -9,13 +9,27 @@
 enable_language(C)
 
 function(add_randomx subdir)
+  set(RANDOMX_BUILD_SOURCE_DIR "${PROJECT_BINARY_DIR}/randomx-src")
+  set(RANDOMX_BINARY_DIR "${PROJECT_BINARY_DIR}/randomx-build")
+
   message("")
   message("Configuring RandomX subtree...")
 
   get_filename_component(RANDOMX_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}" ABSOLUTE)
+  if(NOT EXISTS "${RANDOMX_SOURCE_DIR}/src/randomx.h")
+    message(FATAL_ERROR "Missing vendored RandomX source at ${RANDOMX_SOURCE_DIR}")
+  endif()
+
+  file(REMOVE_RECURSE "${RANDOMX_BUILD_SOURCE_DIR}" "${RANDOMX_BINARY_DIR}")
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${RANDOMX_SOURCE_DIR}"
+      "${RANDOMX_BUILD_SOURCE_DIR}"
+    COMMAND_ERROR_IS_FATAL ANY
+  )
   execute_process(
     COMMAND ${CMAKE_COMMAND}
-      -DRANDOMX_SOURCE_DIR=${RANDOMX_SOURCE_DIR}
+      -DRANDOMX_SOURCE_DIR=${RANDOMX_BUILD_SOURCE_DIR}
       -P ${PROJECT_SOURCE_DIR}/cmake/script/PatchRandomX.cmake
     COMMAND_ERROR_IS_FATAL ANY
   )
@@ -56,7 +70,7 @@ function(add_randomx subdir)
     deduplicate_flags(CMAKE_CXX_FLAGS)
   endif()
 
-  add_subdirectory(${subdir})
+  add_subdirectory("${RANDOMX_BUILD_SOURCE_DIR}" "${RANDOMX_BINARY_DIR}")
 
   # Exclude RandomX library and its test executables from ALL target
   set_target_properties(randomx PROPERTIES

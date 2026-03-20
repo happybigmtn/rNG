@@ -130,8 +130,11 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1815; // 90%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
 
-        consensus.nMinimumChainWork = uint256{}; // RNG: New chain, no minimum work yet
-        consensus.defaultAssumeValid = uint256{}; // RNG: New chain, no assumed valid block yet
+        // Mainnet trust defaults pinned to a live 2026-03-19 chain view.
+        // assumevalid stays on the buried assumeutxo base block while
+        // minimum-chain-work tracks a more recent fully synced tip.
+        consensus.nMinimumChainWork = uint256{"000000000000000000000000000000000000000000000000000000005e9a730b"};
+        consensus.defaultAssumeValid = uint256{"2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"};
 
         /**
          * RNG network magic bytes: 0xB07C010E
@@ -143,8 +146,8 @@ public:
         pchMessageStart[3] = 0x0e;
         nDefaultPort = 8433; // RNG: P2P port
         nPruneAfterHeight = 100000;
-        m_assumed_blockchain_size = 810;
-        m_assumed_chain_state_size = 14;
+        m_assumed_blockchain_size = 1;
+        m_assumed_chain_state_size = 1;
 
         // RNG genesis block with the canonical RNG message
         // nTime: 1738195200 = 2025-01-30 00:00:00 UTC (launch preparation)

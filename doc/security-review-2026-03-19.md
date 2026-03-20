@@ -93,4 +93,3 @@ These are not consensus bugs found in code review, but they still block a strong
 
 - the network remains operator-seeded and low-peer
 - release trust was previously branch-first rather than tag-first; the repo now includes the release workflow, but it still depends on maintainers actually cutting tags
-- the RandomX vendoring flow still deserves follow-up so normal configure/build cycles do not dirty the vendored checkout

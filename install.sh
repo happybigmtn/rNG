@@ -458,6 +458,7 @@ setup_config() {
         cat <<EOF
 # RNG live-mainnet config
 # Public peers below are operator-run seed nodes for the current low-peer network.
+# Keep listen=1 and open TCP/8433 on public hosts so your miner can accept inbound peers.
 # Current live genesis: 83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4
 server=1
 daemon=1
@@ -465,6 +466,7 @@ rpcuser=agent
 rpcpassword=$RPCPASS
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
+listen=1
 minerandomx=fast
 EOF
         for seed in "${PUBLIC_SEEDS[@]}"; do
@@ -664,7 +666,8 @@ print_next_steps() {
     echo "  2. Check peer connectivity:"
     echo "     $INSTALL_DIR/rng-cli getconnectioncount"
     echo "     $INSTALL_DIR/rng-cli getblockchaininfo"
-    echo "     # low peer counts are normal on the current operator-seeded network"
+    echo "     # low peer counts are normal on the current small live network"
+    echo "     # if this is a public VPS, keep listen=1 and open TCP/8433 for inbound peers"
     echo ""
     if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
         echo "  3. Run the built-in health check:"
