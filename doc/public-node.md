@@ -101,3 +101,31 @@ sudo systemctl enable --now rngd
 
 Important: RandomX uses JIT-generated code. Do not add
 `MemoryDenyWriteExecute=true` to the service unit or RandomX fast mode may fail.
+
+## Run mining persistently under systemd
+
+Once the base public node is installed, you can add a mining override:
+
+```bash
+sudo rng-install-public-miner --address rng1...
+sudo systemctl restart rngd
+```
+
+By default the helper:
+
+- keeps RandomX in `fast` mode
+- uses `CPU count - 1` mining threads
+- sets `Nice=19` in the service override
+
+Optional flags:
+
+```bash
+sudo rng-install-public-miner --address rng1... --threads 7 --priority low --randomx fast
+```
+
+To remove the mining override and return the host to node-only mode:
+
+```bash
+sudo rng-install-public-miner --remove
+sudo systemctl restart rngd
+```

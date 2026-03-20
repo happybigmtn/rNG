@@ -77,6 +77,13 @@ sudo systemctl enable --now rngd
 sudo ufw allow 8433/tcp
 ```
 
+To run persistent mining under systemd on that same host:
+
+```bash
+sudo rng-install-public-miner --address rng1...
+sudo systemctl restart rngd
+```
+
 ## Quick Start
 
 ### Fastest path from a release install
@@ -182,6 +189,23 @@ If you are mining on a public VPS, do not stop at outbound-only sync:
 
 See [doc/public-node.md](./doc/public-node.md) for a full public-node checklist.
 
+### 2d. Persistent public mining under systemd
+
+If you want a public VPS to stay mining across reboots, use the packaged helper:
+
+```bash
+sudo rng-install-public-node
+sudo rng-install-public-miner --address rng1...
+sudo systemctl enable --now rngd
+```
+
+Remove the mining override later with:
+
+```bash
+sudo rng-install-public-miner --remove
+sudo systemctl restart rngd
+```
+
 ### 2b. Verify node health and miner status
 
 ```bash
@@ -249,6 +273,7 @@ The installer also drops helper commands into the install dir:
 - `rng-start-miner`
 - `rng-doctor`
 - `rng-install-public-node`
+- `rng-install-public-miner`
 
 ## Release Verification
 
@@ -257,7 +282,7 @@ Tagged releases ship with:
 - deterministic binary tarballs from `scripts/build-release.sh`
 - published `SHA256SUMS`
 - GitHub build provenance attestations
-- bundled `rng-install-public-node`, `rngd.service`, `rng.conf.example`, and public-node guidance for VPS operators
+- bundled `rng-install-public-node`, `rng-install-public-miner`, `rngd.service`, `rng.conf.example`, and public-node guidance for VPS operators
 
 Verify a published release with:
 
