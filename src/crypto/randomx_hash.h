@@ -147,7 +147,7 @@ public:
      * @param seed_hash Seed hash for the current epoch
      * @return true if initialized successfully
      */
-    bool Initialize(const uint256& seed_hash, bool fast_mode);
+    bool Initialize(const uint256& seed_hash, bool fast_mode, bool* fast_mode_used = nullptr);
     
     /**
      * Compute RandomX hash. LOCK-FREE.
@@ -168,10 +168,16 @@ public:
      */
     bool HasSeed(const uint256& seed_hash) const;
 
+    /**
+     * Check whether this VM is using fast mode.
+     */
+    bool IsFastMode() const { return m_fast_mode; }
+
 private:
     randomx_vm* m_vm{nullptr};
     uint256 m_seed_hash;
     bool m_initialized{false};
+    bool m_fast_mode{false};
 };
 
 /**

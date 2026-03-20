@@ -11,7 +11,7 @@ Acceptance Criteria (from specs/randomx.md):
 2. Block validation uses RandomX hash (not SHA-256d)
 3. Valid RandomX proof-of-work is accepted
 4. Mining RPC produces valid RandomX proofs
-5. Seed hash rotates correctly every 2048 blocks with 64-block lag
+5. The shipped fixed-seed policy remains internally consistent across blocks
 """
 
 from test_framework.test_framework import BitcoinTestFramework

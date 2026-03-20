@@ -216,9 +216,10 @@ RandomXMiningVM::~RandomXMiningVM() {
 }
 
 RandomXMiningVM::RandomXMiningVM(RandomXMiningVM&& other) noexcept
-    : m_vm(other.m_vm), m_seed_hash(other.m_seed_hash), m_initialized(other.m_initialized) {
+    : m_vm(other.m_vm), m_seed_hash(other.m_seed_hash), m_initialized(other.m_initialized), m_fast_mode(other.m_fast_mode) {
     other.m_vm = nullptr;
     other.m_initialized = false;
+    other.m_fast_mode = false;
 }
 
 RandomXMiningVM& RandomXMiningVM::operator=(RandomXMiningVM&& other) noexcept {
@@ -229,65 +230,83 @@ RandomXMiningVM& RandomXMiningVM::operator=(RandomXMiningVM&& other) noexcept {
         m_vm = other.m_vm;
         m_seed_hash = other.m_seed_hash;
         m_initialized = other.m_initialized;
+        m_fast_mode = other.m_fast_mode;
         other.m_vm = nullptr;
         other.m_initialized = false;
+        other.m_fast_mode = false;
     }
     return *this;
 }
 
-bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode) {
-    // Ensure the global context is initialized with this seed.
-    // fast_mode=true: build full dataset (~2 GiB RAM) for faster mining
-    // fast_mode=false: cache-only "light" mode (~256 MiB RAM)
-    RandomXContext::GetInstance().UpdateSeedHash(seed_hash, /*fast_mode=*/fast_mode);
+bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool* fast_mode_used) {
+    auto try_initialize = [&](bool use_fast_mode) -> bool {
+        try {
+            // Ensure the global context is initialized with this seed.
+            RandomXContext::GetInstance().UpdateSeedHash(seed_hash, /*fast_mode=*/use_fast_mode);
+        } catch (const std::exception& e) {
+            LogWarning("RandomXMiningVM: %s mode initialization failed: %s\n",
+                       use_fast_mode ? "fast" : "light", e.what());
+            return false;
+        }
 
-    // Destroy old VM if exists and seed changed
-    if (m_vm && m_seed_hash != seed_hash) {
-        randomx_destroy_vm(m_vm);
-        m_vm = nullptr;
-    }
-
-    // Create VM if needed
-    if (!m_vm) {
-        randomx_flags flags = randomx_get_flags();
-
-        if (fast_mode) {
-            randomx_dataset* dataset = RandomXContext::GetInstance().GetDataset();
-            if (!dataset) {
-                LogInfo("RandomXMiningVM: Dataset not available (fast mode)\n");
-                return false;
-            }
-
-            m_vm = randomx_create_vm(flags | RANDOMX_FLAG_JIT | RANDOMX_FLAG_FULL_MEM,
-                                    nullptr, dataset);
-            if (!m_vm) {
-                // Fallback without JIT
-                m_vm = randomx_create_vm(flags | RANDOMX_FLAG_FULL_MEM, nullptr, dataset);
-            }
-        } else {
-            randomx_cache* cache = RandomXContext::GetInstance().GetCache();
-            if (!cache) {
-                LogInfo("RandomXMiningVM: Cache not available (light mode)\n");
-                return false;
-            }
-
-            // Cache-only VM (light mode).
-            m_vm = randomx_create_vm(flags | RANDOMX_FLAG_JIT, cache, nullptr);
-            if (!m_vm) {
-                // Fallback without JIT
-                m_vm = randomx_create_vm(flags, cache, nullptr);
-            }
+        if (m_vm && (m_seed_hash != seed_hash || m_fast_mode != use_fast_mode)) {
+            randomx_destroy_vm(m_vm);
+            m_vm = nullptr;
         }
 
         if (!m_vm) {
-            LogInfo("RandomXMiningVM: Failed to create VM\n");
-            return false;
+            randomx_flags flags = randomx_get_flags();
+
+            if (use_fast_mode) {
+                randomx_dataset* dataset = RandomXContext::GetInstance().GetDataset();
+                if (!dataset) {
+                    LogWarning("RandomXMiningVM: Dataset not available (fast mode)\n");
+                    return false;
+                }
+
+                m_vm = randomx_create_vm(flags | RANDOMX_FLAG_JIT | RANDOMX_FLAG_FULL_MEM,
+                                         nullptr, dataset);
+                if (!m_vm) {
+                    m_vm = randomx_create_vm(flags | RANDOMX_FLAG_FULL_MEM, nullptr, dataset);
+                }
+            } else {
+                randomx_cache* cache = RandomXContext::GetInstance().GetCache();
+                if (!cache) {
+                    LogWarning("RandomXMiningVM: Cache not available (light mode)\n");
+                    return false;
+                }
+
+                m_vm = randomx_create_vm(flags | RANDOMX_FLAG_JIT, cache, nullptr);
+                if (!m_vm) {
+                    m_vm = randomx_create_vm(flags, cache, nullptr);
+                }
+            }
+
+            if (!m_vm) {
+                LogWarning("RandomXMiningVM: Failed to create %s VM\n", use_fast_mode ? "fast" : "light");
+                return false;
+            }
         }
+
+        m_seed_hash = seed_hash;
+        m_initialized = true;
+        m_fast_mode = use_fast_mode;
+        if (fast_mode_used) {
+            *fast_mode_used = use_fast_mode;
+        }
+        return true;
+    };
+
+    if (try_initialize(fast_mode)) {
+        return true;
     }
 
-    m_seed_hash = seed_hash;
-    m_initialized = true;
-    return true;
+    if (fast_mode) {
+        LogWarning("RandomXMiningVM: Falling back to light mode after fast mode failure\n");
+        return try_initialize(/*use_fast_mode=*/false);
+    }
+
+    return false;
 }
 
 uint256 RandomXMiningVM::Hash(std::span<const unsigned char> input) {

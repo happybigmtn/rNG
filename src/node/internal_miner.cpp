@@ -16,6 +16,7 @@
 #include <pow.h>
 #include <primitives/block.h>
 #include <streams.h>
+#include <util/batchpriority.h>
 #include <util/signalinterrupt.h>
 #include <util/time.h>
 #include <validation.h>
@@ -372,6 +373,10 @@ void InternalMiner::CoordinatorThread()
 void InternalMiner::WorkerThread(int thread_id)
 {
     LogInfo("InternalMiner: Worker %d started (stride pattern)\n", thread_id);
+
+    if (m_low_priority) {
+        ScheduleBatchPriority();
+    }
     
     // Create per-thread RandomX VM
     RandomXMiningVM mining_vm;
@@ -407,10 +412,15 @@ void InternalMiner::WorkerThread(int thread_id)
             
             // Initialize/update per-thread VM if seed changed
             if (!mining_vm.HasSeed(ctx->seed_hash)) {
-                if (!mining_vm.Initialize(ctx->seed_hash, m_fast_mode)) {
+                bool fast_mode_used = m_fast_mode;
+                if (!mining_vm.Initialize(ctx->seed_hash, m_fast_mode, &fast_mode_used)) {
                     LogInfo("InternalMiner: Worker %d VM init failed, retrying...\n", thread_id);
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                     continue;
+                }
+                m_using_fast_mode.store(fast_mode_used, std::memory_order_relaxed);
+                if (m_fast_mode && !fast_mode_used) {
+                    LogWarning("InternalMiner: Worker %d is mining in RandomX light mode after fast mode fallback\n", thread_id);
                 }
             }
             

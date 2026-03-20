@@ -4097,7 +4097,13 @@ bool HasValidProofOfWork(std::span<const CBlockHeader> headers, const Consensus:
     uint256 genesis_seed = Hash(std::string(kRandomXGenesisSeedPhrase));
     
     for (const auto& header : headers) {
-        uint256 pow_hash = GetBlockPoWHash(header, genesis_seed);
+        uint256 pow_hash;
+        try {
+            pow_hash = GetBlockPoWHash(header, genesis_seed);
+        } catch (const std::exception& e) {
+            LogError("RandomX header validation failed: %s\n", e.what());
+            return false;
+        }
         if (!CheckProofOfWork(pow_hash, header.nBits, consensusParams)) {
             return false;
         }
