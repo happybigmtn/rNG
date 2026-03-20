@@ -373,9 +373,15 @@ install_helper_scripts() {
         cp "$RELEASE_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-load-bootstrap"
         cp "$RELEASE_DIR/rng-start-miner" "$INSTALL_DIR/rng-start-miner"
         cp "$RELEASE_DIR/rng-doctor" "$INSTALL_DIR/rng-doctor"
+        if [ -f "$RELEASE_DIR/rng-install-public-node" ]; then
+            cp "$RELEASE_DIR/rng-install-public-node" "$INSTALL_DIR/rng-install-public-node"
+        fi
+        [ ! -f "$RELEASE_DIR/rngd.service" ] || cp "$RELEASE_DIR/rngd.service" "$INSTALL_DIR/rngd.service"
+        [ ! -f "$RELEASE_DIR/rng.conf.example" ] || cp "$RELEASE_DIR/rng.conf.example" "$INSTALL_DIR/rng.conf.example"
         chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" "$INSTALL_DIR/rng-doctor"
+        [ ! -f "$INSTALL_DIR/rng-install-public-node" ] || chmod +x "$INSTALL_DIR/rng-install-public-node"
         HELPER_SCRIPTS_INSTALLED=1
-        success "Installed helper commands rng-load-bootstrap, rng-start-miner, and rng-doctor"
+        success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, and rng-install-public-node"
         return
     fi
 
@@ -387,9 +393,13 @@ install_helper_scripts() {
     cp "$SOURCE_DIR/scripts/load-bootstrap.sh" "$INSTALL_DIR/rng-load-bootstrap"
     cp "$SOURCE_DIR/scripts/start-miner.sh" "$INSTALL_DIR/rng-start-miner"
     cp "$SOURCE_DIR/scripts/doctor.sh" "$INSTALL_DIR/rng-doctor"
-    chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" "$INSTALL_DIR/rng-doctor"
+    cp "$SOURCE_DIR/scripts/install-public-node.sh" "$INSTALL_DIR/rng-install-public-node"
+    cp "$SOURCE_DIR/contrib/init/rngd.service" "$INSTALL_DIR/rngd.service"
+    cp "$SOURCE_DIR/contrib/init/rng.conf.example" "$INSTALL_DIR/rng.conf.example"
+    chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" \
+        "$INSTALL_DIR/rng-doctor" "$INSTALL_DIR/rng-install-public-node"
     HELPER_SCRIPTS_INSTALLED=1
-    success "Installed helper commands rng-load-bootstrap, rng-start-miner, and rng-doctor"
+    success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, and rng-install-public-node"
 }
 
 prepare_source_tree() {
@@ -676,6 +686,10 @@ print_next_steps() {
         echo "  4. Fast miner setup:"
         echo "     $INSTALL_DIR/rng-start-miner"
         echo "     $INSTALL_DIR/rng-doctor"
+        echo ""
+        echo "  4a. Public VPS setup (optional):"
+        echo "     sudo $INSTALL_DIR/rng-install-public-node"
+        echo "     sudo systemctl enable --now rngd"
         echo ""
     fi
     if [ -f "$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE" ] || [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then

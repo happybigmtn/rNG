@@ -41,7 +41,7 @@ rng-start-miner
 The standalone installer now resolves tagged releases by default, creates `~/.rng/rng.conf`,
 seeds it with the current operator seed peers, can download the release-matched chain bundle or
 assumeutxo snapshot, and installs helper commands `rng-load-bootstrap`,
-`rng-start-miner`, and `rng-doctor`.
+`rng-start-miner`, `rng-doctor`, and `rng-install-public-node`.
 
 ### Option B: Clone and build this checkout
 
@@ -67,6 +67,14 @@ After install, start mining with:
 ```bash
 rng-start-miner
 rng-doctor
+```
+
+On a public VPS, you can also install the packaged service/unit path with:
+
+```bash
+sudo rng-install-public-node
+sudo systemctl enable --now rngd
+sudo ufw allow 8433/tcp
 ```
 
 ## Quick Start
@@ -170,7 +178,7 @@ If you are mining on a public VPS, do not stop at outbound-only sync:
 - keep `listen=1` in `rng.conf`
 - open `8433/TCP` on your host firewall and cloud security group
 - verify `rng-cli getnetworkinfo` eventually shows nonzero `connections_in` or a non-empty `localaddresses` list
-- use the packaged systemd unit at [`contrib/init/rngd.service`](./contrib/init/rngd.service) for long-running hosts
+- use the packaged helper `rng-install-public-node` or the systemd unit at [`contrib/init/rngd.service`](./contrib/init/rngd.service) for long-running hosts
 
 See [doc/public-node.md](./doc/public-node.md) for a full public-node checklist.
 
@@ -235,11 +243,12 @@ addnode=185.218.126.23:8433
 addnode=185.239.209.227:8433
 ```
 
-The installer also drops three helper commands into the install dir:
+The installer also drops helper commands into the install dir:
 
 - `rng-load-bootstrap`
 - `rng-start-miner`
 - `rng-doctor`
+- `rng-install-public-node`
 
 ## Release Verification
 
@@ -248,7 +257,7 @@ Tagged releases ship with:
 - deterministic binary tarballs from `scripts/build-release.sh`
 - published `SHA256SUMS`
 - GitHub build provenance attestations
-- bundled `rngd.service` and public-node guidance for VPS operators
+- bundled `rng-install-public-node`, `rngd.service`, `rng.conf.example`, and public-node guidance for VPS operators
 
 Verify a published release with:
 

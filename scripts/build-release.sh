@@ -168,7 +168,9 @@ payload = {
         "rng-load-bootstrap",
         "rng-start-miner",
         "rng-doctor",
+        "rng-install-public-node",
         "rngd.service",
+        "rng.conf.example",
         "PUBLIC-NODE.md",
         "COPYING",
     ],
@@ -191,13 +193,17 @@ package_release() {
     cp scripts/load-bootstrap.sh "$stage_root/rng-load-bootstrap"
     cp scripts/start-miner.sh "$stage_root/rng-start-miner"
     cp scripts/doctor.sh "$stage_root/rng-doctor"
+    cp scripts/install-public-node.sh "$stage_root/rng-install-public-node"
     cp contrib/init/rngd.service "$stage_root/rngd.service"
+    cp contrib/init/rng.conf.example "$stage_root/rng.conf.example"
     cp doc/public-node.md "$stage_root/PUBLIC-NODE.md"
     cp COPYING "$stage_root/COPYING"
 
     chmod 755 "$stage_root/rngd" "$stage_root/rng-cli" \
-        "$stage_root/rng-load-bootstrap" "$stage_root/rng-start-miner" "$stage_root/rng-doctor"
-    chmod 644 "$stage_root/rngd.service" "$stage_root/PUBLIC-NODE.md" "$stage_root/COPYING"
+        "$stage_root/rng-load-bootstrap" "$stage_root/rng-start-miner" \
+        "$stage_root/rng-doctor" "$stage_root/rng-install-public-node"
+    chmod 644 "$stage_root/rngd.service" "$stage_root/rng.conf.example" \
+        "$stage_root/PUBLIC-NODE.md" "$stage_root/COPYING"
 
     maybe_strip_binary "$stage_root/rngd"
     maybe_strip_binary "$stage_root/rng-cli"

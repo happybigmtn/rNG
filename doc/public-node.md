@@ -25,13 +25,20 @@ rng-start-miner
 rng-doctor
 ```
 
+If `rngd` is already installed on the host, the fastest systemd path is:
+
+```bash
+sudo rng-install-public-node
+sudo systemctl enable --now rngd
+```
+
 ## Required config for a public peer
 
 Make sure `~/.rng/rng.conf` or `/etc/rng/rng.conf` includes:
 
 ```ini
 server=1
-daemon=1
+daemon=0
 listen=1
 rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
@@ -72,13 +79,22 @@ public peer, check:
 
 ## Run under systemd
 
-For long-running VPS nodes, use the packaged unit:
+For long-running VPS nodes, use the packaged helper or install the assets manually.
+
+Fast path:
+
+```bash
+sudo rng-install-public-node
+sudo systemctl enable --now rngd
+```
+
+Manual path:
 
 ```bash
 sudo useradd --system --create-home --home-dir /var/lib/rngd --shell /usr/sbin/nologin rng
 sudo install -d -o rng -g rng -m 0710 /etc/rng /var/lib/rngd
 sudo install -m 0644 contrib/init/rngd.service /etc/systemd/system/rngd.service
-sudo install -m 0600 /path/to/rng.conf /etc/rng/rng.conf
+sudo install -m 0600 contrib/init/rng.conf.example /etc/rng/rng.conf
 sudo systemctl daemon-reload
 sudo systemctl enable --now rngd
 ```

@@ -158,5 +158,7 @@ jobs:
             ### Bundled bootstrap assets
             - `rng-mainnet-15244-datadir.tar.gz`
             - `rng-mainnet-15091.utxo`
+            - `rng-install-public-node`
             - `rngd.service`
+            - `rng.conf.example`
             - `PUBLIC-NODE.md`
