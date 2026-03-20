@@ -6,17 +6,16 @@ CPU-mineable cryptocurrency for AI agents.
 
 As of March 19, 2026:
 
-- The `main` branch is the live-network reference.
+- Public installs should target the latest tagged RNG release.
 - RNG mainnet was restarted from genesis on February 26, 2026.
 - Expected genesis hash: `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`
 - Public operator seed peers: `95.111.239.142:8433`, `161.97.114.192:8433`, `185.218.126.23:8433`, `185.239.209.227:8433`
 - Live mainnet RandomX constants: genesis seed phrase `RNG Genesis Seed`, ARGON salt `RNGCHAIN01`
 - Live miners use RandomX `fast` mode.
 - The network is currently operator-seeded. Low peer counts and zero third-party miners are normal.
-- Source builds from `main` were verified against the first post-reset live headers on March 19, 2026.
+- Source builds from `main` were verified against the first post-reset live headers on March 19, 2026, but `main` should now be treated as prerelease/development state rather than the public install target.
 
-If you are mining today, use `./install.sh` or build from source. Tagged release binaries
-and container images may lag behind the live network.
+If you are mining today, use the latest tagged release unless you are explicitly validating unreleased source changes.
 
 ## Upstream Delta
 
@@ -30,29 +29,39 @@ are documented in [CHANGES.md](./CHANGES.md). In short:
 
 ## Mine From This Repo
 
-### Option A: Clone and install
+### Option A: Verify-first release install
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/<tag>/install.sh
+less install.sh
+RNG_VERSION=<tag> bash install.sh --add-path --bootstrap
+rng-start-miner
+```
+
+The standalone installer now resolves tagged releases by default, creates `~/.rng/rng.conf`,
+seeds it with the current operator seed peers, can download the release-matched chain bundle or
+assumeutxo snapshot, and installs helper commands `rng-load-bootstrap`,
+`rng-start-miner`, and `rng-doctor`.
+
+### Option B: Clone and build this checkout
 
 ```bash
 git clone https://github.com/happybigmtn/rng.git
 cd rng
 ./install.sh --add-path --bootstrap
-rng-start-miner
 ```
 
-The installer builds the live `main` branch by default, creates `~/.rng/rng.conf`,
-seeds it with the current operator seed peers, can load the bundled chain bundle or
-assumeutxo snapshot, and installs helper commands `rng-load-bootstrap`,
-`rng-start-miner`, and `rng-doctor`.
+Running `./install.sh` from a repo checkout installs that checkout. Use this path if you are
+intentionally validating unreleased source changes.
 
-### Option B: Verify-first installer
+### Option C: Verify a published release asset
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/main/install.sh
-less install.sh
-bash install.sh --add-path --bootstrap
+git clone https://github.com/happybigmtn/rng.git
+cd rng
+./scripts/verify-release.sh --version <tag> --platform linux-x86_64
 ```
 
-If you use the repo checkout path above, `--bootstrap` is the fastest first-sync option.
 After install, start mining with:
 
 ```bash
@@ -61,6 +70,14 @@ rng-doctor
 ```
 
 ## Quick Start
+
+### Fastest path from a release install
+
+```bash
+rng-load-bootstrap
+rng-start-miner
+rng-doctor
+```
 
 ### Fastest path from a repo checkout
 
@@ -101,7 +118,9 @@ rng-cli getchainstates
 
 On a fresh datadir, the helper first extracts the bundled near-tip datadir archive.
 If that archive is unavailable, or if you are retrying on a partially initialized
-datadir, it falls back to the assumeutxo snapshot path. The bundle alone is enough
+datadir, it falls back to the assumeutxo snapshot path. On a tagged binary install,
+`rng-load-bootstrap` will download the release-matched assets automatically if they
+are not already present locally. The bundle alone is enough
 to come up near tip. The snapshot path still waits for the snapshot base header and
 now waits up to 15 minutes by default while printing header progress.
 
@@ -204,11 +223,27 @@ addnode=185.218.126.23:8433
 addnode=185.239.209.227:8433
 ```
 
-The installer also drops two helper commands into the install dir:
+The installer also drops three helper commands into the install dir:
 
 - `rng-load-bootstrap`
 - `rng-start-miner`
 - `rng-doctor`
+
+## Release Verification
+
+Tagged releases ship with:
+
+- deterministic binary tarballs from `scripts/build-release.sh`
+- published `SHA256SUMS`
+- GitHub build provenance attestations
+
+Verify a published release with:
+
+```bash
+./scripts/verify-release.sh --version <tag> --platform linux-x86_64
+```
+
+For the full release flow, see [doc/release-process.md](./doc/release-process.md).
 
 ## Bundled Snapshot
 

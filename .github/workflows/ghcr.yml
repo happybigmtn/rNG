@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
 
 jobs:
   build-and-push:
@@ -36,6 +39,7 @@ jobs:
           echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
 
       - name: Build and push
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -44,6 +48,13 @@ jobs:
             ghcr.io/happybigmtn/rng:${{ steps.vars.outputs.tag }}
             ghcr.io/happybigmtn/rng:latest
           platforms: linux/amd64
+
+      - name: Attest container image
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ghcr.io/happybigmtn/rng
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
 
       - name: Make GHCR package public
         env:

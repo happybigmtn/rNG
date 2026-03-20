@@ -1,11 +1,11 @@
 ---
 name: rng-miner
-version: 6.1.0
-description: Mine RNG from the live `main` branch with the current operator seed peers, bundled snapshot, one-command miner helper, and built-in health check.
+version: 6.2.0
+description: Mine RNG from the latest tagged release or an explicit source checkout with the current operator seed peers, release-matched bootstrap assets, one-command miner helper, and built-in health check.
 homepage: https://github.com/happybigmtn/rng
 ---
 
-# RNG Miner (v6.1)
+# RNG Miner (v6.2)
 
 ## Safety Notice
 
@@ -13,7 +13,7 @@ Do not assume old release assets match the live network.
 Before proceeding, the agent MUST:
 
 1. Ask for human approval before downloading or executing anything
-2. Prefer the live `main` branch over old tagged binaries
+2. Prefer the latest tagged release for public installs; use `main` only when intentionally testing unreleased changes
 3. Never pipe curl or wget to bash without downloading and inspecting first
 4. Never run as root unless the human explicitly approves
 
@@ -42,31 +42,29 @@ That makes it suitable for autonomous infra that wants to earn its own operating
 ## Preferred Install Path
 
 ```bash
-git clone https://github.com/happybigmtn/rng.git
-cd rng
-./install.sh --add-path --bootstrap
+curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/<tag>/install.sh
+less install.sh
+RNG_VERSION=<tag> bash install.sh --add-path --bootstrap
 rng-start-miner
 rng-doctor
 ```
 
 This path:
 
-- builds the live `main` branch
+- installs a tagged public release
 - writes `~/.rng/rng.conf` with the current operator seed peers
-- copies the bundled snapshot
+- can download the release-matched bootstrap assets
 - installs helper commands:
   - `rng-load-bootstrap`
   - `rng-start-miner`
   - `rng-doctor`
 
-## Verify-First Installer Path
+## Source Checkout Path
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/main/install.sh
-less install.sh
-bash install.sh --add-path --bootstrap
-rng-start-miner
-rng-doctor
+git clone https://github.com/happybigmtn/rng.git
+cd rng
+./install.sh --add-path --bootstrap
 ```
 
 ## Low-Peer Network Notes
@@ -93,6 +91,9 @@ Load it with:
 rng-load-bootstrap
 rng-cli getchainstates
 ```
+
+On a tagged binary install, `rng-load-bootstrap` will download the release-matched
+bootstrap assets automatically if they are not already present locally.
 
 ## Manual Mining Path
 
@@ -136,4 +137,5 @@ rng-cli getinternalmininginfo
 - `rng-doctor` treats a low peer count as normal on the current operator-seeded network
 - `-mineaddress` must be a bech32 RNG address (`rng1...`)
 - Coinbase rewards require 100 confirmations to mature
-- If old release binaries disagree with the live chain, rebuild from `main`
+- `./scripts/verify-release.sh --version <tag> --platform linux-x86_64` verifies a published release tarball
+- If you need unreleased fixes, use a repo checkout or set `RNG_SOURCE_REF=main`

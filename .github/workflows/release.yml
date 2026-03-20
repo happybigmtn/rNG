@@ -1,235 +1,157 @@
-name: Build and Release
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: {}
-
-env:
-  # RandomX is vendored as a git submodule at src/crypto/randomx.
-  # Avoid cloning it manually; CI should init only that submodule to prevent unrelated submodule mapping issues.
 
 jobs:
-  build-linux-x86_64:
-    runs-on: ubuntu-22.04
+  build-binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            runner: ubuntu-22.04
+            build_mode: native
+          - platform: linux-arm64
+            runner: ubuntu-22.04
+            build_mode: docker-arm64
+          - platform: macos-x86_64
+            runner: macos-13
+            build_mode: native
+          - platform: macos-arm64
+            runner: macos-14
+            build_mode: native
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: false
 
       - name: Init RandomX submodule
-        run: |
-          git submodule update --init --recursive -- src/crypto/randomx
-      
-      - name: Install dependencies
+        run: git submodule update --init --recursive -- src/crypto/randomx
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux' && matrix.build_mode == 'native'
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git \
-            libboost-all-dev libssl-dev libevent-dev libsqlite3-dev
-      
-      - name: Build
-        run: |
-          cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
-          cmake --build build -j$(nproc)
-      
-      - name: Package
-        run: |
-          VERSION="${{ github.ref_name }}"
-          mkdir -p release
-          cp build/bin/rngd build/bin/rng-cli release/
-          strip release/rngd release/rng-cli
-          cd release && sha256sum rngd rng-cli > SHA256SUMS && cd ..
-          tar -czvf "rng-${VERSION}-linux-x86_64.tar.gz" release
-      
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-x86_64
-          path: rng-*-linux-x86_64.tar.gz
+            libboost-all-dev libssl-dev libevent-dev libsqlite3-dev python3
 
-  build-linux-arm64:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: false
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install cmake boost openssl@3 libevent sqlite
 
-      - name: Init RandomX submodule
+      - name: Build native binaries
+        if: matrix.build_mode == 'native'
         run: |
-          git submodule update --init --recursive -- src/crypto/randomx
-      
+          OPENSSL_FLAG=""
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            OPENSSL_FLAG="-DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)"
+          fi
+          cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON ${OPENSSL_FLAG}
+          cmake --build build -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) --target rngd rng-cli
+
       - name: Set up QEMU
+        if: matrix.build_mode == 'docker-arm64'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
-      
-      - name: Build in ARM64 container
-        uses: docker/build-push-action@v5
+
+      - name: Build ARM64 binaries in container
+        if: matrix.build_mode == 'docker-arm64'
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: .github/Dockerfile.arm64
           platforms: linux/arm64
           push: false
           outputs: type=local,dest=./output
-      
-      - name: Package
+
+      - name: Normalize ARM64 build output
+        if: matrix.build_mode == 'docker-arm64'
         run: |
-          VERSION="${{ github.ref_name }}"
-          mkdir -p release
-          cp output/rngd output/rng-cli release/ 2>/dev/null || cp output/usr/local/bin/rng* release/
-          cd release && sha256sum rngd rng-cli > SHA256SUMS && cd ..
-          tar -czvf "rng-${VERSION}-linux-arm64.tar.gz" release
-      
+          mkdir -p build/bin
+          cp output/rngd build/bin/rngd 2>/dev/null || cp output/usr/local/bin/rngd build/bin/rngd
+          cp output/rng-cli build/bin/rng-cli 2>/dev/null || cp output/usr/local/bin/rng-cli build/bin/rng-cli
+
+      - name: Package deterministic release tarball
+        run: |
+          chmod +x scripts/build-release.sh
+          ./scripts/build-release.sh \
+            --version "${{ github.ref_name }}" \
+            --platform "${{ matrix.platform }}" \
+            --build-dir build \
+            --output-dir dist \
+            --skip-build
+
+      - name: Attest binary release asset
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: dist/rng-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
+
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-arm64
-          path: rng-*-linux-arm64.tar.gz
-
-  build-macos:
-    strategy:
-      matrix:
-        include:
-          - runner: macos-13      # Intel
-            arch: x86_64
-          - runner: macos-14      # Apple Silicon
-            arch: arm64
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: false
-
-      - name: Init RandomX submodule
-        run: |
-          git submodule update --init --recursive -- src/crypto/randomx
-      
-      - name: Install dependencies
-        run: brew install cmake boost openssl@3 libevent sqlite
-      
-      - name: Build
-        run: |
-          cmake -B build \
-            -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON \
-            -DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)
-          cmake --build build -j$(sysctl -n hw.ncpu)
-      
-      - name: Package
-        run: |
-          VERSION="${{ github.ref_name }}"
-          mkdir -p release
-          cp build/bin/rngd build/bin/rng-cli release/
-          strip release/rngd release/rng-cli 2>/dev/null || true
-          cd release && shasum -a 256 rngd rng-cli > SHA256SUMS && cd ..
-          tar -czvf "rng-${VERSION}-macos-${{ matrix.arch }}.tar.gz" release
-      
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-${{ matrix.arch }}
-          path: rng-*-macos-${{ matrix.arch }}.tar.gz
-
-  docker:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: false
-
-      - name: Init RandomX submodule
-        run: |
-          git submodule update --init --recursive -- src/crypto/randomx
-      
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push (multi-arch)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:latest
-
-      - name: Make GHCR package public (optional)
-        env:
-          GH_TOKEN: ${{ secrets.GHCR_PUBLISH_TOKEN }}
-        run: |
-          if [ -n "${GH_TOKEN}" ]; then
-            echo "Setting GHCR package visibility to public..."
-            curl -sS -X PUT \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/users/${{ github.repository_owner }}/packages/container/rng/visibility" \
-              -d '{"visibility":"public"}'
-          else
-            echo "GHCR_PUBLISH_TOKEN not set, skipping"
-          fi
+          name: ${{ matrix.platform }}
+          path: dist/rng-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
 
   release:
-    needs: [build-linux-x86_64, build-linux-arm64, build-macos, docker]
+    needs: build-binaries
     runs-on: ubuntu-22.04
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      
-      - name: Collect all artifacts
+
+      - name: Collect release assets
         run: |
           mkdir -p dist
-          # Each tarball contains a release/ dir with SHA256SUMS inside, but we also want a top-level manifest.
           find artifacts -name "*.tar.gz" -exec mv {} dist/ \;
-          cd dist
-          sha256sum *.tar.gz > SHA256SUMS.txt
-          ls -la
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+          cp bootstrap/rng-mainnet-15091.utxo dist/
+          cp bootstrap/rng-mainnet-15244-datadir.tar.gz dist/
+          (
+            cd dist
+            printf '%s\n' * | LC_ALL=C sort | xargs sha256sum > SHA256SUMS
+          )
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
           files: dist/*
           body: |
             ## RNG ${{ github.ref_name }}
-            
-            ### Quick Install
+
+            Tagged releases are the public install target. The release tarballs are reproducibly packaged, include the mining helper scripts, and carry GitHub build provenance attestations.
+
+            ### Quick install
             ```bash
-            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/master/install.sh | bash
+            curl -fsSLO https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/install.sh
+            less install.sh
+            RNG_VERSION=${{ github.ref_name }} bash install.sh --add-path --bootstrap
             ```
-            
-            ### Downloads
-            | Platform | File |
-            |----------|------|
-            | Linux x86_64 | `rng-${{ github.ref_name }}-linux-x86_64.tar.gz` |
-            | Linux ARM64 | `rng-${{ github.ref_name }}-linux-arm64.tar.gz` |
-            | macOS Intel | `rng-${{ github.ref_name }}-macos-x86_64.tar.gz` |
-            | macOS Apple Silicon | `rng-${{ github.ref_name }}-macos-arm64.tar.gz` |
-            
-            ### Docker
+
+            ### Verify the release
             ```bash
-            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            docker run -d --name rng --cpus=0.5 ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            git clone https://github.com/${{ github.repository }}.git
+            cd rng
+            ./scripts/verify-release.sh --version ${{ github.ref_name }} --platform linux-x86_64
             ```
-            
-            ### Verify Checksums
+
+            ### Manual attestation verification
             ```bash
-            # Linux
-            sha256sum -c SHA256SUMS
-            # macOS
-            shasum -a 256 -c SHA256SUMS
+            gh attestation verify rng-${{ github.ref_name }}-linux-x86_64.tar.gz --repo ${{ github.repository }}
             ```
+
+            ### Bundled bootstrap assets
+            - `rng-mainnet-15244-datadir.tar.gz`
+            - `rng-mainnet-15091.utxo`

@@ -35,4 +35,6 @@ rng-doctor
 On a fresh datadir, the helper prefers the bundled datadir archive first. That
 bundle alone is enough to bring a node up near tip. If the bundle is unavailable
 or you are retrying on a partially initialized datadir, it falls back to the
-assumeutxo snapshot path.
+assumeutxo snapshot path. On a tagged binary install, `rng-load-bootstrap`
+will download the release-matched assets automatically if they are not already
+present under `~/.rng/bootstrap`.

@@ -6,11 +6,13 @@
 set -euo pipefail
 
 RELEASE_VERSION="${RNG_VERSION:-}"
-SOURCE_REF="${RNG_SOURCE_REF:-main}"
+SOURCE_REF="${RNG_SOURCE_REF:-}"
+DEFAULT_SOURCE_REF="main"
 INSTALL_DIR="${RNG_INSTALL_DIR:-$HOME/.local/bin}"
 DATA_DIR="${RNG_DATA_DIR:-$HOME/.rng}"
 REPO="happybigmtn/rng"
 GITHUB_URL="https://github.com/$REPO"
+GITHUB_API_URL="https://api.github.com/repos/$REPO"
 BOOTSTRAP_BASE_HASH="2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"
 BOOTSTRAP_BASE_HEIGHT="15091"
 CHAIN_BUNDLE_ARCHIVE="rng-mainnet-15244-datadir.tar.gz"
@@ -18,6 +20,7 @@ BOOTSTRAP_HEADER_WAIT_SECONDS="${RNG_BOOTSTRAP_HEADER_WAIT_SECONDS:-900}"
 TEMP_SOURCE_ROOT=""
 TEMP_RELEASE_ROOT=""
 SOURCE_DIR=""
+RELEASE_DIR=""
 HELPER_SCRIPTS_INSTALLED=0
 
 PUBLIC_SEEDS=(
@@ -51,7 +54,7 @@ Flags:
 
 Environment variables:
   RNG_VERSION      Optional tagged release to install from GitHub releases
-  RNG_SOURCE_REF   Git ref to build from source (default: main)
+  RNG_SOURCE_REF   Git ref to build from source (default: latest tag, then main)
   RNG_INSTALL_DIR  Install directory (default: ~/.local/bin)
   RNG_DATA_DIR     Data directory (default: ~/.rng)
   RNG_BOOTSTRAP_HEADER_WAIT_SECONDS  Max wait for snapshot base header (default: 900)
@@ -86,6 +89,35 @@ info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 success() { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
+
+download_file() {
+    local url dest
+
+    url="$1"
+    dest="$2"
+
+    if command -v curl &>/dev/null; then
+        curl -fsSL -o "$dest" "$url"
+    elif command -v wget &>/dev/null; then
+        wget -q -O "$dest" "$url"
+    else
+        error "Neither curl nor wget found"
+    fi
+}
+
+download_to_stdout() {
+    local url
+
+    url="$1"
+
+    if command -v curl &>/dev/null; then
+        curl -fsSL "$url"
+    elif command -v wget &>/dev/null; then
+        wget -q -O - "$url"
+    else
+        error "Neither curl nor wget found"
+    fi
+}
 
 detect_platform() {
     OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -154,6 +186,83 @@ verify_checksums() {
     success "Checksums verified"
 }
 
+in_source_tree() {
+    [ -f "$PWD/CMakeLists.txt" ] && [ -f "$PWD/install.sh" ] && [ -d "$PWD/src" ]
+}
+
+fetch_latest_release_version() {
+    local response tag_name
+
+    response="$(download_to_stdout "$GITHUB_API_URL/releases/latest" 2>/dev/null || true)"
+    [ -n "$response" ] || return 1
+
+    if command -v python3 &>/dev/null; then
+        tag_name="$(
+            printf '%s' "$response" | python3 -c '
+import json
+import sys
+
+try:
+    payload = json.load(sys.stdin)
+except json.JSONDecodeError:
+    raise SystemExit(1)
+
+tag = payload.get("tag_name", "")
+if not tag:
+    raise SystemExit(1)
+
+print(tag)
+'
+        )" || return 1
+    else
+        tag_name="$(printf '%s\n' "$response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+        [ -n "$tag_name" ] || return 1
+    fi
+
+    printf '%s\n' "$tag_name"
+}
+
+download_release_asset() {
+    local version asset dest
+
+    version="$1"
+    asset="$2"
+    dest="$3"
+
+    download_file "$GITHUB_URL/releases/download/$version/$asset" "$dest"
+}
+
+verify_downloaded_asset() {
+    local asset_path checksums_path asset_name filtered_sums
+
+    asset_path="$1"
+    checksums_path="$2"
+    asset_name="$(basename "$asset_path")"
+    filtered_sums="$(mktemp)"
+
+    grep "[[:space:]]$asset_name\$" "$checksums_path" > "$filtered_sums" || {
+        rm -f "$filtered_sums"
+        error "No checksum entry found for $asset_name"
+    }
+
+    if command -v sha256sum &>/dev/null; then
+        (cd "$(dirname "$asset_path")" && sha256sum -c "$filtered_sums") || {
+            rm -f "$filtered_sums"
+            error "Checksum verification failed for $asset_name"
+        }
+    elif command -v shasum &>/dev/null; then
+        (cd "$(dirname "$asset_path")" && shasum -a 256 -c "$filtered_sums") || {
+            rm -f "$filtered_sums"
+            error "Checksum verification failed for $asset_name"
+        }
+    else
+        rm -f "$filtered_sums"
+        error "No checksum tool found (unexpected)."
+    fi
+
+    rm -f "$filtered_sums"
+}
+
 cleanup() {
     if [ -n "$TEMP_RELEASE_ROOT" ]; then
         rm -rf "$TEMP_RELEASE_ROOT"
@@ -171,10 +280,12 @@ cpu_count() {
 }
 
 selected_source_ref() {
-    if [ -n "$RELEASE_VERSION" ]; then
+    if [ -n "$SOURCE_REF" ]; then
+        printf '%s\n' "$SOURCE_REF"
+    elif [ -n "$RELEASE_VERSION" ]; then
         printf '%s\n' "$RELEASE_VERSION"
     else
-        printf '%s\n' "$SOURCE_REF"
+        printf '%s\n' "$DEFAULT_SOURCE_REF"
     fi
 }
 
@@ -183,25 +294,31 @@ install_binary() {
     info "Downloading RNG $RELEASE_VERSION for $PLATFORM..."
 
     TARBALL="rng-${RELEASE_VERSION}-${PLATFORM}.tar.gz"
-    URL="$GITHUB_URL/releases/download/${RELEASE_VERSION}/${TARBALL}"
+    CHECKSUMS="SHA256SUMS"
+    local extracted_dir
 
     TEMP_RELEASE_ROOT=$(mktemp -d)
     cd "$TEMP_RELEASE_ROOT"
 
-    if command -v curl &>/dev/null; then
-        curl -fsSL -o "$TARBALL" "$URL" || return 1
-    elif command -v wget &>/dev/null; then
-        wget -q -O "$TARBALL" "$URL" || return 1
-    else
-        error "Neither curl nor wget found"
-    fi
+    download_release_asset "$RELEASE_VERSION" "$TARBALL" "$TARBALL" || return 1
     require_checksum_tool
+
+    if [ "$NO_VERIFY" -eq 0 ]; then
+        download_release_asset "$RELEASE_VERSION" "$CHECKSUMS" "$CHECKSUMS" || return 1
+        verify_downloaded_asset "$TEMP_RELEASE_ROOT/$TARBALL" "$TEMP_RELEASE_ROOT/$CHECKSUMS"
+        success "Checksums verified"
+    else
+        warn "Skipping checksum verification"
+    fi
+
     tar -xzf "$TARBALL"
-    cd release
-    verify_checksums
+    extracted_dir="$(tar -tzf "$TARBALL" | head -1 | cut -d/ -f1)"
+    [ -n "$extracted_dir" ] || error "Release tarball did not contain an extractable root directory"
+    RELEASE_DIR="$TEMP_RELEASE_ROOT/$extracted_dir"
+    [ -d "$RELEASE_DIR" ] || error "Expected extracted release directory at $RELEASE_DIR"
 
     mkdir -p "$INSTALL_DIR"
-    cp rngd rng-cli "$INSTALL_DIR/"
+    cp "$RELEASE_DIR/rngd" "$RELEASE_DIR/rng-cli" "$INSTALL_DIR/"
     chmod +x "$INSTALL_DIR/rngd" "$INSTALL_DIR/rng-cli"
 
     return 0
@@ -251,6 +368,17 @@ install_dependencies() {
 }
 
 install_helper_scripts() {
+    if [ -n "$RELEASE_DIR" ] && [ -f "$RELEASE_DIR/rng-load-bootstrap" ]; then
+        mkdir -p "$INSTALL_DIR"
+        cp "$RELEASE_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-load-bootstrap"
+        cp "$RELEASE_DIR/rng-start-miner" "$INSTALL_DIR/rng-start-miner"
+        cp "$RELEASE_DIR/rng-doctor" "$INSTALL_DIR/rng-doctor"
+        chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" "$INSTALL_DIR/rng-doctor"
+        HELPER_SCRIPTS_INSTALLED=1
+        success "Installed helper commands rng-load-bootstrap, rng-start-miner, and rng-doctor"
+        return
+    fi
+
     if [ -z "$SOURCE_DIR" ] || [ ! -d "$SOURCE_DIR/scripts" ]; then
         return
     fi
@@ -388,12 +516,13 @@ verify_install() {
 }
 
 install_bootstrap_snapshot() {
-    local source_snapshot dest_snapshot source_bundle dest_bundle
+    local source_snapshot dest_snapshot source_bundle dest_bundle checksums
 
     source_snapshot="$SOURCE_DIR/bootstrap/rng-mainnet-15091.utxo"
     dest_snapshot="$DATA_DIR/bootstrap/rng-mainnet-15091.utxo"
     source_bundle="$SOURCE_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE"
     dest_bundle="$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE"
+    checksums="$DATA_DIR/bootstrap/SHA256SUMS"
 
     if [ -n "$SOURCE_DIR" ] && [ -f "$source_snapshot" ]; then
         mkdir -p "$DATA_DIR/bootstrap"
@@ -406,6 +535,23 @@ install_bootstrap_snapshot() {
         cp "$source_bundle" "$dest_bundle"
         chmod 644 "$dest_bundle"
         success "Bundled chain bundle copied to $dest_bundle"
+    fi
+
+    if [ -n "$RELEASE_VERSION" ] && [ ! -f "$dest_snapshot" ] && [ ! -f "$dest_bundle" ]; then
+        mkdir -p "$DATA_DIR/bootstrap"
+        info "Downloading bootstrap assets from release $RELEASE_VERSION"
+        download_release_asset "$RELEASE_VERSION" "SHA256SUMS" "$checksums"
+        download_release_asset "$RELEASE_VERSION" "$CHAIN_BUNDLE_ARCHIVE" "$dest_bundle"
+        download_release_asset "$RELEASE_VERSION" "rng-mainnet-15091.utxo" "$dest_snapshot"
+        if [ "$NO_VERIFY" -eq 0 ]; then
+            require_checksum_tool
+            verify_downloaded_asset "$dest_bundle" "$checksums"
+            verify_downloaded_asset "$dest_snapshot" "$checksums"
+            success "Verified downloaded bootstrap assets"
+        else
+            warn "Skipping checksum verification for bootstrap assets"
+        fi
+        chmod 644 "$dest_snapshot" "$dest_bundle"
     fi
 }
 
@@ -530,7 +676,7 @@ print_next_steps() {
         echo ""
     fi
     if [ -f "$DATA_DIR/bootstrap/$CHAIN_BUNDLE_ARCHIVE" ] || [ -f "$DATA_DIR/bootstrap/rng-mainnet-15091.utxo" ]; then
-        echo "  5. Optional fast bootstrap from the bundled chain bundle or snapshot:"
+        echo "  5. Optional fast bootstrap from the release-matched chain bundle or snapshot:"
         if [ "$HELPER_SCRIPTS_INSTALLED" -eq 1 ]; then
             echo "     $INSTALL_DIR/rng-load-bootstrap"
         fi
@@ -578,15 +724,29 @@ main() {
 
     detect_platform
 
-    if [ -n "$RELEASE_VERSION" ] && check_binary_available; then
+    if in_source_tree && [ -z "$RELEASE_VERSION" ] && [ -z "$SOURCE_REF" ]; then
+        info "Using local source checkout for installation"
+        build_from_source
+    else
+        if [ -z "$RELEASE_VERSION" ] && [ -z "$SOURCE_REF" ] && check_binary_available; then
+            RELEASE_VERSION="$(fetch_latest_release_version || true)"
+            if [ -n "$RELEASE_VERSION" ]; then
+                info "Resolved latest published release: $RELEASE_VERSION"
+            else
+                warn "Could not resolve the latest GitHub release; falling back to a source build"
+            fi
+        fi
+    fi
+
+    if [ -n "$RELEASE_VERSION" ] && check_binary_available && [ -z "$SOURCE_DIR" ]; then
         if install_binary; then
             success "Installed from binary release $RELEASE_VERSION"
         else
             warn "Binary download failed, building $RELEASE_VERSION from source..."
             build_from_source
         fi
-    else
-        info "Building live network source from $(selected_source_ref)"
+    elif [ -z "$SOURCE_DIR" ]; then
+        info "Building source from $(selected_source_ref)"
         build_from_source
     fi
 
