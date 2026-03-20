@@ -151,7 +151,12 @@ static bool GenerateBlock(ChainstateManager& chainman, CBlock&& block, uint64_t&
 
     while (max_tries > 0 && block.nNonce < std::numeric_limits<uint32_t>::max() && !chainman.m_interrupt) {
         // Use RandomX hash for PoW validation (not SHA256d)
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
+        uint256 pow_hash;
+        try {
+            pow_hash = GetBlockPoWHash(block, seed_hash);
+        } catch (const std::exception& e) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("RandomX proof-of-work initialization failed: %s", e.what()));
+        }
         if (CheckProofOfWork(pow_hash, block.nBits, chainman.GetConsensus())) {
             break; // Found valid nonce
         }

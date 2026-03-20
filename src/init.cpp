@@ -310,6 +310,13 @@ void Shutdown(NodeContext& node)
     }
     StopMapPort();
 
+    // Stop the internal miner before tearing down validation signals, chainstate,
+    // or networking. Its worker/coordinator threads read those objects directly.
+    if (node.internal_miner) {
+        node.internal_miner->Stop();
+        node.internal_miner.reset();
+    }
+
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
     if (node.peerman && node.validation_signals) node.validation_signals->UnregisterValidationInterface(node.peerman.get());
@@ -2264,17 +2271,24 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
         if (!IsValidDestination(dest)) {
             return InitError(strprintf(_("Invalid -mineaddress: %s"), mine_address));
         }
-        if (mine_address.substr(0, 4) != "rng1") {
-            return InitError(_("mineaddress must be a bech32 address starting with rng1"));
+        const auto& expected_hrp = Params().Bech32HRP();
+        if (ToLower(mine_address.substr(0, expected_hrp.size())) != expected_hrp) {
+            return InitError(strprintf(_("mineaddress must be a bech32 address starting with %s1"), expected_hrp));
         }
         if (mine_threads <= 0) {
             return InitError(_("minethreads must be set and > 0 when -mine is enabled"));
         }
         
         // Parse optional args
-        std::string randomx_mode = args.GetArg("-minerandomx", "fast");
+        std::string randomx_mode = ToLower(args.GetArg("-minerandomx", "fast"));
+        if (randomx_mode != "fast" && randomx_mode != "light") {
+            return InitError(_("minerandomx must be 'fast' or 'light'"));
+        }
         bool fast_mode = (randomx_mode == "fast");
-        std::string priority = args.GetArg("-minepriority", "low");
+        std::string priority = ToLower(args.GetArg("-minepriority", "low"));
+        if (priority != "low" && priority != "normal") {
+            return InitError(_("minepriority must be 'low' or 'normal'"));
+        }
         bool low_priority = (priority == "low");
         
         CScript coinbase_script = GetScriptForDestination(dest);

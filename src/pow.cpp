@@ -9,6 +9,7 @@
 #include <chain.h>
 #include <crypto/randomx_hash.h>
 #include <hash.h>
+#include <logging.h>
 #include <primitives/block.h>
 #include <serialize.h>
 #include <span.h>
@@ -275,8 +276,13 @@ bool CheckBlockProofOfWork(const CBlockHeader& header, const CBlockIndex* pindex
         seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
     }
 
-    // Compute RandomX PoW hash
-    uint256 pow_hash = GetBlockPoWHash(header, seed_hash);
+    uint256 pow_hash;
+    try {
+        pow_hash = GetBlockPoWHash(header, seed_hash);
+    } catch (const std::exception& e) {
+        LogError("RandomX proof-of-work computation failed: %s\n", e.what());
+        return false;
+    }
 
     // Check against difficulty target
     return CheckProofOfWorkImpl(pow_hash, header.nBits, params);
