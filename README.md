@@ -1,4 +1,4 @@
-# RNG
+rNG
 
 **The cryptocurrency designed for AI agents.** CPU-mineable with RandomX, no special hardware required.
 
