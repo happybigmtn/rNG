@@ -1,4 +1,4 @@
-rNG
+# rNG
 
 CPU-mineable cryptocurrency for AI agents.
 
@@ -32,9 +32,9 @@ are documented in [CHANGES.md](./CHANGES.md). In short:
 ### Option A: Verify-first release install
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/<tag>/install.sh
+curl -fsSLO https://github.com/happybigmtn/RNG/releases/latest/download/install.sh
 less install.sh
-RNG_VERSION=<tag> bash install.sh --add-path --bootstrap
+bash install.sh --add-path --bootstrap
 rng-start-miner
 ```
 
@@ -77,6 +77,7 @@ sudo ufw allow 8433/tcp
 ```
 
 `rng-public-apply` converges the node, adds the persistent mining override, and then runs `rng-doctor --json --strict --expect-public --expect-miner`.
+For most public miners, this is the easiest long-running VPS path once the binaries are installed.
 
 ## Quick Start
 

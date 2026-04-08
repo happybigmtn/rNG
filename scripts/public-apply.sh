@@ -22,6 +22,23 @@ EOF
 
 error() { printf '[ERROR] %s\n' "$1" >&2; exit 1; }
 
+print_next_steps() {
+    cat <<EOF
+
+RNG public apply complete
+
+Installed:
+- config: /etc/rng/rng.conf
+- data dir: /var/lib/rngd
+- service: rngd.service
+
+Next steps:
+- verify health: rng-doctor --json --strict --expect-public --expect-miner
+- open inbound P2P: sudo ufw allow 8433/tcp
+- inspect network state: rng-cli getnetworkinfo
+EOF
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --address)
@@ -88,3 +105,7 @@ fi
 "$SCRIPT_DIR/install-public-node.sh" "${node_args[@]}"
 "$SCRIPT_DIR/install-public-miner.sh" "${miner_args[@]}"
 "$SCRIPT_DIR/doctor.sh" "${doctor_args[@]}"
+
+if [ "$OUTPUT_JSON" -eq 0 ]; then
+    print_next_steps
+fi

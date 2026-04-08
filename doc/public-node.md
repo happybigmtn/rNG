@@ -17,9 +17,9 @@ Use the tagged-release install path unless you are intentionally testing
 unreleased source changes:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/happybigmtn/rng/<tag>/install.sh
+curl -fsSLO https://github.com/happybigmtn/RNG/releases/latest/download/install.sh
 less install.sh
-RNG_VERSION=<tag> bash install.sh --add-path --bootstrap
+bash install.sh --add-path --bootstrap
 rng-load-bootstrap
 rng-start-miner
 rng-doctor
@@ -29,6 +29,15 @@ If `rngd` is already installed on the host, the fastest systemd path is:
 
 ```bash
 sudo rng-public-apply --address rng1... --enable-now
+```
+
+For a new public VPS, the simplest sequence is:
+
+```bash
+curl -fsSLO https://github.com/happybigmtn/RNG/releases/latest/download/install.sh
+bash install.sh --add-path --bootstrap
+sudo rng-public-apply --address rng1... --enable-now
+sudo ufw allow 8433/tcp
 ```
 
 ## Required config for a public peer
