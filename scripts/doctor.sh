@@ -10,14 +10,19 @@ RNG_CONF="${RNG_CONF:-}"
 CLI_ARGS=()
 HEALTHY=1
 CONFIG_PATH=""
+OUTPUT_JSON=0
+STRICT=0
+EXPECT_PUBLIC=0
+EXPECT_MINER=0
+WARNINGS=()
 
 usage() {
     cat <<'EOF'
 Verify that this node is pointed at the live RNG mainnet and ready to mine.
 
 Usage:
-  ./scripts/doctor.sh [--datadir DIR] [--conf PATH]
-  rng-doctor [--datadir DIR] [--conf PATH]
+  ./scripts/doctor.sh [--datadir DIR] [--conf PATH] [--json] [--strict] [--expect-public] [--expect-miner]
+  rng-doctor [--datadir DIR] [--conf PATH] [--json] [--strict] [--expect-public] [--expect-miner]
 
 Environment:
   RNG_DAEMON   rngd binary path (default: rngd)
@@ -27,8 +32,18 @@ Environment:
 EOF
 }
 
-info() { printf '[INFO] %s\n' "$1"; }
-warn() { printf '[WARN] %s\n' "$1"; HEALTHY=0; }
+info() {
+    if [ "$OUTPUT_JSON" -eq 0 ]; then
+        printf '[INFO] %s\n' "$1"
+    fi
+}
+warn() {
+    if [ "$OUTPUT_JSON" -eq 0 ]; then
+        printf '[WARN] %s\n' "$1"
+    fi
+    HEALTHY=0
+    WARNINGS+=("$1")
+}
 error() { printf '[ERROR] %s\n' "$1" >&2; exit 1; }
 
 parse_args() {
@@ -43,6 +58,22 @@ parse_args() {
                 [ $# -ge 2 ] || error "--conf requires a path"
                 RNG_CONF="$2"
                 shift 2
+                ;;
+            --json)
+                OUTPUT_JSON=1
+                shift
+                ;;
+            --strict)
+                STRICT=1
+                shift
+                ;;
+            --expect-public)
+                EXPECT_PUBLIC=1
+                shift
+                ;;
+            --expect-miner)
+                EXPECT_MINER=1
+                shift
                 ;;
             -h|--help)
                 usage
@@ -88,6 +119,10 @@ show_config_seeds() {
         return
     fi
 
+    if [ "$OUTPUT_JSON" -eq 1 ]; then
+        return
+    fi
+
     info "Configured addnode peers from $CONFIG_PATH:"
     grep '^addnode=' "$CONFIG_PATH" || warn "No addnode entries found in $CONFIG_PATH"
 }
@@ -122,10 +157,63 @@ count_localaddresses() {
     '
 }
 
+warnings_json() {
+    python3 - <<'PY' "${WARNINGS[@]}"
+import json
+import sys
+print(json.dumps(sys.argv[1:]))
+PY
+}
+
+print_json_status() {
+    local chain_ok="$1"
+    local rpc_ok="$2"
+    local public_reachable="$3"
+    local miner_configured="$4"
+    local miner_running="$5"
+    local ready="$6"
+    local warning_json="$7"
+    local services_json="$8"
+
+    python3 - "$chain_ok" "$rpc_ok" "$public_reachable" "$miner_configured" \
+        "$miner_running" "$ready" "${connection_count:-0}" \
+        "${inbound:-0}" "${outbound:-0}" "${localaddresses:-0}" \
+        "${blocks:-0}" "${headers:-0}" "${chain_name:-unknown}" \
+        "${version_line:-}" "${fast_mode:-unknown}" "${threads:-0}" \
+        "$warning_json" "$services_json" <<'PY'
+import json
+import sys
+
+payload = {
+    "chain_ok": sys.argv[1] == "true",
+    "rpc_ok": sys.argv[2] == "true",
+    "public_reachable": sys.argv[3] == "true",
+    "miner_configured": sys.argv[4] == "true",
+    "miner_running": sys.argv[5] == "true",
+    "ready": sys.argv[6] == "true",
+    "peer_count": int(sys.argv[7]),
+    "connections_in": int(sys.argv[8]),
+    "connections_out": int(sys.argv[9]),
+    "advertised_local_addresses": int(sys.argv[10]),
+    "blocks": int(sys.argv[11]),
+    "headers": int(sys.argv[12]),
+    "chain": sys.argv[13],
+    "version": sys.argv[14],
+    "randomx_fast_mode": sys.argv[15],
+    "mining_threads": int(sys.argv[16]),
+    "warnings": json.loads(sys.argv[17]),
+    "services": json.loads(sys.argv[18]),
+}
+print(json.dumps(payload, indent=2))
+PY
+}
+
 main() {
     local version_line genesis_hash connection_count blockchaininfo mininginfo
     local chain_name blocks headers ibd running fast_mode threads networkinfo
     local inbound outbound localaddresses listen_value
+    local chain_ok rpc_ok public_reachable miner_configured miner_running
+    local ready services_json warning_json
 
     parse_args "$@"
     append_common_args
@@ -138,17 +226,35 @@ main() {
         info "$version_line"
     fi
 
+    rpc_ok=true
     if ! cli getblockcount >/dev/null 2>&1; then
+        rpc_ok=false
+        chain_ok=false
+        public_reachable=false
+        miner_configured=false
+        miner_running=false
+        ready=false
         warn "RPC is not reachable. Start the daemon first:"
-        printf '       %s -daemon\n' "$RNG_DAEMON"
+        if [ "$OUTPUT_JSON" -eq 0 ]; then
+            printf '       %s -daemon\n' "$RNG_DAEMON"
+        fi
         show_config_seeds
+        warning_json="$(warnings_json)"
+        services_json='{"rngd":"unreachable"}'
+        if [ "$OUTPUT_JSON" -eq 1 ]; then
+            print_json_status "$chain_ok" "$rpc_ok" "$public_reachable" \
+                "$miner_configured" "$miner_running" "$ready" \
+                "$warning_json" "$services_json"
+        fi
         exit 1
     fi
 
     genesis_hash="$(cli getblockhash 0 2>/dev/null || true)"
     if [ "$genesis_hash" = "$EXPECTED_GENESIS_HASH" ]; then
+        chain_ok=true
         info "Genesis hash matches live mainnet: $genesis_hash"
     else
+        chain_ok=false
         warn "Unexpected genesis hash: ${genesis_hash:-<empty>}"
         printf '       expected: %s\n' "$EXPECTED_GENESIS_HASH"
     fi
@@ -190,11 +296,21 @@ main() {
         info "This node is not currently visible as a public peer. If this is a public VPS, keep listen=1 and open TCP/8433 to help decentralize the network."
     fi
 
+    if [ "${listen_value:-1}" != "0" ] && [ "${localaddresses:-0}" -gt 0 ] && [ "${inbound:-0}" -gt 0 ]; then
+        public_reachable=true
+    else
+        public_reachable=false
+        if [ "$EXPECT_PUBLIC" -eq 1 ]; then
+            warn "Expected a public node, but inbound reachability is not yet proven"
+        fi
+    fi
+
     mininginfo="$(cli getinternalmininginfo 2>/dev/null || true)"
     if [ -n "$mininginfo" ]; then
         running="$(printf '%s\n' "$mininginfo" | extract_json_bool running | head -1)"
         fast_mode="$(printf '%s\n' "$mininginfo" | extract_json_bool fast_mode | head -1)"
         threads="$(printf '%s\n' "$mininginfo" | extract_json_number mining_threads | head -1)"
+        miner_configured=true
 
         if [ -n "$running" ]; then
             info "Mining running: $running"
@@ -208,16 +324,51 @@ main() {
         if [ -n "$threads" ]; then
             info "Mining threads: $threads"
         fi
-        if [ "$running" != "true" ]; then
+        if [ "${running:-false}" = "true" ]; then
+            miner_running=true
+        else
+            miner_running=false
             warn "Internal miner is not running. Start it with rng-start-miner"
         fi
     else
+        miner_configured=false
+        miner_running=false
         warn "Could not read getinternalmininginfo"
     fi
 
-    if [ "$HEALTHY" -eq 1 ]; then
+    if [ "$EXPECT_MINER" -eq 0 ] && [ "$miner_running" = false ]; then
+        miner_running=false
+    fi
+
+    ready=false
+    if [ "$chain_ok" = true ] && [ "$rpc_ok" = true ] && \
+        [ "${connection_count:-0}" -gt 0 ] && \
+        { [ "$EXPECT_PUBLIC" -eq 0 ] || [ "$public_reachable" = true ]; } && \
+        { [ "$EXPECT_MINER" -eq 0 ] || [ "$miner_running" = true ]; }; then
+        ready=true
+    fi
+
+    services_json="$(python3 - <<'PY' "${running:-unknown}" "${threads:-0}"
+import json
+import sys
+print(json.dumps({"rngd": {"mining_running": sys.argv[1], "mining_threads": sys.argv[2]}}))
+PY
+)"
+    warning_json="$(warnings_json)"
+
+    if [ "$OUTPUT_JSON" -eq 1 ]; then
+        print_json_status "$chain_ok" "$rpc_ok" "$public_reachable" \
+            "$miner_configured" "$miner_running" "$ready" \
+            "$warning_json" "$services_json"
+    fi
+
+    if [ "$ready" = true ]; then
         info "Node looks healthy for the live RNG network"
         exit 0
+    fi
+
+    if [ "$STRICT" -eq 1 ] || [ "$EXPECT_PUBLIC" -eq 1 ] || [ "$EXPECT_MINER" -eq 1 ]; then
+        exit 1
     fi
 
     warn "Node needs attention before it is fully ready to mine"

@@ -379,13 +379,17 @@ install_helper_scripts() {
         if [ -f "$RELEASE_DIR/rng-install-public-miner" ]; then
             cp "$RELEASE_DIR/rng-install-public-miner" "$INSTALL_DIR/rng-install-public-miner"
         fi
+        if [ -f "$RELEASE_DIR/rng-public-apply" ]; then
+            cp "$RELEASE_DIR/rng-public-apply" "$INSTALL_DIR/rng-public-apply"
+        fi
         [ ! -f "$RELEASE_DIR/rngd.service" ] || cp "$RELEASE_DIR/rngd.service" "$INSTALL_DIR/rngd.service"
         [ ! -f "$RELEASE_DIR/rng.conf.example" ] || cp "$RELEASE_DIR/rng.conf.example" "$INSTALL_DIR/rng.conf.example"
         chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" "$INSTALL_DIR/rng-doctor"
         [ ! -f "$INSTALL_DIR/rng-install-public-node" ] || chmod +x "$INSTALL_DIR/rng-install-public-node"
         [ ! -f "$INSTALL_DIR/rng-install-public-miner" ] || chmod +x "$INSTALL_DIR/rng-install-public-miner"
+        [ ! -f "$INSTALL_DIR/rng-public-apply" ] || chmod +x "$INSTALL_DIR/rng-public-apply"
         HELPER_SCRIPTS_INSTALLED=1
-        success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, rng-install-public-node, and rng-install-public-miner"
+        success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, rng-install-public-node, rng-install-public-miner, and rng-public-apply"
         return
     fi
 
@@ -399,13 +403,14 @@ install_helper_scripts() {
     cp "$SOURCE_DIR/scripts/doctor.sh" "$INSTALL_DIR/rng-doctor"
     cp "$SOURCE_DIR/scripts/install-public-node.sh" "$INSTALL_DIR/rng-install-public-node"
     cp "$SOURCE_DIR/scripts/install-public-miner.sh" "$INSTALL_DIR/rng-install-public-miner"
+    cp "$SOURCE_DIR/scripts/public-apply.sh" "$INSTALL_DIR/rng-public-apply"
     cp "$SOURCE_DIR/contrib/init/rngd.service" "$INSTALL_DIR/rngd.service"
     cp "$SOURCE_DIR/contrib/init/rng.conf.example" "$INSTALL_DIR/rng.conf.example"
     chmod +x "$INSTALL_DIR/rng-load-bootstrap" "$INSTALL_DIR/rng-start-miner" \
         "$INSTALL_DIR/rng-doctor" "$INSTALL_DIR/rng-install-public-node" \
-        "$INSTALL_DIR/rng-install-public-miner"
+        "$INSTALL_DIR/rng-install-public-miner" "$INSTALL_DIR/rng-public-apply"
     HELPER_SCRIPTS_INSTALLED=1
-    success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, rng-install-public-node, and rng-install-public-miner"
+    success "Installed helper commands rng-load-bootstrap, rng-start-miner, rng-doctor, rng-install-public-node, rng-install-public-miner, and rng-public-apply"
 }
 
 prepare_source_tree() {

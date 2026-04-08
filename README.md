@@ -72,17 +72,11 @@ rng-doctor
 On a public VPS, you can also install the packaged service/unit path with:
 
 ```bash
-sudo rng-install-public-node
-sudo systemctl enable --now rngd
+sudo rng-public-apply --address rng1... --enable-now
 sudo ufw allow 8433/tcp
 ```
 
-To run persistent mining under systemd on that same host:
-
-```bash
-sudo rng-install-public-miner --address rng1...
-sudo systemctl restart rngd
-```
+`rng-public-apply` converges the node, adds the persistent mining override, and then runs `rng-doctor --json --strict --expect-public --expect-miner`.
 
 ## Quick Start
 

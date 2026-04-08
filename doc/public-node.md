@@ -28,8 +28,7 @@ rng-doctor
 If `rngd` is already installed on the host, the fastest systemd path is:
 
 ```bash
-sudo rng-install-public-node
-sudo systemctl enable --now rngd
+sudo rng-public-apply --address rng1... --enable-now
 ```
 
 ## Required config for a public peer
@@ -61,7 +60,7 @@ After the node is synced, check:
 
 ```bash
 rng-cli getnetworkinfo
-rng-doctor
+rng-doctor --json --strict --expect-public --expect-miner
 ```
 
 Healthy public peers usually show:
@@ -84,8 +83,7 @@ For long-running VPS nodes, use the packaged helper or install the assets manual
 Fast path:
 
 ```bash
-sudo rng-install-public-node
-sudo systemctl enable --now rngd
+sudo rng-public-apply --address rng1... --enable-now
 ```
 
 Manual path:
@@ -104,7 +102,7 @@ Important: RandomX uses JIT-generated code. Do not add
 
 ## Run mining persistently under systemd
 
-Once the base public node is installed, you can add a mining override:
+If you want to manage the pieces manually instead of using `rng-public-apply`, add the mining override after the base node is installed:
 
 ```bash
 sudo rng-install-public-miner --address rng1...
