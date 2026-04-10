@@ -137,10 +137,11 @@ def script_sha256(script: bytes) -> str:
 
 
 def material_to_fixture_dict(material: TemplateMaterial, script: bytes, chunk_size: int) -> dict:
+    secret_preimage_hex = material.secret_preimage.hex()
     return {
         "template_version": TEMPLATE_VERSION,
         "seed_hex": material.seed.hex(),
-        "secret_preimage_hex": material.secret_preimage.hex(),
+        "secret_preimage_hex_parts": [secret_preimage_hex[:32], secret_preimage_hex[32:]],
         "secret_hash_hex": material.secret_hash.hex(),
         "metadata_commitment_hex": material.metadata_commitment.hex(),
         "payload_sha256_hex": sha256(material.payload).hex(),

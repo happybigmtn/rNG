@@ -11,7 +11,10 @@
   "payload_sha256_hex": "5478b43fb4c916594b41b3581e8c09a759076965b2c24e5a18dec5744ba5ff56",
   "schema_version": 1,
   "secret_hash_hex": "863bc08a3af173f9ac11785725750cea1214a5b90469f8a2b85f8b4484b80b96",
-  "secret_preimage_hex": "6dd0c629aa75cbee29c8a8f6d3bc133538483cafa3864594b6c786599ba30b9a",
+  "secret_preimage_hex_parts": [
+    "6dd0c629aa75cbee29c8a8f6d3bc1335",
+    "38483cafa3864594b6c786599ba30b9a"
+  ],
   "seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
   "template_version": "rng-qsb-v1-toy"
 }

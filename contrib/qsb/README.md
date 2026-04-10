@@ -2,7 +2,7 @@
 
 This directory holds the in-repo QSB builder and operator tooling for RNG.
 
-The current state is the first end-to-end toy-QSB operator slice from [EXECPLAN.md](/home/r/Coding/RNG/EXECPLAN.md): it proves the bare-script funding path, the external spend assembly path, the node-side `submitqsbtransaction` queue, and miner-local inclusion on top of the Bitcoin Core 30.2 port.
+The current state is the first end-to-end toy-QSB operator slice from [EXECPLAN.md](/EXECPLAN.md): it proves the bare-script funding path, the external spend assembly path, the node-side `submitqsbtransaction` queue, and miner-local inclusion on top of the Bitcoin Core 30.2 port.
 
 ## What It Does Today
 

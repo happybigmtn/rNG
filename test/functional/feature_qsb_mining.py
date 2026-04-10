@@ -24,6 +24,10 @@ from test_framework.util import (
 from test_framework.wallet import MiniWallet
 
 
+def fixture_secret_preimage_hex(fixture):
+    return "".join(fixture["secret_preimage_hex_parts"])
+
+
 class QSBMiningTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -64,7 +68,7 @@ class QSBMiningTest(BitcoinTestFramework):
         assert_raises_rpc_error(-32601, "Method not found", self.nodes[1].submitqsbtransaction, "00")
 
         funding_tx = self.build_funding_tx(fixture["funding"]["script_pubkey_hex"])
-        spend_tx = self.build_spend_tx(funding_tx, fixture["secret_preimage_hex"])
+        spend_tx = self.build_spend_tx(funding_tx, fixture_secret_preimage_hex(fixture))
 
         self.log.info("A QSB spend stays unavailable until the funding output is mined")
         assert_raises_rpc_error(-25, "input-availability", self.nodes[0].submitqsbtransaction, spend_tx.serialize().hex())

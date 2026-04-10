@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RNG_CRYPTO_RANDOMX_HASH_H
-#define RNG_CRYPTO_RANDOMX_HASH_H
+#ifndef BITCOIN_CRYPTO_RANDOMX_HASH_H
+#define BITCOIN_CRYPTO_RANDOMX_HASH_H
 
 #include <uint256.h>
 
@@ -215,4 +215,4 @@ constexpr uint64_t RANDOMX_EPOCH_LENGTH = 2048;
  */
 constexpr uint64_t RANDOMX_EPOCH_LAG = 64;
 
-#endif // RNG_CRYPTO_RANDOMX_HASH_H
+#endif // BITCOIN_CRYPTO_RANDOMX_HASH_H

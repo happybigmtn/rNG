@@ -45,7 +45,7 @@ namespace node {
  * Usage:
  *   rngd -mine -mineaddress=rng1q... -minethreads=8
  */
-class InternalMiner : public CValidationInterface {
+class InternalMiner final : public CValidationInterface {
 public:
     /**
      * Construct internal miner.

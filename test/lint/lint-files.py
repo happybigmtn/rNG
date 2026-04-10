@@ -25,6 +25,9 @@ ALLOWED_SOURCE_FILENAME_EXCEPTION_REGEXP = (
 )
 ALLOWED_PERMISSION_NON_EXECUTABLES = 0o644
 ALLOWED_PERMISSION_EXECUTABLES = 0o755
+ALLOWED_GITLINKS = {
+    "src/crypto/randomx",
+}
 ALLOWED_EXECUTABLE_SHEBANG = {
     # https://github.com/dylanaraps/pure-bash-bible#shebang:
     # `#!/bin/bash` assumes it is always installed to /bin/ which can cause issues;
@@ -128,6 +131,8 @@ def check_all_file_permissions(files) -> int:
     """
     failed_tests = 0
     for filename, file_meta in files.items():
+        if filename in ALLOWED_GITLINKS:
+            continue
         if file_meta.permissions == ALLOWED_PERMISSION_EXECUTABLES:
             with open(filename, "rb") as f:
                 shebang = f.readline().rstrip(b"\n")

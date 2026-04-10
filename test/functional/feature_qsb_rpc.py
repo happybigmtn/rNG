@@ -10,7 +10,6 @@ from pathlib import Path
 
 from test_framework.messages import (
     COutPoint,
-    COIN,
     CTransaction,
     CTxIn,
     CTxOut,
@@ -23,6 +22,10 @@ from test_framework.util import (
     assert_raises_rpc_error,
 )
 from test_framework.wallet import MiniWallet
+
+
+def fixture_secret_preimage_hex(fixture):
+    return "".join(fixture["secret_preimage_hex_parts"])
 
 
 class QSBRPCTest(BitcoinTestFramework):
@@ -67,7 +70,7 @@ class QSBRPCTest(BitcoinTestFramework):
         funding_tx = self.build_funding_tx(fixture["funding"]["script_pubkey_hex"])
         conflicting_funding_tx = deepcopy(funding_tx)
         conflicting_funding_tx.vout[0].nValue -= 1
-        spend_tx = self.build_spend_tx(funding_tx, fixture["secret_preimage_hex"])
+        spend_tx = self.build_spend_tx(funding_tx, fixture_secret_preimage_hex(fixture))
         standard_tx = self.wallet.create_self_transfer()["tx"]
 
         self.log.info("An enabled node starts with an empty local-only QSB queue")

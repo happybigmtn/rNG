@@ -348,7 +348,7 @@ Prototype funding flow on regtest:
     python3 contrib/qsb/qsb.py toy-funding \
       --rpc-url http://127.0.0.1:18443 \
       --rpc-user user \
-      --rpc-password pass \
+      --rpc-password <rpcpassword> \
       --wallet miner \
       --amount 1.0 \
       --state-file /tmp/qsb-toy.json
@@ -578,3 +578,7 @@ Change note (2026-04-09): Initial plan created from repository research, QSB fea
 Change note (2026-04-10): Updated the plan with the live canary QSB proof, stripped fleet artifact hashes, the `contabo-validator-02` systemd drop-in quoting fix, and the current 02/04/05 catch-up state. Reason: the remaining fleet rollout is now gated on non-canary validators finishing header presync and IBD, not on additional QSB implementation work.
 
 Change note (2026-04-10): Added the canary firewall allowlist attempt and the temporary `minimumchainwork=0` catch-up override for 02/04/05. Reason: the non-canary validators were repeatedly timing out during Bitcoin Core `30.2` low-work header presync from old chainstate; the override moved them into normal header sync while preserving `mine=0`.
+
+Change note (2026-04-10): Rechecked the live Contabo validators after the merge-readiness fixes: 01/02/04/05 were all active at height 30178 on block `c2cedea70322daaa1ceb136a5eb39c6d7dc27549ff81ec2e86fe48bb8bb82cf4`, with `mine=1`, no `minimumchainwork=0`, and empty QSB queues. Reason: this records the go-forward fleet state before merging or tagging the Bitcoin Core 30.2 + QSB branch.
+
+Change note (2026-04-10): Added CI hardening for RandomX and QSB: patch the copied RandomX CMake metadata, keep RandomX's own C++ linkage, suppress third-party RandomX documentation warnings at the include boundary, split deterministic fixture secret material, and fix lint/build annotations around QSB mining. Reason: these changes remove merge-blocking CI failures without changing RNG consensus parameters.

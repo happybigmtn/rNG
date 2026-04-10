@@ -283,18 +283,25 @@ void BlockAssembler::addQSBTxs(const CBlockIndex& pindexPrev)
         if (inBlock.count(entry.txid)) continue;
         if (entry.fee < m_options.blockMinFeeRate.GetFee(entry.vsize)) continue;
 
-        const auto validation_result = m_chainstate.m_chainman.ProcessTransaction(entry.tx, /*test_accept=*/true, /*allow_qsb_toy=*/true);
-        if (validation_result.m_result_type != MempoolAcceptResult::ResultType::VALID) continue;
+        CAmount fees;
+        int64_t sigops_cost;
+        int64_t vsize;
+        {
+            LOCK(::cs_main);
+            const auto validation_result = m_chainstate.m_chainman.ProcessTransaction(entry.tx, /*test_accept=*/true, /*allow_qsb_toy=*/true);
+            if (validation_result.m_result_type != MempoolAcceptResult::ResultType::VALID) continue;
 
-        CCoinsViewCache view(&m_chainstate.CoinsTip());
-        if (!view.HaveInputs(*entry.tx)) continue;
+            CCoinsViewCache view(&m_chainstate.CoinsTip());
+            if (!view.HaveInputs(*entry.tx)) continue;
 
-        const int64_t sigops_cost = GetTransactionSigOpCost(*entry.tx, view, script_flags);
-        const int64_t vsize = *CHECK_NONFATAL(validation_result.m_vsize);
+            sigops_cost = GetTransactionSigOpCost(*entry.tx, view, script_flags);
+            vsize = *CHECK_NONFATAL(validation_result.m_vsize);
+            fees = *CHECK_NONFATAL(validation_result.m_base_fees);
+        }
         if (!TestPackage(vsize, sigops_cost)) continue;
         if (!IsFinalTx(*entry.tx, nHeight, m_lock_time_cutoff)) continue;
 
-        AddToBlock(entry.tx, *CHECK_NONFATAL(validation_result.m_base_fees), sigops_cost);
+        AddToBlock(entry.tx, fees, sigops_cost);
     }
 }
 

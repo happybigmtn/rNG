@@ -21,6 +21,10 @@ FIXTURE_SEED = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
 FIXTURE_NAME = "rng_qsb_v1_toy_seed_00010203.json"
 
 
+def fixture_secret_preimage_hex(fixture):
+    return "".join(fixture["secret_preimage_hex_parts"])
+
+
 class QSBBuilderTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -66,7 +70,7 @@ class QSBBuilderTest(BitcoinTestFramework):
             "network": "regtest",
             "template_version": expected_fixture["template_version"],
             "seed_hex": expected_fixture["seed_hex"],
-            "secret_preimage_hex": expected_fixture["secret_preimage_hex"],
+            "secret_preimage_hex": fixture_secret_preimage_hex(expected_fixture),
             "secret_hash_hex": expected_fixture["secret_hash_hex"],
             "metadata_commitment_hex": expected_fixture["metadata_commitment_hex"],
             "payload_sha256_hex": expected_fixture["payload_sha256_hex"],

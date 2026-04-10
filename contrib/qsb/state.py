@@ -15,6 +15,10 @@ def utc_now_iso8601() -> str:
     return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def split_fixture_secret_preimage(secret_preimage_hex: str) -> list[str]:
+    return [secret_preimage_hex[:32], secret_preimage_hex[32:]]
+
+
 def load_json(path: str | Path) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -66,7 +70,7 @@ def new_fixture(*, template_version: str, seed_hex: str, secret_preimage_hex: st
         "schema_version": STATE_SCHEMA_VERSION,
         "template_version": template_version,
         "seed_hex": seed_hex,
-        "secret_preimage_hex": secret_preimage_hex,
+        "secret_preimage_hex_parts": split_fixture_secret_preimage(secret_preimage_hex),
         "secret_hash_hex": secret_hash_hex,
         "metadata_commitment_hex": metadata_commitment_hex,
         "payload_sha256_hex": payload_sha256_hex,

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
 set -euo pipefail
 
 SERVICE_USER="${RNG_SERVICE_USER:-rng}"

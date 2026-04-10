@@ -40,7 +40,7 @@ struct QSBPoolInsertResult {
     std::optional<Txid> conflicting_txid;
 };
 
-class QSBPool
+class QSBPool final
     : public CValidationInterface
 {
 public:
@@ -53,15 +53,15 @@ public:
                             QSBToyTxType type,
                             CAmount fee,
                             int64_t vsize,
-                            int64_t accepted_at);
+                            int64_t accepted_at) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
-    std::optional<QSBPoolEntry> Get(const Txid& txid) const;
-    std::vector<QSBPoolEntry> List() const;
-    std::vector<QSBPoolEntry> GetMiningCandidates() const;
-    bool Remove(const Txid& txid);
+    std::optional<QSBPoolEntry> Get(const Txid& txid) const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    std::vector<QSBPoolEntry> List() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    std::vector<QSBPoolEntry> GetMiningCandidates() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    bool Remove(const Txid& txid) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
 private:
-    void BlockConnected(ChainstateRole role, const std::shared_ptr<const CBlock>& block, const CBlockIndex* pindex) override;
+    void BlockConnected(ChainstateRole role, const std::shared_ptr<const CBlock>& block, const CBlockIndex* pindex) override EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     mutable Mutex m_mutex;
     std::map<Txid, QSBPoolEntry> m_entries GUARDED_BY(m_mutex);
