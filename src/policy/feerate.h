@@ -15,8 +15,8 @@
 #include <string>
 #include <type_traits>
 
-const std::string CURRENCY_UNIT = "RNG"; // One formatted unit
-const std::string CURRENCY_ATOM = "roshi"; // One indivisible minimum value unit (roshi)
+const std::string CURRENCY_UNIT = "BTC"; // One formatted unit
+const std::string CURRENCY_ATOM = "sat"; // One indivisible minimum value unit
 
 /* Used to determine type of fee estimation requested */
 enum class FeeEstimateMode {
@@ -28,39 +28,37 @@ enum class FeeEstimateMode {
 };
 
 /**
- * Fee rate in roshis per virtualbyte: CAmount / vB
+ * Fee rate in satoshis per virtualbyte: CAmount / vB
  * the feerate is represented internally as FeeFrac
  */
 class CFeeRate
 {
 private:
-    /** Fee rate in roshi/vB (roshis per N virtualbytes) */
+    /** Fee rate in sats/vB (satoshis per N virtualbytes) */
     FeePerVSize m_feerate;
 
 public:
-    /** Fee rate of 0 roshis per 0 vB */
+    /** Fee rate of 0 satoshis per 0 vB */
     CFeeRate() = default;
     template<std::integral I> // Disallow silent float -> int conversion
     explicit CFeeRate(const I m_feerate_kvb) : m_feerate(FeePerVSize(m_feerate_kvb, 1000)) {}
 
     /**
-     * Construct a fee rate from a fee in roshis and a vsize in vB.
+     * Construct a fee rate from a fee in satoshis and a vsize in vB.
      *
      * Passing any virtual_bytes less than or equal to 0 will result in 0 fee rate per 0 size.
      */
     CFeeRate(const CAmount& nFeePaid, int32_t virtual_bytes);
 
     /**
-     * Return the fee in roshis for the given vsize in vbytes.
-     * If the calculated fee would have fractional roshis, then the
-     * returned fee will always be rounded up to the nearest roshi.
+     * Return the fee in satoshis for the given vsize in vbytes.
+     * If the calculated fee would have fractional satoshis, then the
+     * returned fee will always be rounded up to the nearest satoshi.
      */
     CAmount GetFee(int32_t virtual_bytes) const;
 
-    FeePerVSize GetFeePerVSize() const { return m_feerate; }
-
     /**
-     * Return the fee in roshis for a vsize of 1000 vbytes
+     * Return the fee in satoshis for a vsize of 1000 vbytes
      */
     CAmount GetFeePerK() const { return CAmount(m_feerate.EvaluateFeeDown(1000)); }
     friend std::weak_ordering operator<=>(const CFeeRate& a, const CFeeRate& b) noexcept

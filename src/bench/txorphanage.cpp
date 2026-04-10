@@ -262,7 +262,7 @@ static void OrphanageEraseForPeer(benchmark::Bench& bench)
     OrphanageEraseAll(bench, /*block_or_disconnect=*/false);
 }
 
-BENCHMARK(OrphanageSinglePeerEviction);
-BENCHMARK(OrphanageMultiPeerEviction);
-BENCHMARK(OrphanageEraseForBlock);
-BENCHMARK(OrphanageEraseForPeer);
+BENCHMARK(OrphanageSinglePeerEviction, benchmark::PriorityLevel::LOW);
+BENCHMARK(OrphanageMultiPeerEviction, benchmark::PriorityLevel::LOW);
+BENCHMARK(OrphanageEraseForBlock, benchmark::PriorityLevel::LOW);
+BENCHMARK(OrphanageEraseForPeer, benchmark::PriorityLevel::LOW);

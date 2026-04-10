@@ -22,4 +22,4 @@ static void ObfuscationBench(benchmark::Bench& bench)
     });
 }
 
-BENCHMARK(ObfuscationBench);
+BENCHMARK(ObfuscationBench, benchmark::PriorityLevel::HIGH);

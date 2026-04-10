@@ -135,11 +135,13 @@ To cross compile for Android with [NDK](https://developer.android.com/ndk/guides
 
 ### Building on Windows
 
-The following example assumes Visual Studio 2022. Using clang-cl is recommended.
+To build on Windows with Visual Studio, a proper [generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators) must be specified for a new build tree.
+
+The following example assumes using of Visual Studio 2022 and CMake v3.21+.
 
 In "Developer Command Prompt for VS 2022":
 
-    >cmake -B build -T ClangCL
+    >cmake -G "Visual Studio 17 2022" -A x64 -B build
     >cmake --build build --config RelWithDebInfo
 
 Usage examples

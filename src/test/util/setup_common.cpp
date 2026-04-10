@@ -28,9 +28,7 @@
 #include <node/peerman_args.h>
 #include <node/warnings.h>
 #include <noui.h>
-#include <policy/fees/block_policy_estimator.h>
-#include <crypto/randomx_hash.h>
-#include <hash.h>
+#include <policy/fees.h>
 #include <pow.h>
 #include <random.h>
 #include <rpc/blockchain.h>
@@ -163,17 +161,8 @@ BasicTestingSetup::BasicTestingSetup(const ChainType chainType, TestOpts opts)
         // tests, such as the fuzz tests to run in several processes at the
         // same time, add a random element to the path. Keep it small enough to
         // avoid a MAX_PATH violation on Windows.
-        //
-        // When fuzzing with AFL++, use the shared memory ID for a deterministic
-        // path. This allows for cleanup of leftover directories from timed-out
-        // or crashed iterations, preventing accumulation of stale datadirs.
-        if (const char* shm_id = std::getenv("__AFL_SHM_ID"); shm_id && *shm_id) {
-            m_path_root = fs::temp_directory_path() / TEST_DIR_PATH_ELEMENT / test_name / shm_id;
-            fs::remove_all(m_path_root);
-        } else {
-            const auto rand{HexStr(g_rng_temp_path.randbytes(10))};
-            m_path_root = fs::temp_directory_path() / TEST_DIR_PATH_ELEMENT / test_name / rand;
-        }
+        const auto rand{HexStr(g_rng_temp_path.randbytes(10))};
+        m_path_root = fs::temp_directory_path() / TEST_DIR_PATH_ELEMENT / test_name / rand;
         TryCreateDirectories(m_path_root);
     } else {
         // Custom data directory
@@ -381,9 +370,7 @@ TestChain100Setup::TestChain100Setup(
     TestOpts opts)
     : TestingSetup{ChainType::REGTEST, opts}
 {
-    // Keep mocked node time aligned with this chain's genesis timestamp.
-    // A fixed historical value can become invalid if genesis is moved forward.
-    SetMockTime(m_node.chainman->GetParams().GenesisBlock().nTime + 1);
+    SetMockTime(1598887952);
     constexpr std::array<unsigned char, 32> vchKey = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}};
     coinbaseKey.Set(vchKey.begin(), vchKey.end(), true);
@@ -393,11 +380,9 @@ TestChain100Setup::TestChain100Setup(
 
     {
         LOCK(::cs_main);
-        const CChain& active_chain = m_node.chainman->ActiveChain();
-        assert(active_chain.Height() == COINBASE_MATURITY);
-        assert(active_chain.Tip() != nullptr);
-        assert(!active_chain.Tip()->GetBlockHash().IsNull());
-        assert(m_coinbase_txns.size() == static_cast<size_t>(COINBASE_MATURITY));
+        assert(
+            m_node.chainman->ActiveChain().Tip()->GetBlockHash().ToString() ==
+            "0c8c5f79505775a0f6aed6aca2350718ceb9c6f2c878667864d5c7a6d8ffa2a6");
     }
 }
 
@@ -427,22 +412,7 @@ CBlock TestChain100Setup::CreateBlock(
     }
     RegenerateCommitments(block, *Assert(m_node.chainman));
 
-    // Get the seed hash for RandomX mining based on current chain tip
-    const CBlockIndex* pindexPrev = nullptr;
-    {
-        LOCK(cs_main);
-        pindexPrev = m_node.chainman->ActiveChain().Tip();
-    }
-    uint256 seed_hash = GetRandomXSeedHash(pindexPrev);
-
-    // Mine with RandomX
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block.nBits, m_node.chainman->GetConsensus())) {
-            break;
-        }
-        ++block.nNonce;
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, m_node.chainman->GetConsensus())) ++block.nNonce;
 
     return block;
 }
@@ -565,24 +535,22 @@ CMutableTransaction TestChain100Setup::CreateValidMempoolTransaction(CTransactio
 std::vector<CTransactionRef> TestChain100Setup::PopulateMempool(FastRandomContext& det_rand, size_t num_transactions, bool submit)
 {
     std::vector<CTransactionRef> mempool_transactions;
-    std::deque<std::pair<COutPoint, CAmount>> unspent_prevouts, undo_info;
+    std::deque<std::pair<COutPoint, CAmount>> unspent_prevouts;
     std::transform(m_coinbase_txns.begin(), m_coinbase_txns.end(), std::back_inserter(unspent_prevouts),
         [](const auto& tx){ return std::make_pair(COutPoint(tx->GetHash(), 0), tx->vout[0].nValue); });
     while (num_transactions > 0 && !unspent_prevouts.empty()) {
-        // The number of inputs and outputs are randomly chosen, between 1-5
-        // and 1-25 respectively.
+        // The number of inputs and outputs are random, between 1 and 24.
         CMutableTransaction mtx = CMutableTransaction();
-        const size_t num_inputs = det_rand.randrange(5) + 1;
+        const size_t num_inputs = det_rand.randrange(24) + 1;
         CAmount total_in{0};
         for (size_t n{0}; n < num_inputs; ++n) {
             if (unspent_prevouts.empty()) break;
             const auto& [prevout, amount] = unspent_prevouts.front();
-            undo_info.emplace_back(prevout, amount);
             mtx.vin.emplace_back(prevout, CScript());
             total_in += amount;
             unspent_prevouts.pop_front();
         }
-        const size_t num_outputs = det_rand.randrange(25) + 1;
+        const size_t num_outputs = det_rand.randrange(24) + 1;
         const CAmount fee = 100 * det_rand.randrange(30);
         const CAmount amount_per_output = (total_in - fee) / num_outputs;
         for (size_t n{0}; n < num_outputs; ++n) {
@@ -590,7 +558,16 @@ std::vector<CTransactionRef> TestChain100Setup::PopulateMempool(FastRandomContex
             mtx.vout.emplace_back(amount_per_output, spk);
         }
         CTransactionRef ptx = MakeTransactionRef(mtx);
-        bool success{true};
+        mempool_transactions.push_back(ptx);
+        if (amount_per_output > 3000) {
+            // If the value is high enough to fund another transaction + fees, keep track of it so
+            // it can be used to build a more complex transaction graph. Insert randomly into
+            // unspent_prevouts for extra randomness in the resulting structures.
+            for (size_t n{0}; n < num_outputs; ++n) {
+                unspent_prevouts.emplace_back(COutPoint(ptx->GetHash(), n), amount_per_output);
+                std::swap(unspent_prevouts.back(), unspent_prevouts[det_rand.randrange(unspent_prevouts.size())]);
+            }
+        }
         if (submit) {
             LOCK2(cs_main, m_node.mempool->cs);
             LockPoints lp;
@@ -598,35 +575,47 @@ std::vector<CTransactionRef> TestChain100Setup::PopulateMempool(FastRandomContex
             changeset->StageAddition(ptx, /*fee=*/(total_in - num_outputs * amount_per_output),
                     /*time=*/0, /*entry_height=*/1, /*entry_sequence=*/0,
                     /*spends_coinbase=*/false, /*sigops_cost=*/4, lp);
-            if (changeset->CheckMemPoolPolicyLimits()) {
-                changeset->Apply();
-                --num_transactions;
-            } else {
-                success = false;
-                // Add the inputs back to unspent prevouts
-                for (const auto& [prevout, amount] : undo_info) {
-                    unspent_prevouts.emplace_back(prevout, amount);
-                    std::swap(unspent_prevouts.back(), unspent_prevouts[det_rand.randrange(unspent_prevouts.size())]);
-                }
-            }
+            changeset->Apply();
         }
-        if (success) {
-            mempool_transactions.push_back(ptx);
-            if (amount_per_output > 3000) {
-                // If the value is high enough to fund another transaction + fees, keep track of it so
-                // it can be used to build a more complex transaction graph. Insert randomly into
-                // unspent_prevouts for extra randomness in the resulting structures.
-                for (size_t n{0}; n < num_outputs; ++n) {
-                    unspent_prevouts.emplace_back(COutPoint(ptx->GetHash(), n), amount_per_output);
-                    std::swap(unspent_prevouts.back(), unspent_prevouts[det_rand.randrange(unspent_prevouts.size())]);
-                }
-            }
-        }
-        undo_info.clear();
+        --num_transactions;
     }
     return mempool_transactions;
 }
 
+void TestChain100Setup::MockMempoolMinFee(const CFeeRate& target_feerate)
+{
+    LOCK2(cs_main, m_node.mempool->cs);
+    // Transactions in the mempool will affect the new minimum feerate.
+    assert(m_node.mempool->size() == 0);
+    // The target feerate cannot be too low...
+    // ...otherwise the transaction's feerate will need to be negative.
+    assert(target_feerate > m_node.mempool->m_opts.incremental_relay_feerate);
+    // ...otherwise this is not meaningful. The feerate policy uses the maximum of both feerates.
+    assert(target_feerate > m_node.mempool->m_opts.min_relay_feerate);
+
+    // Manually create an invalid transaction. Manually set the fee in the CTxMemPoolEntry to
+    // achieve the exact target feerate.
+    CMutableTransaction mtx = CMutableTransaction();
+    mtx.vin.emplace_back(COutPoint{Txid::FromUint256(m_rng.rand256()), 0});
+    mtx.vout.emplace_back(1 * COIN, GetScriptForDestination(WitnessV0ScriptHash(CScript() << OP_TRUE)));
+    // Set a large size so that the fee evaluated at target_feerate (which is usually in sats/kvB) is an integer.
+    // Otherwise, GetMinFee() may end up slightly different from target_feerate.
+    BulkTransaction(mtx, 4000);
+    const auto tx{MakeTransactionRef(mtx)};
+    LockPoints lp;
+    // The new mempool min feerate is equal to the removed package's feerate + incremental feerate.
+    const auto tx_fee = target_feerate.GetFee(GetVirtualTransactionSize(*tx)) -
+        m_node.mempool->m_opts.incremental_relay_feerate.GetFee(GetVirtualTransactionSize(*tx));
+    {
+        auto changeset = m_node.mempool->GetChangeSet();
+        changeset->StageAddition(tx, /*fee=*/tx_fee,
+                /*time=*/0, /*entry_height=*/1, /*entry_sequence=*/0,
+                /*spends_coinbase=*/true, /*sigops_cost=*/1, lp);
+        changeset->Apply();
+    }
+    m_node.mempool->TrimToSize(0);
+    assert(m_node.mempool->GetMinFee() == target_feerate);
+}
 /**
  * @returns a real block (0000000000013b8ab2cd513b0261a14096412195a72a0c4827d229dcc7e0f7af)
  *      with 9 txs.

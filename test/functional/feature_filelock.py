@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018-present The Bitcoin Core developers
+# Copyright (c) 2018-2022 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Check that it's not possible to start a second bitcoind instance using the same datadir or wallet."""
@@ -8,7 +8,7 @@ import string
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import (
-    RNGD_PID_FILENAME_DEFAULT,
+    BITCOIN_PID_FILENAME_DEFAULT,
     ErrorMatch,
 )
 
@@ -40,7 +40,7 @@ class FilelockTest(BitcoinTestFramework):
         self.log.info("Check that cookie and PID file are not deleted when attempting to start a second bitcoind using the same datadir/blocksdir")
         cookie_file = datadir / ".cookie"
         assert cookie_file.exists()  # should not be deleted during the second bitcoind instance shutdown
-        pid_file = datadir / RNGD_PID_FILENAME_DEFAULT
+        pid_file = datadir / BITCOIN_PID_FILENAME_DEFAULT
         assert pid_file.exists()
 
         if self.is_wallet_compiled():

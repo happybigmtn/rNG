@@ -56,4 +56,4 @@ static void BlockFilterIndexSync(benchmark::Bench& bench)
     });
 }
 
-BENCHMARK(BlockFilterIndexSync);
+BENCHMARK(BlockFilterIndexSync, benchmark::PriorityLevel::HIGH);

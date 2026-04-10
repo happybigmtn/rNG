@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
 set -euo pipefail
 
 RNG_DAEMON="${RNG_DAEMON:-rngd}"

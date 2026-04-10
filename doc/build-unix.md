@@ -46,13 +46,9 @@ Finally, clang (often less resource hungry) can be used instead of gcc, which is
 
 #### Dependency Build Instructions
 
-Build requirements for the latest Debian "stable" release, or the latest Ubuntu LTS release:
+Build requirements:
 
     sudo apt-get install build-essential cmake pkgconf python3
-
-For Debian "oldstable", or earlier Ubuntu LTS releases, you may need to pick a
-later compiler version, according to the [dependencies](/doc/dependencies.md)
-documentation.
 
 Now, you can either build from self-compiled [depends](#dependencies) or install the required dependencies:
 

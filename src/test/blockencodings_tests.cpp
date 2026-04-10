@@ -1,12 +1,10 @@
-// Copyright (c) 2011-present The Bitcoin Core developers
+// Copyright (c) 2011-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <blockencodings.h>
 #include <chainparams.h>
 #include <consensus/merkle.h>
-#include <crypto/randomx_hash.h>
-#include <hash.h>
 #include <pow.h>
 #include <streams.h>
 #include <test/util/random.h>
@@ -53,16 +51,7 @@ static CBlock BuildBlockTestCase(FastRandomContext& ctx) {
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
-
-    // Use genesis seed hash for RandomX mining (isolated test block)
-    uint256 seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block.nBits, Params().GetConsensus())) {
-            break;
-        }
-        ++block.nNonce;
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
     return block;
 }
 
@@ -78,7 +67,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
     CBlock block(BuildBlockTestCase(rand_ctx));
 
     LOCK2(cs_main, pool.cs);
-    TryAddToMempool(pool, entry.FromTx(block.vtx[2]));
+    AddToMempool(pool, entry.FromTx(block.vtx[2]));
     BOOST_CHECK_EQUAL(pool.get(block.vtx[2]->GetHash()).use_count(), SHARED_TX_OFFSET + 0);
 
     // Do a simple ShortTxIDs RT
@@ -162,7 +151,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest)
     CBlock block(BuildBlockTestCase(rand_ctx));
 
     LOCK2(cs_main, pool.cs);
-    TryAddToMempool(pool, entry.FromTx(block.vtx[2]));
+    AddToMempool(pool, entry.FromTx(block.vtx[2]));
     BOOST_CHECK_EQUAL(pool.get(block.vtx[2]->GetHash()).use_count(), SHARED_TX_OFFSET + 0);
 
     Txid txhash;
@@ -233,7 +222,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest)
     CBlock block(BuildBlockTestCase(rand_ctx));
 
     LOCK2(cs_main, pool.cs);
-    TryAddToMempool(pool, entry.FromTx(block.vtx[1]));
+    AddToMempool(pool, entry.FromTx(block.vtx[1]));
     BOOST_CHECK_EQUAL(pool.get(block.vtx[1]->GetHash()).use_count(), SHARED_TX_OFFSET + 0);
 
     Txid txhash;
@@ -293,16 +282,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
-
-    // Use genesis seed hash for RandomX mining (isolated test block)
-    uint256 seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block.nBits, Params().GetConsensus())) {
-            break;
-        }
-        ++block.nNonce;
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
 
     // Test simple header round-trip with only coinbase
     {
@@ -342,7 +322,7 @@ BOOST_AUTO_TEST_CASE(ReceiveWithExtraTransactions) {
     extra_txn.resize(10);
 
     LOCK2(cs_main, pool.cs);
-    TryAddToMempool(pool, entry.FromTx(block.vtx[2]));
+    AddToMempool(pool, entry.FromTx(block.vtx[2]));
     BOOST_CHECK_EQUAL(pool.get(block.vtx[2]->GetHash()).use_count(), SHARED_TX_OFFSET + 0);
     // Ensure the non_block_tx is actually not in the block
     for (const auto &block_tx : block.vtx) {

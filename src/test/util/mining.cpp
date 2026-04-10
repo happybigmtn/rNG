@@ -1,4 +1,4 @@
-// Copyright (c) 2019-present The Bitcoin Core developers
+// Copyright (c) 2019-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,8 +7,6 @@
 #include <chainparams.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
-#include <crypto/randomx_hash.h>
-#include <hash.h>
 #include <key_io.h>
 #include <node/context.h>
 #include <pow.h>
@@ -20,7 +18,6 @@
 #include <versionbits.h>
 
 #include <algorithm>
-#include <map>
 #include <memory>
 
 using node::BlockAssembler;
@@ -40,12 +37,6 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
 {
     std::vector<std::shared_ptr<CBlock>> ret{total_height};
     auto time{params.GenesisBlock().nTime};
-
-    // Track previous block hashes for seed calculation
-    // Map from height to block hash for seed lookups
-    std::map<size_t, uint256> block_hashes;
-    block_hashes[0] = params.GenesisBlock().GetHash(); // Genesis at height 0
-
     // NOTE: here `height` does not correspond to the block height but the block height - 1.
     for (size_t height{0}; height < total_height; ++height) {
         CBlock& block{*(ret.at(height) = std::make_shared<CBlock>())};
@@ -68,36 +59,10 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
         block.nBits = params.GenesisBlock().nBits;
         block.nNonce = 0;
 
-        // Calculate seed hash for RandomX based on block height (height + 1 since we're building on top)
-        uint64_t block_height = height + 1;
-        uint64_t seed_height = GetRandomXSeedHeight(block_height);
-        uint256 seed_hash;
-        if (seed_height == 0) {
-            // Use genesis seed
-            seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
-        } else {
-            // Use block hash at seed_height
-            auto it = block_hashes.find(seed_height);
-            if (it != block_hashes.end()) {
-                seed_hash = it->second;
-            } else {
-                // Fallback to genesis seed (shouldn't happen in normal test scenarios)
-                seed_hash = Hash(std::string(kRandomXGenesisSeedPhrase));
-            }
-        }
-
-        // Mine with RandomX
-        while (true) {
-            uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-            if (CheckProofOfWork(pow_hash, block.nBits, params.GetConsensus())) {
-                break;
-            }
+        while (!CheckProofOfWork(block.GetHash(), block.nBits, params.GetConsensus())) {
             ++block.nNonce;
             assert(block.nNonce);
         }
-
-        // Store block hash for future seed lookups
-        block_hashes[height + 1] = block.GetHash();
     }
     return ret;
 }
@@ -128,20 +93,7 @@ protected:
 
 COutPoint MineBlock(const NodeContext& node, std::shared_ptr<CBlock>& block)
 {
-    // Get the seed hash for RandomX mining based on current chain tip
-    const CBlockIndex* pindexPrev = nullptr;
-    {
-        LOCK(cs_main);
-        pindexPrev = Assert(node.chainman)->ActiveChain().Tip();
-    }
-    uint256 seed_hash = GetRandomXSeedHash(pindexPrev);
-
-    // Mine with RandomX
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(*block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block->nBits, Params().GetConsensus())) {
-            break;
-        }
+    while (!CheckProofOfWork(block->GetHash(), block->nBits, Params().GetConsensus())) {
         ++block->nNonce;
         assert(block->nNonce);
     }

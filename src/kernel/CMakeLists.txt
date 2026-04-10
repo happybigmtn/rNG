@@ -4,12 +4,12 @@
 
 include(GNUInstallDirs)
 
-# TODO: librngkernel is a work in progress consensus engine
+# TODO: libbitcoinkernel is a work in progress consensus engine
 #       library, as more and more modules are decoupled from the
 #       consensus engine, this list will shrink to only those
 #       which are absolutely necessary.
-add_library(rngkernel
-  rngkernel.cpp
+add_library(bitcoinkernel
+  bitcoinkernel.cpp
   chain.cpp
   checks.cpp
   chainparams.cpp
@@ -25,6 +25,7 @@ add_library(rngkernel
   ../consensus/merkle.cpp
   ../consensus/tx_check.cpp
   ../consensus/tx_verify.cpp
+  ../core_read.cpp
   ../dbwrapper.cpp
   ../deploymentinfo.cpp
   ../deploymentstatus.cpp
@@ -57,12 +58,10 @@ add_library(rngkernel
   ../support/lockedpool.cpp
   ../sync.cpp
   ../txdb.cpp
-  ../txgraph.cpp
   ../txmempool.cpp
   ../uint256.cpp
   ../util/chaintype.cpp
   ../util/check.cpp
-  ../util/expected.cpp
   ../util/feefrac.cpp
   ../util/fs.cpp
   ../util/fs_helpers.cpp
@@ -71,6 +70,8 @@ add_library(rngkernel
   ../util/rbf.cpp
   ../util/serfloat.cpp
   ../util/signalinterrupt.cpp
+  ../util/strencodings.cpp
+  ../util/string.cpp
   ../util/syserror.cpp
   ../util/threadnames.cpp
   ../util/time.cpp
@@ -78,12 +79,12 @@ add_library(rngkernel
   ../validation.cpp
   ../validationinterface.cpp
   ../versionbits.cpp
-  $<TARGET_OBJECTS:rng_clientversion>
-  $<TARGET_OBJECTS:rng_crypto>
+  $<TARGET_OBJECTS:bitcoin_clientversion>
+  $<TARGET_OBJECTS:bitcoin_crypto>
   $<TARGET_OBJECTS:leveldb>
   $<TARGET_OBJECTS:crc32c>
 )
-target_link_libraries(rngkernel
+target_link_libraries(bitcoinkernel
   PRIVATE
     core_interface
     secp256k1_objs
@@ -93,30 +94,33 @@ target_link_libraries(rngkernel
     Boost::headers
 )
 
-target_include_directories(rngkernel PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/leveldb/include>)
+target_include_directories(bitcoinkernel PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/leveldb/include>)
 
-# Add a convenience librngkernel target as a synonym for rngkernel.
-add_custom_target(librngkernel)
-add_dependencies(librngkernel rngkernel)
-
-get_target_property(rngkernel_type rngkernel TYPE)
-if(rngkernel_type STREQUAL "STATIC_LIBRARY")
-  target_compile_definitions(rngkernel PUBLIC BITCOINKERNEL_STATIC)
-endif()
-
-configure_file(${PROJECT_SOURCE_DIR}/librngkernel.pc.in ${PROJECT_BINARY_DIR}/librngkernel.pc @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/librngkernel.pc DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig" COMPONENT librngkernel)
-
-install(TARGETS rngkernel
-  RUNTIME
-    DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT librngkernel
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT librngkernel
-  ARCHIVE
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT librngkernel
+# libbitcoinkernel requires default symbol visibility, explicitly
+# specify that here so that things still work even when user
+# configures with -DREDUCE_EXPORTS=ON
+#
+# Note this is a quick hack that will be removed as we
+# incrementally define what to export from the library.
+set_target_properties(bitcoinkernel PROPERTIES
+  CXX_VISIBILITY_PRESET default
 )
 
-install(FILES rngkernel.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT librngkernel)
+# Add a convenience libbitcoinkernel target as a synonym for bitcoinkernel.
+add_custom_target(libbitcoinkernel)
+add_dependencies(libbitcoinkernel bitcoinkernel)
+
+configure_file(${PROJECT_SOURCE_DIR}/libbitcoinkernel.pc.in ${PROJECT_BINARY_DIR}/libbitcoinkernel.pc @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/libbitcoinkernel.pc DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig" COMPONENT libbitcoinkernel)
+
+install(TARGETS bitcoinkernel
+  RUNTIME
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT libbitcoinkernel
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT libbitcoinkernel
+  ARCHIVE
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT libbitcoinkernel
+)

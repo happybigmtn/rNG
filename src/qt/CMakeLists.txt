@@ -50,19 +50,11 @@ endfunction()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOMOC_MOC_OPTIONS "-p${CMAKE_CURRENT_SOURCE_DIR}")
+set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS forms)
 
-set(CMAKE_AUTORCC OFF)
 configure_file(bitcoin_locale.qrc bitcoin_locale.qrc USE_SOURCE_PERMISSIONS COPYONLY)
-qt6_add_resources(BITCOIN_QRC bitcoin.qrc)
-qt6_add_resources(BITCOIN_LOCALE_QRC ${CMAKE_CURRENT_BINARY_DIR}/bitcoin_locale.qrc)
-# See: https://bugreports.qt.io/browse/QTBUG-141858.
-get_target_property(warn_flags warn_interface INTERFACE_COMPILE_OPTIONS)
-if("-Wtrailing-whitespace=any" IN_LIST warn_flags)
-  set_source_files_properties(${BITCOIN_QRC} ${BITCOIN_LOCALE_QRC} PROPERTIES COMPILE_OPTIONS -Wno-trailing-whitespace)
-endif()
-unset(warn_flags)
 
 # The bitcoinqt sources have to include headers in
 # order to parse them to collect translatable strings.
@@ -127,8 +119,8 @@ add_library(bitcoinqt STATIC EXCLUDE_FROM_ALL
   utilitydialog.h
   $<$<PLATFORM_ID:Windows>:winshutdownmonitor.cpp>
   $<$<PLATFORM_ID:Windows>:winshutdownmonitor.h>
-  ${BITCOIN_QRC}
-  ${BITCOIN_LOCALE_QRC}
+  bitcoin.qrc
+  ${CMAKE_CURRENT_BINARY_DIR}/bitcoin_locale.qrc
 )
 target_compile_definitions(bitcoinqt
   PUBLIC
@@ -148,7 +140,7 @@ target_link_libraries(bitcoinqt
     Qt6::Widgets
   PRIVATE
     core_interface
-    rng_cli
+    bitcoin_cli
     leveldb
     Boost::headers
     $<TARGET_NAME_IF_EXISTS:QRencode::QRencode>
@@ -222,7 +214,7 @@ if(ENABLE_WALLET)
   )
   target_link_libraries(bitcoinqt
     PRIVATE
-      rng_wallet
+      bitcoin_wallet
       Qt6::Network
   )
 endif()
@@ -255,41 +247,45 @@ endif()
 
 add_subdirectory(locale)
 
-add_executable(rng-qt
+add_executable(bitcoin-qt
   main.cpp
   ../init/bitcoin-qt.cpp
 )
 
-add_windows_resources(rng-qt res/bitcoin-qt-res.rc)
-add_windows_application_manifest(rng-qt)
+add_windows_resources(bitcoin-qt res/bitcoin-qt-res.rc)
+add_windows_application_manifest(bitcoin-qt)
+set_target_properties(bitcoin-qt PROPERTIES OUTPUT_NAME rng-qt)
 
-target_link_libraries(rng-qt
+target_link_libraries(bitcoin-qt
   core_interface
   bitcoinqt
-  rng_node
+  bitcoin_node
 )
 
-import_plugins(rng-qt)
-install_binary_component(rng-qt HAS_MANPAGE)
+import_plugins(bitcoin-qt)
+install_binary_component(bitcoin-qt HAS_MANPAGE)
+add_custom_target(rng-qt DEPENDS bitcoin-qt)
 if(WIN32)
-  set_target_properties(rng-qt PROPERTIES WIN32_EXECUTABLE TRUE)
+  set_target_properties(bitcoin-qt PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 if(ENABLE_IPC)
-  add_executable(rng-gui
+  add_executable(bitcoin-gui
     main.cpp
     ../init/bitcoin-gui.cpp
   )
-  target_link_libraries(rng-gui
+  set_target_properties(bitcoin-gui PROPERTIES OUTPUT_NAME rng-gui)
+  target_link_libraries(bitcoin-gui
     core_interface
     bitcoinqt
-    rng_node
+    bitcoin_node
     bitcoin_ipc
   )
-  import_plugins(rng-gui)
-  install_binary_component(rng-gui INTERNAL)
+  import_plugins(bitcoin-gui)
+  install_binary_component(bitcoin-gui INTERNAL)
+  add_custom_target(rng-gui DEPENDS bitcoin-gui)
   if(WIN32)
-    set_target_properties(rng-gui PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(bitcoin-gui PROPERTIES WIN32_EXECUTABLE TRUE)
   endif()
 endif()
 

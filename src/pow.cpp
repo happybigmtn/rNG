@@ -25,6 +25,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
     unsigned int nProofOfWorkLimit = bnPowLimit.GetCompact();
 
+    if (params.fPowNoRetargeting) {
+        return pindexLast->nBits;
+    }
+
     // Monero-style difficulty adjustment: recalculate every block using a
     // window of recent block timestamps and cumulative difficulties.
     //

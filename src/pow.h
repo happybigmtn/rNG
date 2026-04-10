@@ -34,6 +34,9 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params&);
 
+/** Fixed RandomX genesis seed phrase used by RNG mainnet. */
+inline constexpr std::string_view kRandomXGenesisSeedPhrase{"RNG Genesis Seed"};
+
 /**
  * Get the RandomX seed hash for a given block index.
  * The seed hash is derived from the block hash at the seed height.
@@ -42,8 +45,6 @@ bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Par
  * @param pindex Block index to get seed hash for
  * @return       The seed hash for RandomX
  */
-inline constexpr std::string_view kRandomXGenesisSeedPhrase{"RNG Genesis Seed"};
-
 uint256 GetRandomXSeedHash(const CBlockIndex* pindex);
 
 /**
@@ -60,7 +61,7 @@ uint256 GetBlockPoWHash(const CBlockHeader& header, const uint256& seed_hash);
  * This is the main PoW validation function for RNG.
  *
  * @param header  The block header
- * @param pindex  The block index (for determining seed hash)
+ * @param pindexPrev  The previous block index (for determining seed hash)
  * @param params  Consensus parameters
  * @return        true if PoW is valid
  */
