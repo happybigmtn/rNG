@@ -2058,7 +2058,12 @@ void Chainstate::CheckForkWarningConditions()
         return;
     }
 
-    if (m_chainman.m_best_invalid && m_chainman.m_best_invalid->nChainWork > m_chain.Tip()->nChainWork + (GetBlockProof(*m_chain.Tip()) * 6)) {
+    const CBlockIndex* tip{m_chain.Tip()};
+    if (tip == nullptr) {
+        return;
+    }
+
+    if (m_chainman.m_best_invalid && m_chainman.m_best_invalid->nChainWork > tip->nChainWork + (GetBlockProof(*tip) * 6)) {
         LogPrintf("%s: Warning: Found invalid chain at least ~6 blocks longer than our best chain.\nChain state database corruption likely.\n", __func__);
         m_chainman.GetNotifications().warningSet(
             kernel::Warning::LARGE_WORK_INVALID_CHAIN,
@@ -2084,10 +2089,13 @@ void Chainstate::InvalidChainFound(CBlockIndex* pindexNew)
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight,
       log(pindexNew->nChainWork.getdouble())/log(2.0), FormatISO8601DateTime(pindexNew->GetBlockTime()));
     CBlockIndex *tip = m_chain.Tip();
-    assert (tip);
-    LogPrintf("%s:  current best=%s  height=%d  log2_work=%f  date=%s\n", __func__,
-      tip->GetBlockHash().ToString(), m_chain.Height(), log(tip->nChainWork.getdouble())/log(2.0),
-      FormatISO8601DateTime(tip->GetBlockTime()));
+    if (tip) {
+        LogPrintf("%s:  current best=%s  height=%d  log2_work=%f  date=%s\n", __func__,
+          tip->GetBlockHash().ToString(), m_chain.Height(), log(tip->nChainWork.getdouble())/log(2.0),
+          FormatISO8601DateTime(tip->GetBlockTime()));
+    } else {
+        LogPrintf("%s:  current best unavailable; active chain has no tip\n", __func__);
+    }
     CheckForkWarningConditions();
 }
 
@@ -5626,8 +5634,8 @@ double ChainstateManager::GuessVerificationProgress(const CBlockIndex* pindex) c
 
     const int64_t nNow{TicksSinceEpoch<std::chrono::seconds>(NodeClock::now())};
     const auto block_time{
-        (Assume(m_best_header) && std::abs(nNow - pindex->GetBlockTime()) <= Ticks<std::chrono::seconds>(2h) &&
-         Assume(m_best_header->nHeight >= pindex->nHeight)) ?
+        (m_best_header && std::abs(nNow - pindex->GetBlockTime()) <= Ticks<std::chrono::seconds>(2h) &&
+         m_best_header->nHeight >= pindex->nHeight) ?
             // When the header is known to be recent, switch to a height-based
             // approach. This ensures the returned value is quantized when
             // close to "1.0", because some users expect it to be. This also

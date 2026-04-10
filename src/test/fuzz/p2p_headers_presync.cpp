@@ -155,6 +155,23 @@ void FinalizeHeader(CBlockHeader& header, const ChainstateManager& chainman)
 // block index) would indicate a bug.
 HeadersSyncSetup* g_testing_setup;
 
+void EnsureActiveGenesisTip(ChainstateManager& chainman)
+{
+    LOCK(cs_main);
+    if (chainman.ActiveChain().Tip() != nullptr) return;
+
+    // RNG mainnet's minimum-chainwork can leave this harness in IBD without an
+    // active tip, but peerman handshake and invalid-chain diagnostics expect one.
+    const uint256 genesis_hash{chainman.GetParams().GenesisBlock().GetHash()};
+    CBlockIndex* genesis_index{chainman.m_blockman.LookupBlockIndex(genesis_hash)};
+    assert(genesis_index);
+    Chainstate& chainstate{chainman.ActiveChainstate()};
+    chainstate.CoinsTip().SetBestBlock(genesis_hash);
+    chainstate.setBlockIndexCandidates.insert(genesis_index);
+    assert(chainstate.LoadChainTip());
+    if (chainman.m_best_header == nullptr) chainman.m_best_header = genesis_index;
+}
+
 void initialize()
 {
     static auto setup{
@@ -178,6 +195,7 @@ FUZZ_TARGET(p2p_headers_presync, .init = initialize)
     ChainstateManager& chainman = *g_testing_setup->m_node.chainman;
     CBlockHeader base{chainman.GetParams().GenesisBlock()};
     SetMockTime(base.nTime);
+    EnsureActiveGenesisTip(chainman);
 
     LOCK(NetEventsInterface::g_msgproc_mutex);
 
