@@ -7,7 +7,6 @@ add_library(test_fuzz STATIC EXCLUDE_FROM_ALL
   descriptor.cpp
   mempool.cpp
   net.cpp
-  threadinterrupt.cpp
   ../fuzz.cpp
   ../util.cpp
 )
@@ -16,7 +15,7 @@ target_link_libraries(test_fuzz
   PRIVATE
     core_interface
     test_util
-    rng_node
+    bitcoin_node
     Boost::headers
 )
 

@@ -56,8 +56,6 @@ add_executable(bench_bitcoin
   verify_script.cpp
 )
 
-add_windows_application_manifest(bench_bitcoin)
-
 include(TargetDataSources)
 target_raw_data_sources(bench_bitcoin NAMESPACE benchmark::data
   data/block413567.raw
@@ -66,7 +64,7 @@ target_raw_data_sources(bench_bitcoin NAMESPACE benchmark::data
 target_link_libraries(bench_bitcoin
   core_interface
   test_util
-  rng_node
+  bitcoin_node
   Boost::headers
 )
 
@@ -81,7 +79,11 @@ if(ENABLE_WALLET)
       wallet_ismine.cpp
       wallet_migration.cpp
   )
-  target_link_libraries(bench_bitcoin rng_wallet)
+  target_link_libraries(bench_bitcoin bitcoin_wallet)
 endif()
+
+add_test(NAME bench_sanity_check
+  COMMAND bench_bitcoin -sanity-check
+)
 
 install_binary_component(bench_bitcoin INTERNAL)

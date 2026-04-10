@@ -3,8 +3,6 @@
 // file COPYING or https://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
-#include <crypto/randomx_hash.h>
-#include <hash.h>
 #include <node/miner.h>
 #include <net_processing.h>
 #include <pow.h>
@@ -23,24 +21,7 @@ static void mineBlock(const node::NodeContext& node, std::chrono::seconds block_
     auto curr_time = GetTime<std::chrono::seconds>();
     SetMockTime(block_time); // update time so the block is created with it
     CBlock block = node::BlockAssembler{node.chainman->ActiveChainstate(), nullptr, {}}.CreateNewBlock()->block;
-
-    // Get the seed hash for RandomX mining based on current chain tip
-    const CBlockIndex* pindexPrev = nullptr;
-    {
-        LOCK(cs_main);
-        pindexPrev = node.chainman->ActiveChain().Tip();
-    }
-    uint256 seed_hash = GetRandomXSeedHash(pindexPrev);
-
-    // Mine with RandomX
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block.nBits, node.chainman->GetConsensus())) {
-            break;
-        }
-        ++block.nNonce;
-    }
-
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, node.chainman->GetConsensus())) ++block.nNonce;
     block.fChecked = true; // little speedup
     SetMockTime(curr_time); // process block at current time
     Assert(node.chainman->ProcessNewBlock(std::make_shared<const CBlock>(block), /*force_processing=*/true, /*min_pow_checked=*/true, nullptr));

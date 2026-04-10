@@ -347,29 +347,6 @@ class AssumeutxoTest(BitcoinTestFramework):
         assert 'NETWORK' in ibd_node.getpeerinfo()[0]['servicesnames']
         self.sync_blocks(nodes=(ibd_node, snapshot_node))
 
-    def test_sync_to_most_work_chain_after_background_validation(self):
-        """
-        After background validation completes, node should be able
-        to download and process blocks from peers without the snapshot block in their chain.
-        """
-        self.log.info("Testing sync to the most-work chain without the snapshot block after background validation")
-
-        forking_node = self.nodes[0]
-        snapshot_node = self.nodes[2]  # Has already completed background validation
-
-        self.log.info("Forking node switches to an alternative chain that forks one block before the snapshot block")
-        fork_point = SNAPSHOT_BASE_HEIGHT - 1
-        forking_node_old_height = forking_node.getblockcount()
-        forking_node_old_chainwork = int(forking_node.getblockchaininfo()['chainwork'], 16)
-        forking_node.invalidateblock(forking_node.getblockhash(fork_point + 1))
-
-        self.log.info("Mine one more block than original chain to make the new chain have most work")
-        self.generate(forking_node, nblocks=(forking_node_old_height - fork_point) + 1, sync_fun=self.no_op)
-        assert int(forking_node.getblockchaininfo()['chainwork'], 16) > forking_node_old_chainwork
-
-        self.log.info("Snapshot node should reorg to the most-work chain without the snapshot block")
-        self.sync_blocks(nodes=(snapshot_node, forking_node))
-
     def assert_only_network_limited_service(self, node):
         node_services = node.getnetworkinfo()['localservicesnames']
         assert 'NETWORK' not in node_services
@@ -504,7 +481,7 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         # Use a hash instead of a height
         prev_snap_hash = n0.getblockhash(prev_snap_height)
-        dump_output5 = n0.dumptxoutset('utxos5.dat', rollback=prev_snap_hash)
+        dump_output5 = n0.dumptxoutset('utxos5.dat', rollback=self.convert_to_json_for_cli(prev_snap_hash))
         assert_equal(sha256sum_file(dump_output4['path']), sha256sum_file(dump_output5['path']))
 
         # Ensure n0 is back at the tip
@@ -797,8 +774,6 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         # The following test cleans node2 and node3 chain directories.
         self.test_sync_from_assumeutxo_node(snapshot=dump_output)
-
-        self.test_sync_to_most_work_chain_after_background_validation()
 
 @dataclass
 class Block:

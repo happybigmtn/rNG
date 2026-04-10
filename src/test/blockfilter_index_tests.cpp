@@ -1,4 +1,4 @@
-// Copyright (c) 2017-present The Bitcoin Core developers
+// Copyright (c) 2017-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,8 +7,6 @@
 #include <chainparams.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
-#include <crypto/randomx_hash.h>
-#include <hash.h>
 #include <index/blockfilterindex.h>
 #include <interfaces/chain.h>
 #include <node/miner.h>
@@ -89,17 +87,7 @@ CBlock BuildChainTestingSetup::CreateBlock(const CBlockIndex* prev,
         block.hashMerkleRoot = BlockMerkleRoot(block);
     }
 
-    // Get the seed hash for RandomX mining
-    uint256 seed_hash = GetRandomXSeedHash(prev);
-
-    // Mine with RandomX
-    while (true) {
-        uint256 pow_hash = GetBlockPoWHash(block, seed_hash);
-        if (CheckProofOfWork(pow_hash, block.nBits, m_node.chainman->GetConsensus())) {
-            break;
-        }
-        ++block.nNonce;
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, m_node.chainman->GetConsensus())) ++block.nNonce;
 
     return block;
 }
@@ -114,9 +102,10 @@ bool BuildChainTestingSetup::BuildChain(const CBlockIndex* pindex,
     chain.resize(length);
     for (auto& block : chain) {
         block = std::make_shared<CBlock>(CreateBlock(pindex, no_txns, coinbase_script_pub_key));
+        CBlockHeader header = block->GetBlockHeader();
 
         BlockValidationState state;
-        if (!Assert(m_node.chainman)->ProcessNewBlockHeaders({{*block}}, true, state, &pindex)) {
+        if (!Assert(m_node.chainman)->ProcessNewBlockHeaders({{header}}, true, state, &pindex)) {
             return false;
         }
     }

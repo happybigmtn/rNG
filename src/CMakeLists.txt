@@ -4,7 +4,7 @@
 
 include(AddWindowsResources)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/rng-build-config.h.in rng-build-config.h USE_SOURCE_PERMISSIONS @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/bitcoin-build-config.h.in bitcoin-build-config.h USE_SOURCE_PERMISSIONS @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 #=============================
@@ -40,19 +40,19 @@ if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 endif()
 
 add_custom_target(generate_build_info
-  BYPRODUCTS ${PROJECT_BINARY_DIR}/src/rng-build-info.h
-  COMMAND ${CMAKE_COMMAND} -DBUILD_INFO_HEADER_PATH=${PROJECT_BINARY_DIR}/src/rng-build-info.h -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/script/GenerateBuildInfo.cmake
-  COMMENT "Generating rng-build-info.h"
+  BYPRODUCTS ${PROJECT_BINARY_DIR}/src/bitcoin-build-info.h
+  COMMAND ${CMAKE_COMMAND} -DBUILD_INFO_HEADER_PATH=${PROJECT_BINARY_DIR}/src/bitcoin-build-info.h -DSOURCE_DIR=${PROJECT_SOURCE_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/script/GenerateBuildInfo.cmake
+  COMMENT "Generating bitcoin-build-info.h"
   VERBATIM
 )
-add_library(rng_clientversion STATIC
+add_library(bitcoin_clientversion STATIC EXCLUDE_FROM_ALL
   clientversion.cpp
 )
-target_link_libraries(rng_clientversion
+target_link_libraries(bitcoin_clientversion
   PRIVATE
     core_interface
 )
-add_dependencies(rng_clientversion generate_build_info)
+add_dependencies(bitcoin_clientversion generate_build_info)
 
 add_subdirectory(crypto)
 add_subdirectory(util)
@@ -60,7 +60,7 @@ if(ENABLE_IPC)
   add_subdirectory(ipc)
 endif()
 
-add_library(rng_consensus STATIC EXCLUDE_FROM_ALL
+add_library(bitcoin_consensus STATIC EXCLUDE_FROM_ALL
   arith_uint256.cpp
   consensus/merkle.cpp
   consensus/tx_check.cpp
@@ -73,10 +73,10 @@ add_library(rng_consensus STATIC EXCLUDE_FROM_ALL
   script/script_error.cpp
   uint256.cpp
 )
-target_link_libraries(rng_consensus
+target_link_libraries(bitcoin_consensus
   PRIVATE
     core_interface
-    rng_crypto
+    bitcoin_crypto
     secp256k1
 )
 
@@ -85,8 +85,8 @@ if(WITH_ZMQ)
 endif()
 
 # Home for common functionality shared by different executables and libraries.
-# Similar to `rng_util` library, but higher-level.
-add_library(rng_common STATIC EXCLUDE_FROM_ALL
+# Similar to `bitcoin_util` library, but higher-level.
+add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
   addresstype.cpp
   base58.cpp
   bech32.cpp
@@ -108,7 +108,8 @@ add_library(rng_common STATIC EXCLUDE_FROM_ALL
   common/system.cpp
   common/url.cpp
   compressor.cpp
-  core_io.cpp
+  core_read.cpp
+  core_write.cpp
   deploymentinfo.cpp
   external_signer.cpp
   init/common.cpp
@@ -130,6 +131,7 @@ add_library(rng_common STATIC EXCLUDE_FROM_ALL
   rpc/rawtransaction_util.cpp
   rpc/request.cpp
   rpc/util.cpp
+  script/qsb.cpp
   scheduler.cpp
   script/descriptor.cpp
   script/miniscript.cpp
@@ -138,11 +140,11 @@ add_library(rng_common STATIC EXCLUDE_FROM_ALL
   script/signingprovider.cpp
   script/solver.cpp
 )
-target_link_libraries(rng_common
+target_link_libraries(bitcoin_common
   PRIVATE
     core_interface
-    rng_consensus
-    rng_util
+    bitcoin_consensus
+    bitcoin_util
     univalue
     secp256k1
     Boost::headers
@@ -156,27 +158,27 @@ if(ENABLE_WALLET)
   add_subdirectory(wallet)
 
   if(BUILD_WALLET_TOOL)
-    add_executable(rng-wallet
+    add_executable(bitcoin-wallet
       bitcoin-wallet.cpp
       init/bitcoin-wallet.cpp
       wallet/wallettool.cpp
     )
-    add_windows_resources(rng-wallet bitcoin-wallet-res.rc)
-    add_windows_application_manifest(rng-wallet)
-    target_link_libraries(rng-wallet
+    add_windows_resources(bitcoin-wallet bitcoin-wallet-res.rc)
+    add_windows_application_manifest(bitcoin-wallet)
+    target_link_libraries(bitcoin-wallet
       core_interface
-      rng_wallet
-      rng_common
-      rng_util
+      bitcoin_wallet
+      bitcoin_common
+      bitcoin_util
       Boost::headers
     )
-    install_binary_component(rng-wallet HAS_MANPAGE)
+    install_binary_component(bitcoin-wallet HAS_MANPAGE)
   endif()
 endif()
 
 
-# P2P and RPC server functionality used by `rngd` and `rng-qt` executables.
-add_library(rng_node STATIC EXCLUDE_FROM_ALL
+# P2P and RPC server functionality used by `bitcoind` and `bitcoin-qt` executables.
+add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   addrdb.cpp
   addrman.cpp
   banman.cpp
@@ -225,12 +227,14 @@ add_library(rng_node STATIC EXCLUDE_FROM_ALL
   node/mempool_args.cpp
   node/mempool_persist.cpp
   node/mempool_persist_args.cpp
-  node/miner.cpp
   node/internal_miner.cpp
+  node/miner.cpp
   node/mini_miner.cpp
   node/minisketchwrapper.cpp
   node/peerman_args.cpp
   node/psbt.cpp
+  node/qsb_pool.cpp
+  node/qsb_validation.cpp
   node/timeoffsets.cpp
   node/transaction.cpp
   node/txdownloadman_impl.cpp
@@ -240,13 +244,12 @@ add_library(rng_node STATIC EXCLUDE_FROM_ALL
   node/warnings.cpp
   noui.cpp
   policy/ephemeral_policy.cpp
-  policy/fees/block_policy_estimator.cpp
-  policy/fees/block_policy_estimator_args.cpp
+  policy/fees.cpp
+  policy/fees_args.cpp
   policy/packages.cpp
   policy/rbf.cpp
   policy/settings.cpp
   policy/truc_policy.cpp
-  private_broadcast.cpp
   rest.cpp
   rpc/blockchain.cpp
   rpc/external_signer.cpp
@@ -256,6 +259,7 @@ add_library(rng_node STATIC EXCLUDE_FROM_ALL
   rpc/net.cpp
   rpc/node.cpp
   rpc/output_script.cpp
+  rpc/qsb.cpp
   rpc/rawtransaction.cpp
   rpc/server.cpp
   rpc/server_util.cpp
@@ -271,15 +275,15 @@ add_library(rng_node STATIC EXCLUDE_FROM_ALL
   validation.cpp
   validationinterface.cpp
   versionbits.cpp
-  $<$<TARGET_EXISTS:rng_wallet>:wallet/init.cpp>
-  $<$<NOT:$<TARGET_EXISTS:rng_wallet>>:dummywallet.cpp>
+  $<$<TARGET_EXISTS:bitcoin_wallet>:wallet/init.cpp>
+  $<$<NOT:$<TARGET_EXISTS:bitcoin_wallet>>:dummywallet.cpp>
 )
-target_link_libraries(rng_node
+target_link_libraries(bitcoin_node
   PRIVATE
     core_interface
-    rng_common
-    rng_util
-    $<TARGET_NAME_IF_EXISTS:rng_zmq>
+    bitcoin_common
+    bitcoin_util
+    $<TARGET_NAME_IF_EXISTS:bitcoin_zmq>
     leveldb
     minisketch
     univalue
@@ -290,97 +294,125 @@ target_link_libraries(rng_node
     $<TARGET_NAME_IF_EXISTS:USDT::headers>
 )
 
-# RNG wrapper executable that can call other executables.
+# Bitcoin wrapper executable that can call other executables.
 if(BUILD_BITCOIN_BIN)
-  add_executable(rng bitcoin.cpp)
-  add_windows_resources(rng bitcoin-res.rc)
-  add_windows_application_manifest(rng)
-  target_link_libraries(rng core_interface rng_common rng_util)
-  install_binary_component(rng HAS_MANPAGE)
+  add_executable(bitcoin bitcoin.cpp)
+  add_windows_resources(bitcoin bitcoin-res.rc)
+  add_windows_application_manifest(bitcoin)
+  set_target_properties(bitcoin PROPERTIES OUTPUT_NAME rng)
+  target_link_libraries(bitcoin core_interface bitcoin_common bitcoin_util)
+  install_binary_component(bitcoin HAS_MANPAGE)
+  add_custom_target(rng DEPENDS bitcoin)
 endif()
 
-# RNG Core rngd.
+# Bitcoin Core bitcoind.
 if(BUILD_DAEMON)
-  add_executable(rngd
+  add_executable(bitcoind
     bitcoind.cpp
     init/bitcoind.cpp
   )
-  add_windows_resources(rngd bitcoind-res.rc)
-  add_windows_application_manifest(rngd)
-  target_link_libraries(rngd
+  add_windows_resources(bitcoind bitcoind-res.rc)
+  add_windows_application_manifest(bitcoind)
+  set_target_properties(bitcoind PROPERTIES OUTPUT_NAME rngd)
+  target_link_libraries(bitcoind
     core_interface
-    rng_node
-    $<TARGET_NAME_IF_EXISTS:rng_wallet>
+    bitcoin_node
+    $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
-  install_binary_component(rngd HAS_MANPAGE)
+  install_binary_component(bitcoind HAS_MANPAGE)
+  add_custom_target(rngd DEPENDS bitcoind)
 endif()
 if(ENABLE_IPC AND BUILD_DAEMON)
-  add_executable(rng-node
+  add_executable(bitcoin-node
     bitcoind.cpp
     init/bitcoin-node.cpp
   )
-  target_link_libraries(rng-node
+  set_target_properties(bitcoin-node PROPERTIES OUTPUT_NAME rng-node)
+  target_link_libraries(bitcoin-node
     core_interface
-    rng_node
-    rng_ipc
-    $<TARGET_NAME_IF_EXISTS:rng_wallet>
+    bitcoin_node
+    bitcoin_ipc
+    $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
-  install_binary_component(rng-node INTERNAL)
+  install_binary_component(bitcoin-node INTERNAL)
+  add_custom_target(rng-node DEPENDS bitcoin-node)
+endif()
+
+if(ENABLE_IPC AND BUILD_TESTS)
+    # bitcoin_ipc_test library target is defined here in src/CMakeLists.txt
+    # instead of src/test/CMakeLists.txt so capnp files in src/test/ are able to
+    # reference capnp files in src/ipc/capnp/ by relative path. The Cap'n Proto
+    # compiler only allows importing by relative path when the importing and
+    # imported files are underneath the same compilation source prefix, so the
+    # source prefix must be src/, not src/test/
+    add_library(bitcoin_ipc_test STATIC EXCLUDE_FROM_ALL
+      test/ipc_test.cpp
+    )
+    target_capnp_sources(bitcoin_ipc_test ${PROJECT_SOURCE_DIR}
+      test/ipc_test.capnp
+    )
+    add_dependencies(bitcoin_ipc_test bitcoin_ipc_headers)
 endif()
 
 
-add_library(rng_cli STATIC EXCLUDE_FROM_ALL
+add_library(bitcoin_cli STATIC EXCLUDE_FROM_ALL
   compat/stdin.cpp
   rpc/client.cpp
 )
-target_link_libraries(rng_cli
+target_link_libraries(bitcoin_cli
   PUBLIC
     core_interface
     univalue
 )
 
 
-# RNG Core RPC client
+# Bitcoin Core RPC client
 if(BUILD_CLI)
-  add_executable(rng-cli bitcoin-cli.cpp)
-  add_windows_resources(rng-cli bitcoin-cli-res.rc)
-  add_windows_application_manifest(rng-cli)
-  target_link_libraries(rng-cli
+  add_executable(bitcoin-cli bitcoin-cli.cpp)
+  add_windows_resources(bitcoin-cli bitcoin-cli-res.rc)
+  add_windows_application_manifest(bitcoin-cli)
+  set_target_properties(bitcoin-cli PROPERTIES OUTPUT_NAME rng-cli)
+  target_link_libraries(bitcoin-cli
     core_interface
-    rng_cli
-    rng_common
-    rng_util
+    bitcoin_cli
+    bitcoin_common
+    bitcoin_util
     libevent::core
     libevent::extra
   )
-  install_binary_component(rng-cli HAS_MANPAGE)
+  install_binary_component(bitcoin-cli HAS_MANPAGE)
+  add_custom_target(rng-cli DEPENDS bitcoin-cli)
 endif()
 
 
 if(BUILD_TX)
-  add_executable(rng-tx bitcoin-tx.cpp)
-  add_windows_resources(rng-tx bitcoin-tx-res.rc)
-  add_windows_application_manifest(rng-tx)
-  target_link_libraries(rng-tx
+  add_executable(bitcoin-tx bitcoin-tx.cpp)
+  add_windows_resources(bitcoin-tx bitcoin-tx-res.rc)
+  add_windows_application_manifest(bitcoin-tx)
+  set_target_properties(bitcoin-tx PROPERTIES OUTPUT_NAME rng-tx)
+  target_link_libraries(bitcoin-tx
     core_interface
-    rng_common
-    rng_util
+    bitcoin_common
+    bitcoin_util
     univalue
   )
-  install_binary_component(rng-tx HAS_MANPAGE)
+  install_binary_component(bitcoin-tx HAS_MANPAGE)
+  add_custom_target(rng-tx DEPENDS bitcoin-tx)
 endif()
 
 
 if(BUILD_UTIL)
-  add_executable(rng-util bitcoin-util.cpp)
-  add_windows_resources(rng-util bitcoin-util-res.rc)
-  add_windows_application_manifest(rng-util)
-  target_link_libraries(rng-util
+  add_executable(bitcoin-util bitcoin-util.cpp)
+  add_windows_resources(bitcoin-util bitcoin-util-res.rc)
+  add_windows_application_manifest(bitcoin-util)
+  set_target_properties(bitcoin-util PROPERTIES OUTPUT_NAME rng-util)
+  target_link_libraries(bitcoin-util
     core_interface
-    rng_common
-    rng_util
+    bitcoin_common
+    bitcoin_util
   )
-  install_binary_component(rng-util HAS_MANPAGE)
+  install_binary_component(bitcoin-util HAS_MANPAGE)
+  add_custom_target(rng-util DEPENDS bitcoin-util)
 endif()
 
 
@@ -391,21 +423,29 @@ endif()
 
 if(BUILD_KERNEL_LIB)
   add_subdirectory(kernel)
-  if (BUILD_KERNEL_TEST)
-    add_subdirectory(test/kernel)
-  endif()
-  if(BUILD_UTIL_CHAINSTATE)
-    add_executable(rng-chainstate
-      bitcoin-chainstate.cpp
-    )
-    add_windows_application_manifest(rng-chainstate)
-    target_link_libraries(rng-chainstate
-      PRIVATE
-        core_interface
-        bitcoinkernel
-    )
-    install_binary_component(rng-chainstate INTERNAL)
-  endif()
+endif()
+
+if(BUILD_UTIL_CHAINSTATE)
+  add_executable(bitcoin-chainstate
+    bitcoin-chainstate.cpp
+  )
+  # TODO: The `SKIP_BUILD_RPATH` property setting can be deleted
+  #       in the future after reordering Guix script commands to
+  #       perform binary checks after the installation step.
+  # Relevant discussions:
+  # - https://github.com/hebasto/bitcoin/pull/236#issuecomment-2183120953
+  # - https://github.com/bitcoin/bitcoin/pull/30312#issuecomment-2191235833
+  set_target_properties(bitcoin-chainstate PROPERTIES
+    OUTPUT_NAME rng-chainstate
+    SKIP_BUILD_RPATH OFF
+  )
+  target_link_libraries(bitcoin-chainstate
+    PRIVATE
+      core_interface
+      bitcoinkernel
+  )
+  install_binary_component(bitcoin-chainstate INTERNAL)
+  add_custom_target(rng-chainstate DEPENDS bitcoin-chainstate)
 endif()
 
 

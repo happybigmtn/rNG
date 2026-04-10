@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

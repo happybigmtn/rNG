@@ -73,7 +73,7 @@ struct BasicTestingSetup {
         m_rng.Reseed(GetRandHash());
     }
 
-    explicit BasicTestingSetup(ChainType chainType = ChainType::MAIN, TestOpts = {});
+    explicit BasicTestingSetup(const ChainType chainType = ChainType::MAIN, TestOpts = {});
     ~BasicTestingSetup();
 
     fs::path m_path_root;
@@ -109,7 +109,7 @@ struct ChainTestingSetup : public BasicTestingSetup {
     bool m_block_tree_db_in_memory{true};
     std::function<void()> m_make_chainman{};
 
-    explicit ChainTestingSetup(ChainType chainType = ChainType::MAIN, TestOpts = {});
+    explicit ChainTestingSetup(const ChainType chainType = ChainType::MAIN, TestOpts = {});
     ~ChainTestingSetup();
 
     // Supplies a chainstate, if one is needed
@@ -120,7 +120,7 @@ struct ChainTestingSetup : public BasicTestingSetup {
  */
 struct TestingSetup : public ChainTestingSetup {
     explicit TestingSetup(
-        ChainType chainType = ChainType::MAIN,
+        const ChainType chainType = ChainType::MAIN,
         TestOpts = {});
 };
 
@@ -145,7 +145,7 @@ class CScript;
  */
 struct TestChain100Setup : public TestingSetup {
     TestChain100Setup(
-        ChainType chain_type = ChainType::REGTEST,
+        const ChainType chain_type = ChainType::REGTEST,
         TestOpts = {});
 
     /**
@@ -237,6 +237,17 @@ struct TestChain100Setup : public TestingSetup {
      * @returns A vector of transactions that can be submitted to the mempool.
      */
     std::vector<CTransactionRef> PopulateMempool(FastRandomContext& det_rand, size_t num_transactions, bool submit);
+
+    /** Mock the mempool minimum feerate by adding a transaction and calling TrimToSize(0),
+     * simulating the mempool "reaching capacity" and evicting by descendant feerate.  Note that
+     * this clears the mempool, and the new minimum feerate will depend on the maximum feerate of
+     * transactions removed, so this must be called while the mempool is empty.
+     *
+     * @param target_feerate    The new mempool minimum feerate after this function returns.
+     *                          Must be above max(incremental feerate, min relay feerate),
+     *                          or 1sat/vB with default settings.
+     */
+    void MockMempoolMinFee(const CFeeRate& target_feerate);
 
     std::vector<CTransactionRef> m_coinbase_txns; // For convenience, coinbase transactions
     CKey coinbaseKey; // private/public key needed to spend coinbase transactions

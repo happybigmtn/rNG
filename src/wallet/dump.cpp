@@ -37,7 +37,7 @@ bool DumpWallet(const ArgsManager& args, WalletDatabase& db, bilingual_str& erro
         return false;
     }
     std::ofstream dump_file;
-    dump_file.open(path.std_path());
+    dump_file.open(path);
     if (dump_file.fail()) {
         error = strprintf(_("Unable to open %s for writing"), fs::PathToString(path));
         return false;
@@ -121,11 +121,6 @@ static void WalletToolReleaseWallet(CWallet* wallet)
 
 bool CreateFromDump(const ArgsManager& args, const std::string& name, const fs::path& wallet_path, bilingual_str& error, std::vector<bilingual_str>& warnings)
 {
-    if (name.empty()) {
-        tfm::format(std::cerr, "Wallet name cannot be empty\n");
-        return false;
-    }
-
     // Get the dumpfile
     std::string dump_filename = args.GetArg("-dumpfile", "");
     if (dump_filename.empty()) {
@@ -139,7 +134,7 @@ bool CreateFromDump(const ArgsManager& args, const std::string& name, const fs::
         error = strprintf(_("Dump file %s does not exist."), fs::PathToString(dump_path));
         return false;
     }
-    std::ifstream dump_file{dump_path.std_path()};
+    std::ifstream dump_file{dump_path};
 
     // Compute the checksum
     HashWriter hasher{};

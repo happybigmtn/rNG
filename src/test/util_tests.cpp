@@ -385,21 +385,6 @@ BOOST_AUTO_TEST_CASE(util_FormatISO8601Date)
     BOOST_CHECK_EQUAL(FormatISO8601Date(1317425777), "2011-09-30");
 }
 
-
-BOOST_AUTO_TEST_CASE(util_FormatRFC1123DateTime)
-{
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(std::numeric_limits<int64_t>::max()), "");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(253402300800), "");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(253402300799), "Fri, 31 Dec 9999 23:59:59 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(253402214400), "Fri, 31 Dec 9999 00:00:00 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(1717429609), "Mon, 03 Jun 2024 15:46:49 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(0), "Thu, 01 Jan 1970 00:00:00 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(-1), "Wed, 31 Dec 1969 23:59:59 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(-1717429609), "Sat, 31 Jul 1915 08:13:11 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(-62167219200), "Sat, 01 Jan 0000 00:00:00 GMT");
-    BOOST_CHECK_EQUAL(FormatRFC1123DateTime(-62167219201), "");
-}
-
 BOOST_AUTO_TEST_CASE(util_FormatMoney)
 {
     BOOST_CHECK_EQUAL(FormatMoney(0), "0.00");
@@ -598,15 +583,6 @@ BOOST_AUTO_TEST_CASE(util_mocktime)
         BOOST_CHECK_EQUAL(111000000, GetTime<std::chrono::microseconds>().count());
     }
     SetMockTime(0s);
-}
-
-BOOST_AUTO_TEST_CASE(util_ticksseconds)
-{
-    BOOST_CHECK_EQUAL(TicksSeconds(0s), 0);
-    BOOST_CHECK_EQUAL(TicksSeconds(1s), 1);
-    BOOST_CHECK_EQUAL(TicksSeconds(999ms), 0);
-    BOOST_CHECK_EQUAL(TicksSeconds(1000ms), 1);
-    BOOST_CHECK_EQUAL(TicksSeconds(1500ms), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_IsDigit)
@@ -857,39 +833,6 @@ BOOST_AUTO_TEST_CASE(test_LocaleIndependentAtoi)
     BOOST_CHECK_EQUAL(LocaleIndependentAtoi<uint8_t>("0"), 0U);
     BOOST_CHECK_EQUAL(LocaleIndependentAtoi<uint8_t>("255"), 255U);
     BOOST_CHECK_EQUAL(LocaleIndependentAtoi<uint8_t>("256"), 255U);
-}
-
-BOOST_AUTO_TEST_CASE(test_ToIntegralHex)
-{
-    std::optional<uint64_t> n;
-    // Valid values
-    n = ToIntegral<uint64_t>("1234", 16);
-    BOOST_CHECK_EQUAL(*n, 0x1234);
-    n = ToIntegral<uint64_t>("a", 16);
-    BOOST_CHECK_EQUAL(*n, 0xA);
-    n = ToIntegral<uint64_t>("0000000a", 16);
-    BOOST_CHECK_EQUAL(*n, 0xA);
-    n = ToIntegral<uint64_t>("100", 16);
-    BOOST_CHECK_EQUAL(*n, 0x100);
-    n = ToIntegral<uint64_t>("DEADbeef", 16);
-    BOOST_CHECK_EQUAL(*n, 0xDEADbeef);
-    n = ToIntegral<uint64_t>("FfFfFfFf", 16);
-    BOOST_CHECK_EQUAL(*n, 0xFfFfFfFf);
-    n = ToIntegral<uint64_t>("123456789", 16);
-    BOOST_CHECK_EQUAL(*n, 0x123456789ULL);
-    n = ToIntegral<uint64_t>("0", 16);
-    BOOST_CHECK_EQUAL(*n, 0);
-    n = ToIntegral<uint64_t>("FfFfFfFfFfFfFfFf", 16);
-    BOOST_CHECK_EQUAL(*n, 0xFfFfFfFfFfFfFfFfULL);
-    n = ToIntegral<int64_t>("-1", 16);
-    BOOST_CHECK_EQUAL(*n, -1);
-    // Invalid values
-    BOOST_CHECK(!ToIntegral<uint64_t>("", 16));
-    BOOST_CHECK(!ToIntegral<uint64_t>("-1", 16));
-    BOOST_CHECK(!ToIntegral<uint64_t>("10 00", 16));
-    BOOST_CHECK(!ToIntegral<uint64_t>("1 ", 16));
-    BOOST_CHECK(!ToIntegral<uint64_t>("0xAB", 16));
-    BOOST_CHECK(!ToIntegral<uint64_t>("FfFfFfFfFfFfFfFf0", 16));
 }
 
 BOOST_AUTO_TEST_CASE(test_FormatParagraph)
@@ -1505,7 +1448,7 @@ BOOST_AUTO_TEST_CASE(message_sign)
 {
     const std::array<unsigned char, 32> privkey_bytes = {
         // just some random data
-        // derived address from this private key: B8eWZy6BBKrTnLe6jn7G3dSaTc4utx8wo5
+        // derived address from this private key: 15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs
         0xD9, 0x7F, 0x51, 0x08, 0xF1, 0x1C, 0xDA, 0x6E,
         0xEE, 0xBA, 0xAA, 0x42, 0x0F, 0xEF, 0x07, 0x26,
         0xB1, 0xF8, 0x98, 0x06, 0x0B, 0x98, 0x48, 0x9F,
@@ -1555,35 +1498,35 @@ BOOST_AUTO_TEST_CASE(message_verify)
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "BPHfoXoApkkLDHsNfytkLMdDUMvWZbG4pL",
+            "1KqbBpLy5FARmTPD4VZnDDpYjkUvkr82Pm",
             "invalid signature, not in base64 encoding",
             "message should be irrelevant"),
         MessageVerificationResult::ERR_MALFORMED_SIGNATURE);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "BPHfoXoApkkLDHsNfytkLMdDUMvWZbG4pL",
+            "1KqbBpLy5FARmTPD4VZnDDpYjkUvkr82Pm",
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "message should be irrelevant"),
         MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "B8eWZy6BBKrTnLe6jn7G3dSaTc4utx8wo5",
+            "15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs",
             "IPojfrX2dfPnH26UegfbGQQLrdK844DlHq5157/P6h57WyuS/Qsl+h/WSVGDF4MUi4rWSswW38oimDYfNNUBUOk=",
             "I never signed this"),
         MessageVerificationResult::ERR_NOT_SIGNED);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "B8eWZy6BBKrTnLe6jn7G3dSaTc4utx8wo5",
+            "15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs",
             "IPojfrX2dfPnH26UegfbGQQLrdK844DlHq5157/P6h57WyuS/Qsl+h/WSVGDF4MUi4rWSswW38oimDYfNNUBUOk=",
             "Trust no one"),
         MessageVerificationResult::OK);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "B4ThCWMuZf6vpe76pKSvVzDDCNvGKuTmaY",
+            "11canuhp9X2NocwCq7xNrQYTmUgZAnLK3",
             "IIcaIENoYW5jZWxsb3Igb24gYnJpbmsgb2Ygc2Vjb25kIGJhaWxvdXQgZm9yIGJhbmtzIAaHRtbCeDZINyavx14=",
             "Trust me"),
         MessageVerificationResult::OK);
@@ -1676,7 +1619,7 @@ BOOST_AUTO_TEST_CASE(util_ReadBinaryFile)
         expected_text += "0123456789";
     }
     {
-        std::ofstream file{tmpfile.std_path()};
+        std::ofstream file{tmpfile};
         file << expected_text;
     }
     {
@@ -1707,7 +1650,7 @@ BOOST_AUTO_TEST_CASE(util_WriteBinaryFile)
     std::string expected_text = "bitcoin";
     auto valid = WriteBinaryFile(tmpfile, expected_text);
     std::string actual_text;
-    std::ifstream file{tmpfile.std_path()};
+    std::ifstream file{tmpfile};
     file >> actual_text;
     BOOST_CHECK(valid);
     BOOST_CHECK_EQUAL(actual_text, expected_text);

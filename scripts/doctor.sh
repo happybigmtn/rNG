@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
 set -euo pipefail
 
 EXPECTED_GENESIS_HASH="83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4"
@@ -8,7 +9,6 @@ RNG_CLI="${RNG_CLI:-rng-cli}"
 RNG_DATADIR="${RNG_DATADIR:-}"
 RNG_CONF="${RNG_CONF:-}"
 CLI_ARGS=()
-HEALTHY=1
 CONFIG_PATH=""
 OUTPUT_JSON=0
 STRICT=0
@@ -41,7 +41,6 @@ warn() {
     if [ "$OUTPUT_JSON" -eq 0 ]; then
         printf '[WARN] %s\n' "$1"
     fi
-    HEALTHY=0
     WARNINGS+=("$1")
 }
 error() { printf '[ERROR] %s\n' "$1" >&2; exit 1; }
@@ -145,7 +144,7 @@ config_value() {
         return 1
     fi
 
-    sed -n "s/^[[:space:]]*$key[[:space:]]*=[[:space:]]*//p" "$CONFIG_PATH" | tail -1
+    sed -n "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*//p" "$CONFIG_PATH" | tail -1
 }
 
 count_localaddresses() {

@@ -12,4 +12,8 @@ git config --global --add safe.directory /bitcoin
 
 export PATH="/python_build/bin:${PATH}"
 
-./ci/lint/06_script.sh "$@"
+if [ -z "$1" ]; then
+  bash -ic "./ci/lint/06_script.sh"
+else
+  exec "$@"
+fi

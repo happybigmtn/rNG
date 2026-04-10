@@ -4,9 +4,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Exercise RNG's internal miner argument validation and startup path."""
 
-from test_framework.address import ADDRESS_BCRT1_UNSPENDABLE
+from test_framework.segwit_addr import encode_segwit_address
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+
+ADDRESS_TRNG1_UNSPENDABLE = encode_segwit_address("trng", 0, bytes(32))
 
 
 class InternalMinerTest(BitcoinTestFramework):
@@ -19,7 +21,7 @@ class InternalMinerTest(BitcoinTestFramework):
         self.log.info("Restart node 0 with the internal miner enabled on regtest")
         self.restart_node(0, extra_args=[
             "-mine",
-            f"-mineaddress={ADDRESS_BCRT1_UNSPENDABLE}",
+            f"-mineaddress={ADDRESS_TRNG1_UNSPENDABLE}",
             "-minethreads=1",
             "-minerandomx=light",
             "-minepriority=normal",
@@ -39,7 +41,7 @@ class InternalMinerTest(BitcoinTestFramework):
         self.nodes[1].assert_start_raises_init_error(
             extra_args=[
                 "-mine",
-                f"-mineaddress={ADDRESS_BCRT1_UNSPENDABLE}",
+                f"-mineaddress={ADDRESS_TRNG1_UNSPENDABLE}",
                 "-minethreads=1",
                 "-minerandomx=bogus",
             ],
@@ -50,7 +52,7 @@ class InternalMinerTest(BitcoinTestFramework):
         self.nodes[1].assert_start_raises_init_error(
             extra_args=[
                 "-mine",
-                f"-mineaddress={ADDRESS_BCRT1_UNSPENDABLE}",
+                f"-mineaddress={ADDRESS_TRNG1_UNSPENDABLE}",
                 "-minethreads=1",
                 "-minepriority=bogus",
             ],

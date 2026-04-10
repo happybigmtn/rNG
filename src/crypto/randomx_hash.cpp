@@ -9,10 +9,14 @@
 
 #include <cstring>
 
-// RandomX library header
-extern "C" {
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
+#endif
 #include <randomx/src/randomx.h>
-}
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 // ============================================================================
 // RandomXContext implementation
@@ -311,7 +315,7 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
 
 uint256 RandomXMiningVM::Hash(std::span<const unsigned char> input) {
     Assert(m_vm && m_initialized);
-    
+
     uint256 result;
     randomx_calculate_hash(m_vm, input.data(), input.size(), result.data());
     return result;
