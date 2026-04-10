@@ -28,6 +28,10 @@ QSB support means:
 - QSB support is a narrow escape hatch for the supported template family, not a
   claim that every RNG transaction is quantum-safe by default.
 
+The merge branch keeps the inherited Windows, macOS, Linux, GUI, fuzz, and unit
+test CI surface active so the `30.2` port is validated as a full Bitcoin
+Core-derived node, not just as a daemon-only build.
+
 Operational details are in [doc/qsb-operations.md](doc/qsb-operations.md), the
 builder documentation is in [contrib/qsb/README.md](contrib/qsb/README.md), and
 the implementation/rollout state is preserved in [EXECPLAN.md](EXECPLAN.md) and

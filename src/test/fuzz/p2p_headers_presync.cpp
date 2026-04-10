@@ -104,23 +104,10 @@ CBlockHeader ConsumeHeader(FuzzedDataProvider& fuzzed_data_provider, const uint2
 {
     CBlockHeader header;
     header.nNonce = 0;
-    // Either use the previous difficulty or let the fuzzer choose. The upper target in the
-    // range comes from the bits value of the genesis block, which is 0x1d00ffff. The lower
-    // target comes from the bits value of mainnet block 840000, which is 0x17034219.
-    // Calling lower_target.SetCompact(0x17034219) and upper_target.SetCompact(0x1d00ffff)
-    // should return the values below.
-    //
-    // RPC commands to verify:
-    // getblockheader 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
-    // getblockheader 0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
-    if (fuzzed_data_provider.ConsumeBool()) {
-        header.nBits = prev_nbits;
-    } else {
-        arith_uint256 lower_target = UintToArith256(uint256{"0000000000000000000342190000000000000000000000000000000000000000"});
-        arith_uint256 upper_target = UintToArith256(uint256{"00000000ffff0000000000000000000000000000000000000000000000000000"});
-        arith_uint256 target = ConsumeArithUInt256InRange(fuzzed_data_provider, lower_target, upper_target);
-        header.nBits = target.GetCompact();
-    }
+    // Keep this harness on RNG's low-work path. Bitcoin's original difficulty
+    // range can exceed RNG mainnet's much lower minimum-chainwork threshold,
+    // which defeats the presync invariant this target is checking.
+    header.nBits = prev_nbits;
     header.nTime = ConsumeTime(fuzzed_data_provider);
     header.hashPrevBlock = prev_hash;
     header.nVersion = fuzzed_data_provider.ConsumeIntegral<int32_t>();
@@ -169,7 +156,8 @@ void EnsureActiveGenesisTip(ChainstateManager& chainman)
     chainstate.CoinsTip().SetBestBlock(genesis_hash);
     chainstate.setBlockIndexCandidates.insert(genesis_index);
     assert(chainstate.LoadChainTip());
-    if (chainman.m_best_header == nullptr) chainman.m_best_header = genesis_index;
+    chainstate.ResetBlockFailureFlags(genesis_index);
+    chainman.m_best_header = genesis_index;
 }
 
 void initialize()
