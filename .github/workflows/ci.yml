@@ -59,6 +59,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: ${{ env.FETCH_DEPTH }}
+          submodules: recursive
       - name: Determine commit range
         run: |
           # Checkout HEAD~ and find the test base commit
@@ -139,6 +140,7 @@ jobs:
         with:
           # Ensure the latest merged pull request state is used, even on re-runs.
           ref: &CHECKOUT_REF_TMPL ${{ github.event_name == 'pull_request' && github.ref || '' }}
+          submodules: recursive
 
       - name: Clang version
         run: |
@@ -547,6 +549,7 @@ jobs:
         with:
           ref: *CHECKOUT_REF_TMPL
           fetch-depth: 0
+          submodules: recursive
 
       - name: Configure Docker
         uses: ./.github/actions/configure-docker
