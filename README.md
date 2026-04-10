@@ -55,6 +55,19 @@ The detailed rollout log, including binary hashes, service overrides, canary
 funding/spend transaction IDs, rollback notes, and merge-readiness state, is in
 [EXECPLAN.md](EXECPLAN.md).
 
+Install And Build
+-----------------
+
+Public installs should prefer the latest tagged RNG release instead of building
+directly from the moving `main` branch. As of 2026-04-10, the latest published
+release is `v1.0`.
+
+Operators and contributors building from source should use the platform build
+guides in `doc/build-*.md`. Release asset verification helpers live in
+[`scripts/verify-release.sh`](scripts/verify-release.sh), and the bootstrap
+helper for source checkouts lives in
+[`scripts/load-bootstrap.sh`](scripts/load-bootstrap.sh).
+
 What Is Bitcoin Core?
 ---------------------
 
@@ -75,9 +88,10 @@ information or see https://opensource.org/license/MIT.
 Development Process
 -------------------
 
-The `master` branch is regularly built (see `doc/build-*.md` for instructions) and tested, but it is not guaranteed to be
-completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
-regularly from release branches to indicate new official, stable release versions of Bitcoin Core.
+The `main` branch in this repository is continuously built and tested, but it
+should still be treated as active development rather than the public install
+target. Public deployments should prefer RNG release tags, while branch builds
+should be used when you are intentionally validating unreleased source changes.
 
 The https://github.com/bitcoin-core/gui repository is used exclusively for the
 development of the GUI. Its master branch is identical in all monotree
