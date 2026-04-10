@@ -5,8 +5,11 @@ RNG is a Bitcoin Core-derived node for the live RNG network. The current tree is
 based on Bitcoin Core `30.2` and keeps RNG's existing RandomX proof-of-work,
 RNG network parameters, and operator fleet tooling.
 
-The daemon and CLI are built as `rngd` and `rng-cli`. See the platform-specific
-build guides in [doc](/doc) for the inherited Bitcoin Core build system.
+The user-facing binaries are built with RNG names: `rng`, `rngd`, `rng-cli`,
+`rng-tx`, `rng-util`, `rng-wallet`, and `rng-qt`. Some internal build and test
+targets still keep upstream Bitcoin Core names, such as `test_bitcoin` and
+`bench_bitcoin`, to reduce divergence from the inherited build system. See the
+platform-specific build guides in [doc](/doc) for build details.
 
 What Changed In The 30.2 Port
 -----------------------------
@@ -30,7 +33,9 @@ QSB support means:
 
 The merge branch keeps the inherited Windows, macOS, Linux, GUI, fuzz, and unit
 test CI surface active so the `30.2` port is validated as a full Bitcoin
-Core-derived node, not just as a daemon-only build.
+Core-derived node, not just as a daemon-only build. The active PR hardens that
+CI surface for RNG-specific network magic, `trng` regtest addresses, RandomX
+sources, and the RNG-named Windows/macOS/Linux artifacts.
 
 Operational details are in [doc/qsb-operations.md](doc/qsb-operations.md), the
 builder documentation is in [contrib/qsb/README.md](contrib/qsb/README.md), and

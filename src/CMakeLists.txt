@@ -165,6 +165,7 @@ if(ENABLE_WALLET)
     )
     add_windows_resources(bitcoin-wallet bitcoin-wallet-res.rc)
     add_windows_application_manifest(bitcoin-wallet)
+    set_target_properties(bitcoin-wallet PROPERTIES OUTPUT_NAME rng-wallet)
     target_link_libraries(bitcoin-wallet
       core_interface
       bitcoin_wallet
@@ -173,6 +174,7 @@ if(ENABLE_WALLET)
       Boost::headers
     )
     install_binary_component(bitcoin-wallet HAS_MANPAGE)
+    add_custom_target(rng-wallet DEPENDS bitcoin-wallet)
   endif()
 endif()
 
