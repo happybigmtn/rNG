@@ -23,8 +23,6 @@ import time
 import urllib.request
 import zipfile
 
-TAR = os.getenv('TAR', 'tar')
-
 SHA256_SUMS = {
     "0e2819135366f150d9906e294b61dff58fd1996ebd26c2f8e979d6c0b7a79580": {"tag": "v0.14.3", "archive": "bitcoin-0.14.3-aarch64-linux-gnu.tar.gz"},
     "d86fc90824a85c38b25c8488115178d5785dbc975f5ff674f9f5716bc8ad6e65": {"tag": "v0.14.3", "archive": "bitcoin-0.14.3-arm-linux-gnueabihf.tar.gz"},
@@ -124,10 +122,7 @@ def download_from_url(url, archive):
         if response.status != 200:
             raise RuntimeError(f"HTTP request failed with status code: {response.status}")
 
-        sock_info = response.fp.raw._sock.getpeername()
-        print(f"Connected to {sock_info[0]}")
-
-        total_size = int(response.getheader("Content-Length"))
+        total_size = int(response.getheader('Content-Length', 0))
         progress_bytes = 0
 
         with open(archive, 'wb') as file:
@@ -138,9 +133,6 @@ def download_from_url(url, archive):
                 file.write(chunk)
                 progress_bytes += len(chunk)
                 progress_hook(progress_bytes, total_size)
-
-        if progress_bytes < total_size:
-            raise RuntimeError(f"Download incomplete: expected {total_size} bytes, got {progress_bytes} bytes")
 
     print('\n', flush=True, end="") # Flush to avoid error output on the same line.
 
@@ -176,13 +168,7 @@ def download_binary(tag, args) -> int:
         download_from_url(archive_url, archive)
     except Exception as e:
         print(f"\nDownload failed: {e}", file=sys.stderr)
-        print("Retrying download after failure ...", file=sys.stderr)
-        time.sleep(12)
-        try:
-            download_from_url(archive_url, archive)
-        except Exception as e2:
-            print(f"\nDownload failed a second time: {e2}", file=sys.stderr)
-            return 1
+        return 1
 
     hasher = hashlib.sha256()
     with open(archive, "rb") as afile:
@@ -216,7 +202,7 @@ def download_binary(tag, args) -> int:
             print(f"Zip extraction failed: {e}", file=sys.stderr)
             return 1
     else:
-        ret = subprocess.run([TAR, '-zxf', archive, '-C', tag,
+        ret = subprocess.run(['tar', '-zxf', archive, '-C', tag,
                               '--strip-components=1',
                               'bitcoin-{tag}'.format(tag=tag[1:])]).returncode
         if ret != 0:

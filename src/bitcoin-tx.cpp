@@ -1,8 +1,8 @@
-// Copyright (c) 2009-present The Bitcoin Core developers
+// Copyright (c) 2009-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <rng-build-config.h> // IWYU pragma: keep
+#include <bitcoin-build-config.h> // IWYU pragma: keep
 
 #include <chainparamsbase.h>
 #include <clientversion.h>
@@ -588,7 +588,7 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
 
-    if (!registers.contains("privatekeys"))
+    if (!registers.count("privatekeys"))
         throw std::runtime_error("privatekeys register variable must be set.");
     FillableSigningProvider tempKeystore;
     UniValue keysObj = registers["privatekeys"];
@@ -604,7 +604,7 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& flagStr)
     }
 
     // Add previous txouts given in the RPC call:
-    if (!registers.contains("prevtxs"))
+    if (!registers.count("prevtxs"))
         throw std::runtime_error("prevtxs register variable must be set.");
     UniValue prevtxsObj = registers["prevtxs"];
     {
@@ -812,7 +812,7 @@ static int CommandLineRawTx(int argc, char* argv[])
             if (argc < 2)
                 throw std::runtime_error("too few parameters");
 
-            // param: hex-encoded RNG transaction
+            // param: hex-encoded bitcoin transaction
             std::string strHexTx(argv[1]);
             if (strHexTx == "-")                 // "-" implies standard input
                 strHexTx = readStdin();

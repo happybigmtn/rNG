@@ -1,4 +1,4 @@
-// Copyright (c) 2011-present The Bitcoin Core developers
+// Copyright (c) 2011-2021 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -18,10 +18,10 @@ class WalletModel;
 class RecentRequestEntry
 {
 public:
-    RecentRequestEntry() = default;
+    RecentRequestEntry() : nVersion(RecentRequestEntry::CURRENT_VERSION) {}
 
     static const int CURRENT_VERSION = 1;
-    int nVersion{RecentRequestEntry::CURRENT_VERSION};
+    int nVersion;
     int64_t id{0};
     QDateTime date;
     SendCoinsRecipient recipient;

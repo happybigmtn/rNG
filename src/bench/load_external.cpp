@@ -3,10 +3,14 @@
 // file COPYING or https://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
-#include <bench/data/block413567.raw.h>
 #include <chainparams.h>
+#include <consensus/amount.h>
+#include <consensus/merkle.h>
 #include <flatfile.h>
 #include <node/blockstorage.h>
+#include <pow.h>
+#include <primitives/transaction.h>
+#include <script/script.h>
 #include <span.h>
 #include <streams.h>
 #include <test/util/setup_common.h>
@@ -20,6 +24,30 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+
+static CBlock MakeUnknownParentBlock(const CChainParams& params)
+{
+    CMutableTransaction coinbase_tx;
+    coinbase_tx.vin.resize(1);
+    coinbase_tx.vin[0].prevout.SetNull();
+    coinbase_tx.vin[0].scriptSig = CScript{} << 1 << OP_0;
+    coinbase_tx.vout.emplace_back(50 * COIN, CScript{} << OP_TRUE);
+
+    CBlock block;
+    block.vtx = {MakeTransactionRef(std::move(coinbase_tx))};
+    block.nVersion = params.GenesisBlock().nVersion;
+    block.hashPrevBlock = uint256::ONE;
+    block.hashMerkleRoot = BlockMerkleRoot(block);
+    block.nTime = params.GenesisBlock().nTime + 1;
+    block.nBits = params.GenesisBlock().nBits;
+
+    const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
+    while (!CheckProofOfWork(GetBlockPoWHash(block, seed_hash), block.nBits, params.GetConsensus())) {
+        ++block.nNonce;
+    }
+
+    return block;
+}
 
 /**
  * The LoadExternalBlockFile() function is used during -reindex and -loadblock.
@@ -35,17 +63,20 @@
  */
 static void LoadExternalBlockFile(benchmark::Bench& bench)
 {
-    const auto testing_setup{MakeNoLogFileContext<const TestingSetup>(ChainType::MAIN)};
+    const auto testing_setup{MakeNoLogFileContext<const TestingSetup>(ChainType::REGTEST)};
 
     // Create a single block as in the blocks files (magic bytes, block size,
     // block data) as a stream object.
     const fs::path blkfile{testing_setup.get()->m_path_root / "blk.dat"};
     DataStream ss{};
     auto params{testing_setup->m_node.chainman->GetParams()};
+    DataStream block_data{};
+    const CBlock unknown_parent_block{MakeUnknownParentBlock(params)};
+    block_data << TX_WITH_WITNESS(unknown_parent_block);
+
     ss << params.MessageStart();
-    ss << static_cast<uint32_t>(benchmark::data::block413567.size());
-    // Use span-serialization to avoid writing the size first.
-    ss << std::span{benchmark::data::block413567};
+    ss << static_cast<uint32_t>(block_data.size());
+    ss << std::span{block_data};
 
     // Create the test file.
     {
@@ -71,4 +102,4 @@ static void LoadExternalBlockFile(benchmark::Bench& bench)
     fs::remove(blkfile);
 }
 
-BENCHMARK(LoadExternalBlockFile);
+BENCHMARK(LoadExternalBlockFile, benchmark::PriorityLevel::HIGH);

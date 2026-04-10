@@ -8,6 +8,7 @@ endif()
 
 set(RANDOMX_CONFIG_HEADER "${RANDOMX_SOURCE_DIR}/src/configuration.h")
 set(RANDOMX_CONFIG_ASM "${RANDOMX_SOURCE_DIR}/src/asm/configuration.asm")
+set(RANDOMX_CMAKELISTS "${RANDOMX_SOURCE_DIR}/CMakeLists.txt")
 
 set(RANDOMX_UPSTREAM_SALT "\"RandomX\\x03\"")
 set(RNG_CHAIN_SALT "\"RNGCHAIN01\"")
@@ -30,6 +31,7 @@ endfunction()
 
 rewrite_file("${RANDOMX_CONFIG_HEADER}" "${RANDOMX_UPSTREAM_SALT}" "${RNG_CHAIN_SALT}")
 rewrite_file("${RANDOMX_CONFIG_ASM}" "${RANDOMX_UPSTREAM_ASM_SALT}" "${RNG_CHAIN_ASM_SALT}")
+rewrite_file("${RANDOMX_CMAKELISTS}" "cmake_minimum_required(VERSION 3.5)" "cmake_minimum_required(VERSION 3.5...3.10)")
 
 if(EXISTS "${RANDOMX_CONFIG_HEADER}")
   file(READ "${RANDOMX_CONFIG_HEADER}" patched_header)

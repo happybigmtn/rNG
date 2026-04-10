@@ -28,7 +28,7 @@ static const DatabaseFormat DATABASE_FORMATS[] = {
        DatabaseFormat::SQLITE,
 };
 
-const std::string ADDRESS_BCRT1_UNSPENDABLE = "trng1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqve7sjg";
+const std::string ADDRESS_RNG_REGTEST_UNSPENDABLE = "trng1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqve7sjg";
 
 std::unique_ptr<CWallet> CreateSyncedWallet(interfaces::Chain& chain, CChain& cchain, const CKey& key);
 
@@ -117,7 +117,7 @@ public:
 std::unique_ptr<WalletDatabase> CreateMockableWalletDatabase(MockableData records = {});
 MockableDatabase& GetMockableDatabase(CWallet& wallet);
 
-DescriptorScriptPubKeyMan* CreateDescriptor(CWallet& keystore, const std::string& desc_str, bool success);
+DescriptorScriptPubKeyMan* CreateDescriptor(CWallet& keystore, const std::string& desc_str, const bool success);
 } // namespace wallet
 
 #endif // BITCOIN_WALLET_TEST_UTIL_H

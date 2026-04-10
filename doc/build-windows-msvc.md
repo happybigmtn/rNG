@@ -50,8 +50,6 @@ CMake will put the resulting object files, libraries, and executables into a ded
 
 In the following instructions, the "Debug" configuration can be specified instead of the "Release" one.
 
-Run `cmake -B build -LH` to see the full list of available options.
-
 ### 4. Building with Static Linking with GUI
 
 ```
@@ -97,7 +95,7 @@ cmake -B build --preset vs2022-static -DVCPKG_INSTALLED_DIR="C:\path_without_spa
 One can skip vcpkg manifest default features to speedup the configuration step.
 For example, the following invocation will skip all features except for "wallet" and "tests" and their dependencies:
 ```
-cmake -B build --preset vs2022 -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON -DVCPKG_MANIFEST_FEATURES="wallet;tests" -DBUILD_GUI=OFF -DWITH_ZMQ=OFF
+cmake -B build --preset vs2022 -DVCPKG_MANIFEST_NO_DEFAULT_FEATURES=ON -DVCPKG_MANIFEST_FEATURES="wallet;tests" -DBUILD_GUI=OFF
 ```
 
 Available features are listed in the [`vcpkg.json`](/vcpkg.json) file.

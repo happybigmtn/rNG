@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2019-present The Bitcoin Core developers
+# Copyright (c) 2019-2022 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the importdescriptors RPC.
@@ -22,7 +22,6 @@ from test_framework.authproxy import JSONRPCException
 from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.descriptors import descsum_create
-from test_framework.script import SEQUENCE_LOCKTIME_TYPE_FLAG
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
@@ -59,7 +58,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         if 'warnings' in result[0]:
             observed_warnings = result[0]['warnings']
         assert_equal("\n".join(sorted(warnings)), "\n".join(sorted(observed_warnings)))
-        self.log.debug(result)
         assert_equal(result[0]['success'], success)
         if error_code is not None:
             assert_equal(result[0]['error']['code'], error_code)
@@ -116,9 +114,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                              success=False,
                              error_code=-8,
                              error_message="Internal addresses should not have a label")
-
-        self.log.info("External non-ranged addresses can have labels")
-        self.test_importdesc({**import_request, "internal": False}, success=True)
 
         self.log.info("Internal addresses should be detected as such")
         key = get_generate_key()
@@ -209,7 +204,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         xpriv = "tprv8ZgxMBicQKsPeuVhWwi6wuMQGfPKi9Li5GtX35jVNknACgqe3CY4g5xgkfDDJcmtF7o1QnxWDRYw4H5P26PXq7sbcUkEqeR4fg3Kxp2tigg"
         xpub = "tpubD6NzVbkrYhZ4YNXVQbNhMK1WqguFsUXceaVJKbmno2aZ3B6QfbMeraaYvnBSGpV3vxLyTTK9DYT1yoEck4XUScMzXoQ2U2oSmE2JyMedq3H"
         addresses = ["2N7yv4p8G8yEaPddJxY41kPihnWvs39qCMf", "2MsHxyb2JS3pAySeNUsJ7mNnurtpeenDzLA"] # hdkeypath=m/0'/0'/0' and 1'
-        addresses += ["trng1qrd3n235cj2czsfmsuvqqpr3lu6lg0ju737gca4", "trng1qfqeppuvj0ww98r6qghmdkj70tv8qpcheklluap"] # wpkh subscripts corresponding to the above addresses
+        addresses += ["bcrt1qrd3n235cj2czsfmsuvqqpr3lu6lg0ju7scl8gn", "bcrt1qfqeppuvj0ww98r6qghmdkj70tv8qpchehegrg8"] # wpkh subscripts corresponding to the above addresses
         desc = "sh(wpkh(" + xpub + "/0/0/*" + "))"
 
         self.log.info("Ranged descriptors cannot have labels")
@@ -218,16 +213,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                               "range": [0, 100],
                               "label": "test"},
                               success=False,
-                              error_code=-8,
-                              error_message='Ranged descriptors should not have a label')
-
-        self.log.info("Ranged descriptors cannot have labels - even if range not provided by user and only implied by asterisk (*)")
-        self.test_importdesc({"desc":descsum_create("wpkh(" + xpub + "/100/0/*)"),
-                              "timestamp": "now",
-                              "label": "test",
-                              "active": True},
-                              success=False,
-                              warnings=['Range not given, using default keypool range'],
                               error_code=-8,
                               error_message='Ranged descriptors should not have a label')
 
@@ -324,11 +309,11 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         self.log.info('Key ranges should be imported in order')
         xpub = "tpubDAXcJ7s7ZwicqjprRaEWdPoHKrCS215qxGYxpusRLLmJuT69ZSicuGdSfyvyKpvUNYBW1s2U3NSrT6vrCYB9e6nZUEvrqnwXPF8ArTCRXMY"
         addresses = [
-            'trng1qtmp74ayg7p24uslctssvjm06q5phz4yr860hx2', # m/0'/0'/0
-            'trng1q8vprchan07gzagd5e6v9wd7azyucksq287f9rp', # m/0'/0'/1
-            'trng1qtuqdtha7zmqgcrr26n2rqxztv5y8rafjqrgr26', # m/0'/0'/2
-            'trng1qau64272ymawq26t90md6an0ps99qkrse4pv9qf', # m/0'/0'/3
-            'trng1qsg97266hrh6cpmutqen8s4s962aryy77n8ckaf', # m/0'/0'/4
+            'bcrt1qtmp74ayg7p24uslctssvjm06q5phz4yrxucgnv', # m/0'/0'/0
+            'bcrt1q8vprchan07gzagd5e6v9wd7azyucksq2xc76k8', # m/0'/0'/1
+            'bcrt1qtuqdtha7zmqgcrr26n2rqxztv5y8rafjp9lulu', # m/0'/0'/2
+            'bcrt1qau64272ymawq26t90md6an0ps99qkrse58m640', # m/0'/0'/3
+            'bcrt1qsg97266hrh6cpmutqen8s4s962aryy77jp0fg0', # m/0'/0'/4
         ]
 
         self.test_importdesc({'desc': descsum_create('wpkh([80002067/0h/0h]' + xpub + '/*)'),
@@ -476,9 +461,9 @@ class ImportDescriptorsTest(BitcoinTestFramework):
 
         assert_equal(wmulti_priv.getwalletinfo()['keypoolsize'], 1001) # Range end (1000) is inclusive, so 1001 addresses generated
         addr = wmulti_priv.getnewaddress('', 'bech32') # uses receive 0
-        assert_equal(addr, 'trng1qdt0qy5p7dzhxzmegnn4ulzhard33s2809arjqgjndx87rv5vd0fqh8q7ja') # Derived at m/84'/0'/0'/0
+        assert_equal(addr, 'bcrt1qdt0qy5p7dzhxzmegnn4ulzhard33s2809arjqgjndx87rv5vd0fq2czhy8') # Derived at m/84'/0'/0'/0
         change_addr = wmulti_priv.getrawchangeaddress('bech32') # uses change 0
-        assert_equal(change_addr, 'trng1qt9uhe3a9hnq7vajl7a094z4s3crm9ttf8zw3f5v9gr2nyd7e3lnse2h63r') # Derived at m/84'/1'/0'/0
+        assert_equal(change_addr, 'bcrt1qt9uhe3a9hnq7vajl7a094z4s3crm9ttf8zw3f5v9gr2nyd7e3lnsy44n8e') # Derived at m/84'/1'/0'/0
         assert_equal(wmulti_priv.getwalletinfo()['keypoolsize'], 1000)
         txid = w0.sendtoaddress(addr, 10)
         self.generate(self.nodes[0], 6)
@@ -509,9 +494,9 @@ class ImportDescriptorsTest(BitcoinTestFramework):
 
         assert_equal(wmulti_pub.getwalletinfo()['keypoolsize'], 1000) # The first one was already consumed by previous import and is detected as used
         addr = wmulti_pub.getnewaddress('', 'bech32') # uses receive 1
-        assert_equal(addr, 'trng1qp8s25ckjl7gr6x2q3dx3tn2pytwp05upkjztk6ey857tt50r5aeqw9e94l') # Derived at m/84'/0'/0'/1
+        assert_equal(addr, 'bcrt1qp8s25ckjl7gr6x2q3dx3tn2pytwp05upkjztk6ey857tt50r5aeqn6mvr9') # Derived at m/84'/0'/0'/1
         change_addr = wmulti_pub.getrawchangeaddress('bech32') # uses change 2
-        assert_equal(change_addr, 'trng1qp6j3jw8yetefte7kw6v5pc89rkgakzy98p6gf7ayslaveaxqyjusw3kwez') # Derived at m/84'/1'/0'/2
+        assert_equal(change_addr, 'bcrt1qp6j3jw8yetefte7kw6v5pc89rkgakzy98p6gf7ayslaveaxqyjusnw580c') # Derived at m/84'/1'/0'/2
         assert send_txid in self.nodes[0].getrawmempool(True)
         assert send_txid in (x['txid'] for x in wmulti_pub.listunspent(0))
         assert_equal(wmulti_pub.getwalletinfo()['keypoolsize'], 999)
@@ -784,41 +769,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             assert_equal(w_multipath.getnewaddress(address_type="bech32"), w_multisplit.getnewaddress(address_type="bech32"))
             assert_equal(w_multipath.getrawchangeaddress(address_type="bech32"), w_multisplit.getrawchangeaddress(address_type="bech32"))
         assert_equal(sorted(w_multipath.listdescriptors()["descriptors"], key=lambda x: x["desc"]), sorted(w_multisplit.listdescriptors()["descriptors"], key=lambda x: x["desc"]))
-
-        self.log.info("Test older() safety")
-
-        for flag in [0, SEQUENCE_LOCKTIME_TYPE_FLAG]:
-            self.log.debug("Importing a safe value always works")
-            safe_value = (65535 | flag)
-            self.test_importdesc(
-                {
-                    'desc': descsum_create(f"wsh(and_v(v:pk([12345678/0h/0h]{xpub}/*),older({safe_value})))"),
-                    'active': True,
-                    'range': [0, 2],
-                    'timestamp': 'now'
-                },
-                success=True
-            )
-
-            self.log.debug("Importing an unsafe value results in a warning")
-            unsafe_value = safe_value + 1
-            desc = descsum_create(f"wsh(and_v(v:pk([12345678/0h/0h]{xpub}/*),older({unsafe_value})))")
-            expected_warning = (
-                f"time-based relative locktime: older({unsafe_value}) > (65535 * 512) seconds is unsafe"
-                if flag == SEQUENCE_LOCKTIME_TYPE_FLAG
-                else f"height-based relative locktime: older({unsafe_value}) > 65535 blocks is unsafe"
-            )
-            self.test_importdesc(
-                {
-                    'desc': desc,
-                    'active': True,
-                    'range': [0, 2],
-                    'timestamp': 'now'
-                },
-                success=True,
-                warnings=[expected_warning],
-            )
-
 
 if __name__ == '__main__':
     ImportDescriptorsTest(__file__).main()

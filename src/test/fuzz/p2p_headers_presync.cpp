@@ -70,7 +70,7 @@ void HeadersSyncSetup::ResetAndInitialize()
 
     for (auto conn_type : conn_types) {
         CAddress addr{};
-        m_connections.push_back(new CNode(id++, nullptr, addr, 0, 0, addr, "", conn_type, false, 0));
+        m_connections.push_back(new CNode(id++, nullptr, addr, 0, 0, addr, "", conn_type, false));
         CNode& p2p_node = *m_connections.back();
 
         connman.Handshake(
@@ -104,24 +104,11 @@ CBlockHeader ConsumeHeader(FuzzedDataProvider& fuzzed_data_provider, const uint2
 {
     CBlockHeader header;
     header.nNonce = 0;
-    // Either use the previous difficulty or let the fuzzer choose. The upper target in the
-    // range comes from the bits value of the genesis block, which is 0x1d00ffff. The lower
-    // target comes from the bits value of mainnet block 840000, which is 0x17034219.
-    // Calling lower_target.SetCompact(0x17034219) and upper_target.SetCompact(0x1d00ffff)
-    // should return the values below.
-    //
-    // RPC commands to verify:
-    // getblockheader 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
-    // getblockheader 0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
-    if (fuzzed_data_provider.ConsumeBool()) {
-        header.nBits = prev_nbits;
-    } else {
-        arith_uint256 lower_target = UintToArith256(uint256{"0000000000000000000342190000000000000000000000000000000000000000"});
-        arith_uint256 upper_target = UintToArith256(uint256{"00000000ffff0000000000000000000000000000000000000000000000000000"});
-        arith_uint256 target = ConsumeArithUInt256InRange(fuzzed_data_provider, lower_target, upper_target);
-        header.nBits = target.GetCompact();
-    }
-    header.nTime = TicksSinceEpoch<std::chrono::seconds>(ConsumeTime(fuzzed_data_provider));
+    // Keep this harness on RNG's low-work path. Bitcoin's original difficulty
+    // range can exceed RNG mainnet's much lower minimum-chainwork threshold,
+    // which defeats the presync invariant this target is checking.
+    header.nBits = prev_nbits;
+    header.nTime = ConsumeTime(fuzzed_data_provider);
     header.hashPrevBlock = prev_hash;
     header.nVersion = fuzzed_data_provider.ConsumeIntegral<int32_t>();
     return header;
@@ -145,7 +132,8 @@ CBlock ConsumeBlock(FuzzedDataProvider& fuzzed_data_provider, const uint256& pre
 
 void FinalizeHeader(CBlockHeader& header, const ChainstateManager& chainman)
 {
-    while (!CheckProofOfWork(header.GetHash(), header.nBits, chainman.GetParams().GetConsensus())) {
+    const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
+    while (!CheckProofOfWork(GetBlockPoWHash(header, seed_hash), header.nBits, chainman.GetParams().GetConsensus())) {
         ++(header.nNonce);
     }
 }
@@ -153,6 +141,24 @@ void FinalizeHeader(CBlockHeader& header, const ChainstateManager& chainman)
 // Global setup works for this test as state modification (specifically in the
 // block index) would indicate a bug.
 HeadersSyncSetup* g_testing_setup;
+
+void EnsureActiveGenesisTip(ChainstateManager& chainman)
+{
+    LOCK(cs_main);
+    if (chainman.ActiveChain().Tip() != nullptr) return;
+
+    // RNG mainnet's minimum-chainwork can leave this harness in IBD without an
+    // active tip, but peerman handshake and invalid-chain diagnostics expect one.
+    const uint256 genesis_hash{chainman.GetParams().GenesisBlock().GetHash()};
+    CBlockIndex* genesis_index{chainman.m_blockman.LookupBlockIndex(genesis_hash)};
+    assert(genesis_index);
+    Chainstate& chainstate{chainman.ActiveChainstate()};
+    chainstate.CoinsTip().SetBestBlock(genesis_hash);
+    chainstate.setBlockIndexCandidates.insert(genesis_index);
+    assert(chainstate.LoadChainTip());
+    chainstate.ResetBlockFailureFlags(genesis_index);
+    chainman.m_best_header = genesis_index;
+}
 
 void initialize()
 {
@@ -177,6 +183,7 @@ FUZZ_TARGET(p2p_headers_presync, .init = initialize)
     ChainstateManager& chainman = *g_testing_setup->m_node.chainman;
     CBlockHeader base{chainman.GetParams().GenesisBlock()};
     SetMockTime(base.nTime);
+    EnsureActiveGenesisTip(chainman);
 
     LOCK(NetEventsInterface::g_msgproc_mutex);
 

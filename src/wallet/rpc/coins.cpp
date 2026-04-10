@@ -1,4 +1,4 @@
-// Copyright (c) 2011-present The Bitcoin Core developers
+// Copyright (c) 2011-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -67,7 +67,7 @@ static CAmount GetReceived(const CWallet& wallet, const UniValue& params, bool b
         }
 
         for (const CTxOut& txout : wtx.tx->vout) {
-            if (output_scripts.contains(txout.scriptPubKey)) {
+            if (output_scripts.count(txout.scriptPubKey) > 0) {
                 amount += txout.nValue;
             }
         }
@@ -196,7 +196,8 @@ RPCHelpMan getbalance()
 
     LOCK(pwallet->cs_wallet);
 
-    if (self.MaybeArg<std::string_view>("dummy").value_or("*") != "*") {
+    const auto dummy_value{self.MaybeArg<std::string>("dummy")};
+    if (dummy_value && *dummy_value != "*") {
         throw JSONRPCError(RPC_METHOD_DEPRECATED, "dummy first argument must be excluded or set to \"*\".");
     }
 
@@ -389,7 +390,7 @@ RPCHelpMan listlockunspent()
         UniValue o(UniValue::VOBJ);
 
         o.pushKV("txid", outpt.hash.GetHex());
-        o.pushKV("vout", outpt.n);
+        o.pushKV("vout", (int)outpt.n);
         ret.push_back(std::move(o));
     }
 
@@ -612,12 +613,12 @@ RPCHelpMan listunspent()
         bool fValidAddress = ExtractDestination(scriptPubKey, address);
         bool reused = avoid_reuse && pwallet->IsSpentKey(scriptPubKey);
 
-        if (destinations.size() && (!fValidAddress || !destinations.contains(address)))
+        if (destinations.size() && (!fValidAddress || !destinations.count(address)))
             continue;
 
         UniValue entry(UniValue::VOBJ);
         entry.pushKV("txid", out.outpoint.hash.GetHex());
-        entry.pushKV("vout", out.outpoint.n);
+        entry.pushKV("vout", (int)out.outpoint.n);
 
         if (fValidAddress) {
             entry.pushKV("address", EncodeDestination(address));

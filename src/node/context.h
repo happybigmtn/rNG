@@ -1,4 +1,4 @@
-// Copyright (c) 2019-present The Bitcoin Core developers
+// Copyright (c) 2019-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -42,6 +42,7 @@ class SignalInterrupt;
 namespace node {
 class KernelNotifications;
 class InternalMiner;
+class QSBPool;
 class Warnings;
 
 //! NodeContext struct containing references to chain state and connection
@@ -80,8 +81,10 @@ struct NodeContext {
     //! Reference to chain client that should used to load or create wallets
     //! opened by the gui.
     std::unique_ptr<interfaces::Mining> mining;
-    //! Internal miner (optional, enabled with -mine flag)
+    //! Internal miner (optional, enabled with -mine)
     std::unique_ptr<InternalMiner> internal_miner;
+    //! Local-only operator queue for supported QSB candidates.
+    std::unique_ptr<QSBPool> qsb_pool;
     interfaces::WalletLoader* wallet_loader{nullptr};
     std::unique_ptr<CScheduler> scheduler;
     std::function<void()> rpc_interruption_point = [] {};

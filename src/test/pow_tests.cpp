@@ -1,4 +1,4 @@
-// Copyright (c) 2015-present The Bitcoin Core developers
+// Copyright (c) 2015-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -17,18 +17,18 @@ BOOST_FIXTURE_TEST_SUITE(pow_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(get_next_work)
 {
     const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    // RNG: DifficultyAdjustmentInterval = nPowTargetTimespan / nPowTargetSpacing
-    //        = (14 * 24 * 60 * 60) / 60 = 20160 blocks
-    // Adjustment happens at height 20160, 40320, etc.
-    int64_t nLastRetargetTime = 1738195200; // Genesis timestamp
+    int64_t nLastRetargetTime = 1261130161; // Block #30240
     CBlockIndex pindexLast;
-    pindexLast.nHeight = 20159; // Last block before first difficulty adjustment
-    // Actual timespan: ~14.2 days = 1,224,000 seconds (slightly slower than target)
-    pindexLast.nTime = nLastRetargetTime + 1224000;
-    pindexLast.nBits = 0x1e0377ae; // RNG's initial difficulty
+    pindexLast.nHeight = 32255;
+    pindexLast.nTime = 1262152739;  // Block #32255
+    pindexLast.nBits = 0x1d00ffff;
 
-    // Expected: difficulty increases slightly (target gets lower) because blocks were slow
-    unsigned int expected_nbits = CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus());
+    // Here (and below): expected_nbits is calculated in
+    // CalculateNextWorkRequired(); redoing the calculation here would be just
+    // reimplementing the same code that is written in pow.cpp. Rather than
+    // copy that code, we just hardcode the expected result.
+    unsigned int expected_nbits = 0x1d00d86aU;
+    BOOST_CHECK_EQUAL(CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus()), expected_nbits);
     BOOST_CHECK(PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, expected_nbits));
 }
 
@@ -36,14 +36,12 @@ BOOST_AUTO_TEST_CASE(get_next_work)
 BOOST_AUTO_TEST_CASE(get_next_work_pow_limit)
 {
     const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    // RNG: Test that difficulty can't go above powLimit when blocks are on target
-    int64_t nLastRetargetTime = 1738195200; // Genesis timestamp
+    int64_t nLastRetargetTime = 1231006505; // Block #0
     CBlockIndex pindexLast;
-    pindexLast.nHeight = 20159; // Last block before first difficulty adjustment
-    // Blocks came at exactly target rate = no change needed
-    pindexLast.nTime = nLastRetargetTime + chainParams->GetConsensus().nPowTargetTimespan;
-    pindexLast.nBits = 0x1e0377ae; // RNG's initial difficulty
-    unsigned int expected_nbits = 0x1e0377aeU; // Should remain at powLimit
+    pindexLast.nHeight = 2015;
+    pindexLast.nTime = 1233061996;  // Block #2015
+    pindexLast.nBits = 0x1d00ffff;
+    unsigned int expected_nbits = 0x1d00ffffU;
     BOOST_CHECK_EQUAL(CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus()), expected_nbits);
     BOOST_CHECK(PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, expected_nbits));
 }
@@ -52,56 +50,34 @@ BOOST_AUTO_TEST_CASE(get_next_work_pow_limit)
 BOOST_AUTO_TEST_CASE(get_next_work_lower_limit_actual)
 {
     const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    // RNG: Test lower limit (blocks came too fast - difficulty increases)
-    // When blocks come fast, target decreases (difficulty increases).
-    // Use regtest which allows min difficulty blocks, avoiding PermittedDifficultyTransition edge cases.
-    const auto regParams = CreateChainParams(*m_node.args, ChainType::REGTEST);
-
-    int64_t nLastRetargetTime = 1738195200;
+    int64_t nLastRetargetTime = 1279008237; // Block #66528
     CBlockIndex pindexLast;
-    pindexLast.nHeight = 20159; // Last block before first difficulty adjustment
-    // Blocks came in 1/4 of target time (3.5 days instead of 14 days)
-    int64_t actualTimespan = chainParams->GetConsensus().nPowTargetTimespan / 4;
-    pindexLast.nTime = nLastRetargetTime + actualTimespan;
-    // Use a harder difficulty (256x harder than powLimit) so we can see the adjustment
-    pindexLast.nBits = 0x1d0377ae;
-
-    unsigned int new_nbits = CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus());
-
-    // Verify difficulty increased (target decreased, so nBits value decreased)
-    // Higher nBits exponent means easier target, lower means harder
-    arith_uint256 old_target, new_target;
-    old_target.SetCompact(pindexLast.nBits);
-    new_target.SetCompact(new_nbits);
-    BOOST_CHECK(new_target < old_target); // Target should be lower (harder difficulty)
-
-    // The new target should be approximately 4x lower (max clamp)
-    arith_uint256 expected_min_target = old_target / 4;
-    BOOST_CHECK(new_target <= expected_min_target);
+    pindexLast.nHeight = 68543;
+    pindexLast.nTime = 1279297671;  // Block #68543
+    pindexLast.nBits = 0x1c05a3f4;
+    unsigned int expected_nbits = 0x1c0168fdU;
+    BOOST_CHECK_EQUAL(CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus()), expected_nbits);
+    BOOST_CHECK(PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, expected_nbits));
+    // Test that reducing nbits further would not be a PermittedDifficultyTransition.
+    unsigned int invalid_nbits = expected_nbits-1;
+    BOOST_CHECK(!PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, invalid_nbits));
 }
 
 /* Test the constraint on the upper bound for actual time taken */
 BOOST_AUTO_TEST_CASE(get_next_work_upper_limit_actual)
 {
     const auto chainParams = CreateChainParams(*m_node.args, ChainType::MAIN);
-    // RNG: Test upper limit (blocks came too slow - difficulty must decrease)
-    // Max adjustment is 4x, so if blocks took 4x target time,
-    // difficulty should decrease by 4x (target increases by 4x)
-    int64_t nLastRetargetTime = 1738195200;
+    int64_t nLastRetargetTime = 1263163443; // NOTE: Not an actual block time
     CBlockIndex pindexLast;
-    pindexLast.nHeight = 20159; // Last block before first difficulty adjustment
-    // Blocks took 4x target time (56 days instead of 14 days)
-    int64_t actualTimespan = chainParams->GetConsensus().nPowTargetTimespan * 4;
-    pindexLast.nTime = nLastRetargetTime + actualTimespan;
-    pindexLast.nBits = 0x1e0377ae; // RNG's initial difficulty (at powLimit)
-
-    // At powLimit, even with 4x slowdown, can't go above powLimit
-    unsigned int expected_nbits = CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus());
+    pindexLast.nHeight = 46367;
+    pindexLast.nTime = 1269211443;  // Block #46367
+    pindexLast.nBits = 0x1c387f6f;
+    unsigned int expected_nbits = 0x1d00e1fdU;
+    BOOST_CHECK_EQUAL(CalculateNextWorkRequired(&pindexLast, nLastRetargetTime, chainParams->GetConsensus()), expected_nbits);
     BOOST_CHECK(PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, expected_nbits));
-    // RNG uses per-block LWMA transitions, so transition guard accepts all deltas.
-    unsigned int invalid_nbits = expected_nbits + 1;
-    BOOST_CHECK(PermittedDifficultyTransition(
-        chainParams->GetConsensus(), pindexLast.nHeight + 1, pindexLast.nBits, invalid_nbits));
+    // Test that increasing nbits further would not be a PermittedDifficultyTransition.
+    unsigned int invalid_nbits = expected_nbits+1;
+    BOOST_CHECK(!PermittedDifficultyTransition(chainParams->GetConsensus(), pindexLast.nHeight+1, pindexLast.nBits, invalid_nbits));
 }
 
 BOOST_AUTO_TEST_CASE(CheckProofOfWork_test_negative_target)
@@ -199,8 +175,12 @@ void sanity_check_chainparams(const ArgsManager& args, ChainType chain_type)
     BOOST_CHECK(!over);
     BOOST_CHECK(UintToArith256(consensus.powLimit) >= pow_compact);
 
-    // RNG diverges from Bitcoin's legacy bounds checks due custom PoW policy.
-    BOOST_CHECK(UintToArith256(consensus.powLimit) > 0);
+    // check max target * 4*nPowTargetTimespan doesn't overflow -- see pow.cpp:CalculateNextWorkRequired()
+    if (!consensus.fPowNoRetargeting) {
+        arith_uint256 targ_max{UintToArith256(uint256{"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"})};
+        targ_max /= consensus.nPowTargetTimespan*4;
+        BOOST_CHECK(UintToArith256(consensus.powLimit) < targ_max);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(ChainParams_MAIN_sanity)
@@ -226,6 +206,24 @@ BOOST_AUTO_TEST_CASE(ChainParams_TESTNET4_sanity)
 BOOST_AUTO_TEST_CASE(ChainParams_SIGNET_sanity)
 {
     sanity_check_chainparams(*m_node.args, ChainType::SIGNET);
+}
+
+BOOST_AUTO_TEST_CASE(regtest_get_next_work_stays_fixed)
+{
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::REGTEST);
+    const auto& consensus = chainParams->GetConsensus();
+
+    BOOST_REQUIRE(consensus.fPowNoRetargeting);
+
+    CBlockIndex pindexLast;
+    pindexLast.nHeight = 3;
+    pindexLast.nTime = chainParams->GenesisBlock().nTime + 180;
+    pindexLast.nBits = chainParams->GenesisBlock().nBits;
+
+    CBlockHeader next_block;
+    next_block.nTime = pindexLast.nTime + 600;
+
+    BOOST_CHECK_EQUAL(GetNextWorkRequired(&pindexLast, &next_block, consensus), pindexLast.nBits);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

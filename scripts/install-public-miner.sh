@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C
 set -euo pipefail
 
 SERVICE_NAME="${RNG_SYSTEMD_SERVICE_NAME:-rngd.service}"

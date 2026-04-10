@@ -1,12 +1,11 @@
-// Copyright (c) 2025-present The Bitcoin Core developers
+// Copyright (c) 2025 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <rng-build-config.h> // IWYU pragma: keep
+#include <bitcoin-build-config.h> // IWYU pragma: keep
 
 #include <clientversion.h>
 #include <common/args.h>
-#include <common/system.h>
 #include <util/fs.h>
 #include <util/exec.h>
 #include <util/strencodings.h>
@@ -62,8 +61,6 @@ static void ExecCommand(const std::vector<const char*>& args, std::string_view a
 
 int main(int argc, char* argv[])
 {
-    SetupEnvironment();
-
     try {
         CommandLine cmd{ParseCommandLine(argc, argv)};
         if (cmd.show_version) {
@@ -91,8 +88,9 @@ int main(int argc, char* argv[])
             // Since "rng rpc" is a new interface that doesn't need to be
             // backward compatible, enable -named by default so it is convenient
             // for callers to use a mix of named and unnamed parameters. Callers
-            // can override this by specifying -nonamed, but it handles parameters
-            // that contain '=' characters, so -nonamed should rarely be needed.
+            // can override this by specifying -nonamed, but should not need to
+            // unless they are passing string values containing '=' characters
+            // as unnamed parameters.
             args.emplace_back("-named");
         } else if (cmd.command == "wallet") {
             args.emplace_back("rng-wallet");
@@ -187,7 +185,7 @@ bool UseMultiprocess(const CommandLine& cmd)
 //! @note This function doesn't currently print anything but can be debugged
 //! from the command line using strace or dtrace like:
 //!
-//!     strace -e trace=execve -s 10000 build/bin/rng ...
+//!     strace -e trace=execve -s 10000 build/bin/bitcoin ...
 //!     dtrace -n 'proc:::exec-success  /pid == $target/ { trace(curpsinfo->pr_psargs); }' -c ...
 static void ExecCommand(const std::vector<const char*>& args, std::string_view wrapper_argv0)
 {
@@ -211,7 +209,7 @@ static void ExecCommand(const std::vector<const char*>& args, std::string_view w
 
     // Try to resolve any symlinks and figure out the directory containing the wrapper executable.
     std::error_code ec;
-    auto wrapper_dir{fs::weakly_canonical(wrapper_path, ec)};
+    fs::path wrapper_dir{fs::weakly_canonical(wrapper_path, ec)};
     if (wrapper_dir.empty()) wrapper_dir = wrapper_path; // Restore previous path if weakly_canonical failed.
     wrapper_dir = wrapper_dir.parent_path();
 
@@ -227,7 +225,7 @@ static void ExecCommand(const std::vector<const char*>& args, std::string_view w
 
     // If wrapper is installed in a bin/ directory, look for target executable
     // in libexec/
-    (wrapper_dir.filename() == "bin" && try_exec(wrapper_dir.parent_path() / "libexec" / arg0.filename())) ||
+    (wrapper_dir.filename() == "bin" && try_exec(fs::path{wrapper_dir.parent_path()} / "libexec" / arg0.filename())) ||
 #ifdef WIN32
     // Otherwise check the "daemon" subdirectory in a windows install.
     (!wrapper_dir.empty() && try_exec(wrapper_dir / "daemon" / arg0.filename())) ||

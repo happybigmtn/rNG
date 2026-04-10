@@ -185,9 +185,9 @@ public:
         m_assumeutxo_data = {
             AssumeutxoData{
                 .height = 15091,
-                .hash_serialized = AssumeutxoHash{uint256{"9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393"}},
+                .hash_serialized = AssumeutxoHash{consteval_ctor(uint256{"9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393"})},
                 .m_chain_tx_count = 15107,
-                .blockhash = uint256{"2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"},
+                .blockhash = consteval_ctor(uint256{"2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"}),
             },
         };
 

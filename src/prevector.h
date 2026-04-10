@@ -72,7 +72,11 @@ public:
         iterator operator-(size_type n) const { return iterator(ptr - n); }
         iterator& operator-=(size_type n) { ptr -= n; return *this; }
         bool operator==(iterator x) const { return ptr == x.ptr; }
-        auto operator<=>(iterator x) const { return ptr <=> x.ptr; }
+        bool operator!=(iterator x) const { return ptr != x.ptr; }
+        bool operator>=(iterator x) const { return ptr >= x.ptr; }
+        bool operator<=(iterator x) const { return ptr <= x.ptr; }
+        bool operator>(iterator x) const { return ptr > x.ptr; }
+        bool operator<(iterator x) const { return ptr < x.ptr; }
     };
 
     class const_iterator {
@@ -100,7 +104,11 @@ public:
         const_iterator operator-(size_type n) const { return const_iterator(ptr - n); }
         const_iterator& operator-=(size_type n) { ptr -= n; return *this; }
         bool operator==(const_iterator x) const { return ptr == x.ptr; }
-        auto operator<=>(const_iterator x) const { return ptr <=> x.ptr; }
+        bool operator!=(const_iterator x) const { return ptr != x.ptr; }
+        bool operator>=(const_iterator x) const { return ptr >= x.ptr; }
+        bool operator<=(const_iterator x) const { return ptr <= x.ptr; }
+        bool operator>(const_iterator x) const { return ptr > x.ptr; }
+        bool operator<(const_iterator x) const { return ptr < x.ptr; }
     };
 
 private:
@@ -441,6 +449,10 @@ public:
             ++b2;
         }
         return true;
+    }
+
+    bool operator!=(const prevector<N, T, Size, Diff>& other) const {
+        return !(*this == other);
     }
 
     bool operator<(const prevector<N, T, Size, Diff>& other) const {

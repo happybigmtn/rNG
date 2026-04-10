@@ -247,11 +247,11 @@ struct FeePerUnit : public FeeFrac
     }
 };
 
-// FeePerUnit instance for roshi / vbyte.
+// FeePerUnit instance for satoshi / vbyte.
 struct VSizeTag {};
 using FeePerVSize = FeePerUnit<VSizeTag>;
 
-// FeePerUnit instance for roshi / WU.
+// FeePerUnit instance for satoshi / WU.
 struct WeightTag {};
 using FeePerWeight = FeePerUnit<WeightTag>;
 

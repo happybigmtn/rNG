@@ -1,8 +1,8 @@
-// Copyright (c) 2011-present The Bitcoin Core developers
+// Copyright (c) 2011-2022 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <rng-build-config.h> // IWYU pragma: keep
+#include <bitcoin-build-config.h> // IWYU pragma: keep
 
 #include <qt/bitcoin.h>
 
@@ -195,7 +195,7 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, cons
 }
 
 static int qt_argc = 1;
-static const char* qt_argv = "rng-qt";
+static const char* qt_argv = "bitcoin-qt";
 
 BitcoinApplication::BitcoinApplication()
     : QApplication(qt_argc, const_cast<char**>(&qt_argv))
@@ -380,54 +380,53 @@ void BitcoinApplication::initializeResult(bool success, interfaces::BlockAndHead
 {
     qDebug() << __func__ << ": Initialization result: " << success;
 
-    if (!success || m_node->shutdownRequested()) {
-        requestShutdown();
-        return;
-    }
+    if (success) {
+        delete m_splash;
+        m_splash = nullptr;
 
-    delete m_splash;
-    m_splash = nullptr;
+        // Log this only after AppInitMain finishes, as then logging setup is guaranteed complete
+        qInfo() << "Platform customization:" << platformStyle->getName();
+        clientModel = new ClientModel(node(), optionsModel);
+        window->setClientModel(clientModel, &tip_info);
 
-    // Log this only after AppInitMain finishes, as then logging setup is guaranteed complete
-    qInfo() << "Platform customization:" << platformStyle->getName();
-    clientModel = new ClientModel(node(), optionsModel);
-    window->setClientModel(clientModel, &tip_info);
-
-    // If '-min' option passed, start window minimized (iconified) or minimized to tray
-    bool start_minimized = gArgs.GetBoolArg("-min", false);
+        // If '-min' option passed, start window minimized (iconified) or minimized to tray
+        bool start_minimized = gArgs.GetBoolArg("-min", false);
 #ifdef ENABLE_WALLET
-    if (WalletModel::isWalletEnabled()) {
-        m_wallet_controller = new WalletController(*clientModel, platformStyle, this);
-        window->setWalletController(m_wallet_controller, /*show_loading_minimized=*/start_minimized);
-        if (paymentServer) {
-            paymentServer->setOptionsModel(optionsModel);
+        if (WalletModel::isWalletEnabled()) {
+            m_wallet_controller = new WalletController(*clientModel, platformStyle, this);
+            window->setWalletController(m_wallet_controller, /*show_loading_minimized=*/start_minimized);
+            if (paymentServer) {
+                paymentServer->setOptionsModel(optionsModel);
+            }
         }
-    }
 #endif // ENABLE_WALLET
 
-    // Show or minimize window
-    if (!start_minimized) {
-        window->show();
-    } else if (clientModel->getOptionsModel()->getMinimizeToTray() && window->hasTrayIcon()) {
-        // do nothing as the window is managed by the tray icon
-    } else {
-        window->showMinimized();
-    }
-    Q_EMIT windowShown(window);
+        // Show or minimize window
+        if (!start_minimized) {
+            window->show();
+        } else if (clientModel->getOptionsModel()->getMinimizeToTray() && window->hasTrayIcon()) {
+            // do nothing as the window is managed by the tray icon
+        } else {
+            window->showMinimized();
+        }
+        Q_EMIT windowShown(window);
 
 #ifdef ENABLE_WALLET
-    // Now that initialization/startup is done, process any command-line
-    // bitcoin: URIs or payment requests:
-    if (paymentServer) {
-        connect(paymentServer, &PaymentServer::receivedPaymentRequest, window, &BitcoinGUI::handlePaymentRequest);
-        connect(window, &BitcoinGUI::receivedURI, paymentServer, &PaymentServer::handleURIOrFile);
-        connect(paymentServer, &PaymentServer::message, [this](const QString& title, const QString& message, unsigned int style) {
-            window->message(title, message, style);
-        });
-        QTimer::singleShot(100ms, paymentServer, &PaymentServer::uiReady);
-    }
+        // Now that initialization/startup is done, process any command-line
+        // bitcoin: URIs or payment requests:
+        if (paymentServer) {
+            connect(paymentServer, &PaymentServer::receivedPaymentRequest, window, &BitcoinGUI::handlePaymentRequest);
+            connect(window, &BitcoinGUI::receivedURI, paymentServer, &PaymentServer::handleURIOrFile);
+            connect(paymentServer, &PaymentServer::message, [this](const QString& title, const QString& message, unsigned int style) {
+                window->message(title, message, style);
+            });
+            QTimer::singleShot(100ms, paymentServer, &PaymentServer::uiReady);
+        }
 #endif
-    pollShutdownTimer->start(SHUTDOWN_POLLING_DELAY);
+        pollShutdownTimer->start(SHUTDOWN_POLLING_DELAY);
+    } else {
+        requestShutdown();
+    }
 }
 
 void BitcoinApplication::handleRunawayException(const QString &message)
@@ -479,6 +478,11 @@ static void SetupUIArgs(ArgsManager& argsman)
 
 int GuiMain(int argc, char* argv[])
 {
+#ifdef WIN32
+    common::WinCmdLineArgs winArgs;
+    std::tie(argc, argv) = winArgs.get();
+#endif
+
     std::unique_ptr<interfaces::Init> init = interfaces::MakeGuiInit(argc, argv);
 
     SetupEnvironment();
@@ -538,10 +542,10 @@ int GuiMain(int argc, char* argv[])
             return EXIT_FAILURE;
         }
         if (invalid_token) {
-            InitError(Untranslated(strprintf("Command line contains unexpected token '%s', see rng-qt -h for a list of options.", argv[i])));
+            InitError(Untranslated(strprintf("Command line contains unexpected token '%s', see bitcoin-qt -h for a list of options.", argv[i])));
             QMessageBox::critical(nullptr, CLIENT_NAME,
                                   // message cannot be translated because translations have not been initialized
-                                  QString::fromStdString("Command line contains unexpected token '%1', see rng-qt -h for a list of options.").arg(QString::fromStdString(argv[i])));
+                                  QString::fromStdString("Command line contains unexpected token '%1', see bitcoin-qt -h for a list of options.").arg(QString::fromStdString(argv[i])));
             return EXIT_FAILURE;
         }
     }

@@ -16,16 +16,16 @@ Before cutting a tag:
    - `python3 test/functional/feature_internal_miner.py --configfile=build/test/config.ini`
 4. Confirm a clean configure/build does not dirty `src/crypto/randomx`:
    - `git diff --exit-code -- src/crypto/randomx`
-5. Ensure the bootstrap assets in [`bootstrap/`](/bootstrap) are current and their metadata in [`README.md`](/README.md) matches.
+5. Ensure the bootstrap assets published with the release are current and their metadata in [`README.md`](/README.md) matches.
 6. Update release notes or the security review note if any RNG-specific consensus or miner behavior changed.
 
 ## Cut a release
 
 1. Create and push a signed tag, for example `v3.0.0`.
-2. Pushing the tag triggers [`.github/workflows/release.yml`](/.github/workflows/release.yml).
+2. Pushing the tag triggers the release workflow.
 3. The workflow builds the platform binaries, packages them with [`scripts/build-release.sh`](/scripts/build-release.sh), publishes `SHA256SUMS`, and uploads the bootstrap assets.
 4. Each binary tarball is attested with GitHub build provenance.
-5. Container images are published and attested by [`.github/workflows/ghcr.yml`](/.github/workflows/ghcr.yml).
+5. Container images are published and attested by the GHCR workflow when it is present.
 
 ## Deterministic packaging
 
@@ -61,7 +61,7 @@ gh attestation verify rng-vX.Y.Z-linux-x86_64.tar.gz --repo happybigmtn/rng
 
 ## Installer expectations
 
-[`install.sh`](/install.sh) follows this policy:
+`install.sh` follows this policy when published with a release:
 
 - if run from a local repo checkout, it installs that checkout
 - if run standalone, it resolves the newest published tag and installs that release

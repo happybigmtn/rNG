@@ -46,6 +46,11 @@ struct secure_allocator {
     {
         return true;
     }
+    template <typename U>
+    friend bool operator!=(const secure_allocator&, const secure_allocator<U>&) noexcept
+    {
+        return false;
+    }
 };
 
 // This is exactly like std::string, but with a custom allocator.

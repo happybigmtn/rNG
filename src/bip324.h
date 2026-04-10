@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 #include <crypto/chacha20.h>
@@ -60,6 +61,9 @@ public:
      * and decryption can be tested without knowing the other side's private key.
      */
     void Initialize(const EllSwiftPubKey& their_pubkey, bool initiator, bool self_decrypt = false) noexcept;
+
+    /** Initialize with an explicit network magic value (testing only). */
+    void InitializeForTest(const EllSwiftPubKey& their_pubkey, bool initiator, std::span<const uint8_t> message_start, bool self_decrypt = false) noexcept;
 
     /** Determine whether this cipher is fully initialized. */
     explicit operator bool() const noexcept { return m_send_l_cipher.has_value(); }

@@ -6,16 +6,14 @@
 #ifndef BITCOIN_COMMON_SYSTEM_H
 #define BITCOIN_COMMON_SYSTEM_H
 
-#include <rng-build-config.h> // IWYU pragma: keep
-#include <util/time.h>
+#include <bitcoin-build-config.h> // IWYU pragma: keep
 
-#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
 
-/// Monotonic uptime (not affected by system time changes).
-SteadyClock::duration GetUptime();
+// Application startup time (used for uptime calculation)
+int64_t GetStartupTime();
 
 void SetupEnvironment();
 [[nodiscard]] bool SetupNetworking();

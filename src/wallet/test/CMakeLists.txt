@@ -25,4 +25,4 @@ target_sources(test_bitcoin
     walletdb_tests.cpp
     walletload_tests.cpp
 )
-target_link_libraries(test_bitcoin rng_wallet)
+target_link_libraries(test_bitcoin bitcoin_wallet)
