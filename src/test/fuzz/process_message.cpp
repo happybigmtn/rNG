@@ -72,7 +72,7 @@ FUZZ_TARGET(process_message, .init = initialize_process_message)
     connman.ResetMaxOutboundCycle();
     auto& chainman = static_cast<TestChainstateManager&>(*g_setup->m_node.chainman);
     const auto block_index_size{WITH_LOCK(chainman.GetMutex(), return chainman.BlockIndex().size())};
-    SetMockTime(1610000000); // any time to successfully reset ibd
+    SetMockTime(WITH_LOCK(chainman.GetMutex(), return chainman.ActiveChain().Tip()->Time() + 48h));
     chainman.ResetIbd();
     chainman.DisableNextWrite();
 
@@ -116,7 +116,7 @@ FUZZ_TARGET(process_message, .init = initialize_process_message)
             more_work = connman.ProcessMessagesOnce(p2p_node);
         } catch (const std::ios_base::failure&) {
         }
-        g_setup->m_node.peerman->SendMessages(&p2p_node);
+        peerman->SendMessages(&p2p_node);
     }
     g_setup->m_node.validation_signals->SyncWithValidationInterfaceQueue();
     g_setup->m_node.connman->StopNodes();

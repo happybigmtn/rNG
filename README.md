@@ -1,7 +1,7 @@
 RNG
 ===
 
-RNG is a Bitcoin Core-derived node for the live RNG network. This branch is
+RNG is a Bitcoin Core-derived node for the live RNG network. The current tree is
 based on Bitcoin Core `30.2` and keeps RNG's existing RandomX proof-of-work,
 RNG network parameters, and operator fleet tooling.
 
@@ -16,7 +16,7 @@ network's RandomX block proof-of-work. RandomX protects block mining against
 specialized mining hardware pressure; it does not make transaction signatures
 post-quantum by itself.
 
-The branch also adds an operator-only QSB transaction path. In this repository,
+The port also adds an operator-only QSB transaction path. In this repository,
 QSB support means:
 
 - `contrib/qsb/` can build the current `rng-qsb-v1-toy` funding and spend
