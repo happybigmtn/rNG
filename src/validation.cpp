@@ -3958,6 +3958,12 @@ static bool CheckBlockHeader(const CBlockHeader& block, BlockValidationState& st
 {
     // Check proof of work matches claimed amount
     if (fCheckPOW) {
+        // RNG mainnet shipped with a consensus-anchored genesis block rather
+        // than a re-mined RandomX genesis. Treat that exact block as trusted so
+        // fresh bootstrap and unit-test chain activation don't fail on height 0.
+        if (block.GetHash() == consensusParams.hashGenesisBlock) {
+            return true;
+        }
         try {
             const uint256 pow_hash{GetBlockPoWHash(block, GetRandomXSeedHash(nullptr))};
             if (!CheckProofOfWork(pow_hash, block.nBits, consensusParams)) {

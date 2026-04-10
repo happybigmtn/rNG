@@ -11,6 +11,7 @@
 #include <test/util/setup_common.h>
 #include <uint256.h>
 #include <util/strencodings.h>
+#include <validation.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -224,6 +225,20 @@ BOOST_AUTO_TEST_CASE(live_mainnet_block1_pow)
 
     BOOST_CHECK_EQUAL(header.GetHash().GetHex(), "ea5820b9302d87b6fcece3a8fa5ff7dbd5df2c1c6e377ea7e471e8912139b46b");
     BOOST_CHECK(CheckProofOfWork(GetBlockPoWHash(header, seed), header.nBits, main_params->GetConsensus()));
+}
+
+/**
+ * Test: The shipped RNG genesis remains a bootstrap anchor.
+ * Acceptance: Mainnet genesis passes block validation even though it is not
+ * re-mined under the current RandomX path during bootstrap.
+ */
+BOOST_AUTO_TEST_CASE(mainnet_genesis_bootstrap_anchor)
+{
+    const auto main_params = CreateChainParams(*m_node.args, ChainType::MAIN);
+    BlockValidationState state;
+
+    BOOST_CHECK(CheckBlock(main_params->GenesisBlock(), state, main_params->GetConsensus(), /*fCheckPOW=*/true, /*fCheckMerkleRoot=*/true));
+    BOOST_CHECK(state.IsValid());
 }
 
 // =============================================================================
