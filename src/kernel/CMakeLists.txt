@@ -34,6 +34,7 @@ add_library(bitcoinkernel
   ../logging.cpp
   ../node/blockstorage.cpp
   ../node/chainstate.cpp
+  ../node/qsb_validation.cpp
   ../node/utxo_snapshot.cpp
   ../policy/ephemeral_policy.cpp
   ../policy/feerate.cpp
@@ -49,6 +50,7 @@ add_library(bitcoinkernel
   ../random.cpp
   ../randomenv.cpp
   ../script/interpreter.cpp
+  ../script/qsb.cpp
   ../script/script.cpp
   ../script/script_error.cpp
   ../script/sigcache.cpp
@@ -87,6 +89,7 @@ add_library(bitcoinkernel
 target_link_libraries(bitcoinkernel
   PRIVATE
     core_interface
+    randomx
     secp256k1_objs
     $<$<PLATFORM_ID:Windows>:bcrypt>
     $<TARGET_NAME_IF_EXISTS:USDT::headers>

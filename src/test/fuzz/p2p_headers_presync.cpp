@@ -145,7 +145,8 @@ CBlock ConsumeBlock(FuzzedDataProvider& fuzzed_data_provider, const uint256& pre
 
 void FinalizeHeader(CBlockHeader& header, const ChainstateManager& chainman)
 {
-    while (!CheckProofOfWork(header.GetHash(), header.nBits, chainman.GetParams().GetConsensus())) {
+    const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
+    while (!CheckProofOfWork(GetBlockPoWHash(header, seed_hash), header.nBits, chainman.GetParams().GetConsensus())) {
         ++(header.nNonce);
     }
 }

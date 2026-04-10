@@ -5,12 +5,24 @@
 #include <node/qsb_pool.h>
 
 #include <primitives/block.h>
+#include <util/feefrac.h>
 
 #include <algorithm>
+#include <limits>
 
 #include <util/check.h>
 
 namespace node {
+namespace {
+
+FeeFrac QSBFeeFrac(const QSBPoolEntry& entry)
+{
+    Assume(entry.vsize > 0);
+    Assume(entry.vsize <= std::numeric_limits<int32_t>::max());
+    return {entry.fee, static_cast<int32_t>(entry.vsize)};
+}
+
+} // namespace
 
 QSBPoolInsertResult QSBPool::Add(const CTransactionRef& tx,
                                  QSBToyTxType type,
@@ -86,9 +98,10 @@ std::vector<QSBPoolEntry> QSBPool::GetMiningCandidates() const
         entries.push_back(entry);
     }
     std::sort(entries.begin(), entries.end(), [](const QSBPoolEntry& a, const QSBPoolEntry& b) {
-        const auto lhs = static_cast<__int128>(a.fee) * b.vsize;
-        const auto rhs = static_cast<__int128>(b.fee) * a.vsize;
-        if (lhs != rhs) return lhs > rhs;
+        const FeeFrac a_feerate{QSBFeeFrac(a)};
+        const FeeFrac b_feerate{QSBFeeFrac(b)};
+        if (a_feerate >> b_feerate) return true;
+        if (a_feerate << b_feerate) return false;
         if (a.accepted_at != b.accepted_at) return a.accepted_at < b.accepted_at;
         return a.txid < b.txid;
     });

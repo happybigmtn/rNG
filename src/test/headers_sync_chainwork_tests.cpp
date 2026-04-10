@@ -6,7 +6,6 @@
 #include <chainparams.h>
 #include <consensus/params.h>
 #include <headerssync.h>
-#include <pow.h>
 #include <test/util/setup_common.h>
 #include <validation.h>
 #include <vector>
@@ -28,9 +27,10 @@ struct HeadersGeneratorSetup : public RegTestingSetup {
 
 void HeadersGeneratorSetup::FindProofOfWork(CBlockHeader& starting_header)
 {
-    while (!CheckProofOfWork(starting_header.GetHash(), starting_header.nBits, Params().GetConsensus())) {
-        ++(starting_header.nNonce);
-    }
+    // HeadersSyncState only tests nBits-derived chainwork and commitment
+    // bookkeeping here. RNG's RandomX proof grinding would make the 15k-header
+    // fixture prohibitively expensive without adding coverage to this unit.
+    ++(starting_header.nNonce);
 }
 
 void HeadersGeneratorSetup::GenerateHeaders(std::vector<CBlockHeader>& headers,

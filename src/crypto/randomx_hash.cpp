@@ -4,10 +4,8 @@
 
 #include <crypto/randomx_hash.h>
 
-#include <logging.h>
-#include <util/check.h>
-
 #include <cstring>
+#include <stdexcept>
 
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -90,8 +88,6 @@ void RandomXContext::InitLight(const uint256& seed_hash) {
     }
 
     m_current_seed_hash = seed_hash;
-    LogDebug(BCLog::VALIDATION, "RandomX light mode initialized with seed %s\n",
-             seed_hash.GetHex());
 }
 
 void RandomXContext::InitFast(const uint256& seed_hash) {
@@ -113,7 +109,6 @@ void RandomXContext::InitFast(const uint256& seed_hash) {
     // Initialize dataset from cache
     // This is computationally expensive (~1-2 minutes on modern CPU)
     unsigned long item_count = randomx_dataset_item_count();
-    LogDebug(BCLog::VALIDATION, "RandomX initializing dataset with %lu items...\n", item_count);
 
     // Initialize all items (can be parallelized but keeping simple for now)
     randomx_init_dataset(m_dataset, m_cache, 0, item_count);
@@ -135,8 +130,6 @@ void RandomXContext::InitFast(const uint256& seed_hash) {
     }
 
     m_fast_mode_initialized = true;
-    LogDebug(BCLog::VALIDATION, "RandomX fast mode initialized with seed %s\n",
-             seed_hash.GetHex());
 }
 
 void RandomXContext::UpdateSeedHash(const uint256& seed_hash, bool fast_mode) {
@@ -184,7 +177,9 @@ uint256 RandomXContext::Hash(std::span<const unsigned char> input, const uint256
         InitLight(seed_hash);
     }
 
-    Assert(m_vm_light);
+    if (!m_vm_light) {
+        throw std::logic_error("RandomX light VM is not initialized");
+    }
 
     uint256 result;
     randomx_calculate_hash(m_vm_light, input.data(), input.size(), result.data());
@@ -199,7 +194,9 @@ uint256 RandomXContext::HashFast(std::span<const unsigned char> input, const uin
         InitFast(seed_hash);
     }
 
-    Assert(m_vm_fast);
+    if (!m_vm_fast) {
+        throw std::logic_error("RandomX fast VM is not initialized");
+    }
 
     uint256 result;
     randomx_calculate_hash(m_vm_fast, input.data(), input.size(), result.data());
@@ -247,9 +244,7 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
         try {
             // Ensure the global context is initialized with this seed.
             RandomXContext::GetInstance().UpdateSeedHash(seed_hash, /*fast_mode=*/use_fast_mode);
-        } catch (const std::exception& e) {
-            LogWarning("RandomXMiningVM: %s mode initialization failed: %s\n",
-                       use_fast_mode ? "fast" : "light", e.what());
+        } catch (const std::exception&) {
             return false;
         }
 
@@ -264,7 +259,6 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
             if (use_fast_mode) {
                 randomx_dataset* dataset = RandomXContext::GetInstance().GetDataset();
                 if (!dataset) {
-                    LogWarning("RandomXMiningVM: Dataset not available (fast mode)\n");
                     return false;
                 }
 
@@ -276,7 +270,6 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
             } else {
                 randomx_cache* cache = RandomXContext::GetInstance().GetCache();
                 if (!cache) {
-                    LogWarning("RandomXMiningVM: Cache not available (light mode)\n");
                     return false;
                 }
 
@@ -287,7 +280,6 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
             }
 
             if (!m_vm) {
-                LogWarning("RandomXMiningVM: Failed to create %s VM\n", use_fast_mode ? "fast" : "light");
                 return false;
             }
         }
@@ -306,7 +298,6 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
     }
 
     if (fast_mode) {
-        LogWarning("RandomXMiningVM: Falling back to light mode after fast mode failure\n");
         return try_initialize(/*use_fast_mode=*/false);
     }
 
@@ -314,7 +305,9 @@ bool RandomXMiningVM::Initialize(const uint256& seed_hash, bool fast_mode, bool*
 }
 
 uint256 RandomXMiningVM::Hash(std::span<const unsigned char> input) {
-    Assert(m_vm && m_initialized);
+    if (!m_vm || !m_initialized) {
+        throw std::logic_error("RandomX mining VM is not initialized");
+    }
 
     uint256 result;
     randomx_calculate_hash(m_vm, input.data(), input.size(), result.data());

@@ -40,6 +40,7 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
     // NOTE: here `height` does not correspond to the block height but the block height - 1.
     for (size_t height{0}; height < total_height; ++height) {
         CBlock& block{*(ret.at(height) = std::make_shared<CBlock>())};
+        const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
 
         CMutableTransaction coinbase_tx;
         coinbase_tx.nLockTime = static_cast<uint32_t>(height);
@@ -59,7 +60,7 @@ std::vector<std::shared_ptr<CBlock>> CreateBlockChain(size_t total_height, const
         block.nBits = params.GenesisBlock().nBits;
         block.nNonce = 0;
 
-        while (!CheckProofOfWork(block.GetHash(), block.nBits, params.GetConsensus())) {
+        while (!CheckProofOfWork(GetBlockPoWHash(block, seed_hash), block.nBits, params.GetConsensus())) {
             ++block.nNonce;
             assert(block.nNonce);
         }
@@ -93,7 +94,8 @@ protected:
 
 COutPoint MineBlock(const NodeContext& node, std::shared_ptr<CBlock>& block)
 {
-    while (!CheckProofOfWork(block->GetHash(), block->nBits, Params().GetConsensus())) {
+    const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
+    while (!CheckProofOfWork(GetBlockPoWHash(*block, seed_hash), block->nBits, Params().GetConsensus())) {
         ++block->nNonce;
         assert(block->nNonce);
     }

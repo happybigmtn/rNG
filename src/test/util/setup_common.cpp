@@ -370,7 +370,7 @@ TestChain100Setup::TestChain100Setup(
     TestOpts opts)
     : TestingSetup{ChainType::REGTEST, opts}
 {
-    SetMockTime(1598887952);
+    SetMockTime(m_node.chainman->GetParams().GenesisBlock().Time());
     constexpr std::array<unsigned char, 32> vchKey = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}};
     coinbaseKey.Set(vchKey.begin(), vchKey.end(), true);
@@ -382,7 +382,7 @@ TestChain100Setup::TestChain100Setup(
         LOCK(::cs_main);
         assert(
             m_node.chainman->ActiveChain().Tip()->GetBlockHash().ToString() ==
-            "0c8c5f79505775a0f6aed6aca2350718ceb9c6f2c878667864d5c7a6d8ffa2a6");
+            "0f12a7498ad24269bde5bb3c6dde63cbbaff32262e5049add27c5db2db8a83b9");
     }
 }
 
@@ -412,7 +412,8 @@ CBlock TestChain100Setup::CreateBlock(
     }
     RegenerateCommitments(block, *Assert(m_node.chainman));
 
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, m_node.chainman->GetConsensus())) ++block.nNonce;
+    const uint256 seed_hash{GetRandomXSeedHash(nullptr)};
+    while (!CheckProofOfWork(GetBlockPoWHash(block, seed_hash), block.nBits, m_node.chainman->GetConsensus())) ++block.nNonce;
 
     return block;
 }

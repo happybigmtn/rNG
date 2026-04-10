@@ -1,19 +1,48 @@
-Bitcoin Core integration/staging tree
-=====================================
+RNG
+===
 
-https://bitcoincore.org
+RNG is a Bitcoin Core-derived node for the live RNG network. This branch is
+based on Bitcoin Core `30.2` and keeps RNG's existing RandomX proof-of-work,
+RNG network parameters, and operator fleet tooling.
 
-For an immediately usable, binary version of the Bitcoin Core software, see
-https://bitcoincore.org/en/download/.
+The daemon and CLI are built as `rngd` and `rng-cli`. See the platform-specific
+build guides in [doc](/doc) for the inherited Bitcoin Core build system.
 
-What is Bitcoin Core?
+What Changed In The 30.2 Port
+-----------------------------
+
+This port refreshes RNG on top of Bitcoin Core `30.2` while preserving the
+network's RandomX block proof-of-work. RandomX protects block mining against
+specialized mining hardware pressure; it does not make transaction signatures
+post-quantum by itself.
+
+The branch also adds an operator-only QSB transaction path. In this repository,
+QSB support means:
+
+- `contrib/qsb/` can build the current `rng-qsb-v1-toy` funding and spend
+  templates.
+- `-enableqsboperator` enables local-only RPCs for queuing supported QSB
+  transactions directly to an operator miner.
+- Public relay policy remains unchanged; ordinary peers still reject these
+  transactions as non-standard, and that is intentional.
+- QSB support is a narrow escape hatch for the supported template family, not a
+  claim that every RNG transaction is quantum-safe by default.
+
+Operational details are in [doc/qsb-operations.md](doc/qsb-operations.md), the
+builder documentation is in [contrib/qsb/README.md](contrib/qsb/README.md), and
+the implementation/rollout state is preserved in [EXECPLAN.md](EXECPLAN.md) and
+[PLANS.md](PLANS.md).
+
+What Is Bitcoin Core?
 ---------------------
 
-Bitcoin Core connects to the Bitcoin peer-to-peer network to download and fully
-validate blocks and transactions. It also includes a wallet and graphical user
-interface, which can be optionally built.
+Bitcoin Core connects to a Bitcoin-style peer-to-peer network to download and
+fully validate blocks and transactions. RNG inherits that node architecture,
+wallet code, GUI build option, RPC surface, and test framework while changing
+network-specific pieces such as chain parameters and proof-of-work.
 
-Further information about Bitcoin Core is available in the [doc folder](/doc).
+Further information about the inherited Bitcoin Core codebase is available in
+the [doc folder](/doc).
 
 License
 -------
