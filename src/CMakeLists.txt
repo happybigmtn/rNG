@@ -25,6 +25,8 @@ if (ENABLE_IPC AND NOT WITH_EXTERNAL_LIBMULTIPROCESS)
 endif()
 include(../cmake/secp256k1.cmake)
 add_secp256k1(secp256k1)
+include(../cmake/randomx.cmake)
+add_randomx(crypto/randomx)
 
 # Set top-level target output locations.
 if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -129,6 +131,7 @@ add_library(bitcoin_common STATIC EXCLUDE_FROM_ALL
   rpc/rawtransaction_util.cpp
   rpc/request.cpp
   rpc/util.cpp
+  script/qsb.cpp
   scheduler.cpp
   script/descriptor.cpp
   script/miniscript.cpp
@@ -224,11 +227,14 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   node/mempool_args.cpp
   node/mempool_persist.cpp
   node/mempool_persist_args.cpp
+  node/internal_miner.cpp
   node/miner.cpp
   node/mini_miner.cpp
   node/minisketchwrapper.cpp
   node/peerman_args.cpp
   node/psbt.cpp
+  node/qsb_pool.cpp
+  node/qsb_validation.cpp
   node/timeoffsets.cpp
   node/transaction.cpp
   node/txdownloadman_impl.cpp
@@ -253,6 +259,7 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   rpc/net.cpp
   rpc/node.cpp
   rpc/output_script.cpp
+  rpc/qsb.cpp
   rpc/rawtransaction.cpp
   rpc/server.cpp
   rpc/server_util.cpp
@@ -292,8 +299,10 @@ if(BUILD_BITCOIN_BIN)
   add_executable(bitcoin bitcoin.cpp)
   add_windows_resources(bitcoin bitcoin-res.rc)
   add_windows_application_manifest(bitcoin)
+  set_target_properties(bitcoin PROPERTIES OUTPUT_NAME rng)
   target_link_libraries(bitcoin core_interface bitcoin_common bitcoin_util)
   install_binary_component(bitcoin HAS_MANPAGE)
+  add_custom_target(rng DEPENDS bitcoin)
 endif()
 
 # Bitcoin Core bitcoind.
@@ -304,18 +313,21 @@ if(BUILD_DAEMON)
   )
   add_windows_resources(bitcoind bitcoind-res.rc)
   add_windows_application_manifest(bitcoind)
+  set_target_properties(bitcoind PROPERTIES OUTPUT_NAME rngd)
   target_link_libraries(bitcoind
     core_interface
     bitcoin_node
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
   install_binary_component(bitcoind HAS_MANPAGE)
+  add_custom_target(rngd DEPENDS bitcoind)
 endif()
 if(ENABLE_IPC AND BUILD_DAEMON)
   add_executable(bitcoin-node
     bitcoind.cpp
     init/bitcoin-node.cpp
   )
+  set_target_properties(bitcoin-node PROPERTIES OUTPUT_NAME rng-node)
   target_link_libraries(bitcoin-node
     core_interface
     bitcoin_node
@@ -323,6 +335,7 @@ if(ENABLE_IPC AND BUILD_DAEMON)
     $<TARGET_NAME_IF_EXISTS:bitcoin_wallet>
   )
   install_binary_component(bitcoin-node INTERNAL)
+  add_custom_target(rng-node DEPENDS bitcoin-node)
 endif()
 
 if(ENABLE_IPC AND BUILD_TESTS)
@@ -358,6 +371,7 @@ if(BUILD_CLI)
   add_executable(bitcoin-cli bitcoin-cli.cpp)
   add_windows_resources(bitcoin-cli bitcoin-cli-res.rc)
   add_windows_application_manifest(bitcoin-cli)
+  set_target_properties(bitcoin-cli PROPERTIES OUTPUT_NAME rng-cli)
   target_link_libraries(bitcoin-cli
     core_interface
     bitcoin_cli
@@ -367,6 +381,7 @@ if(BUILD_CLI)
     libevent::extra
   )
   install_binary_component(bitcoin-cli HAS_MANPAGE)
+  add_custom_target(rng-cli DEPENDS bitcoin-cli)
 endif()
 
 
@@ -374,6 +389,7 @@ if(BUILD_TX)
   add_executable(bitcoin-tx bitcoin-tx.cpp)
   add_windows_resources(bitcoin-tx bitcoin-tx-res.rc)
   add_windows_application_manifest(bitcoin-tx)
+  set_target_properties(bitcoin-tx PROPERTIES OUTPUT_NAME rng-tx)
   target_link_libraries(bitcoin-tx
     core_interface
     bitcoin_common
@@ -381,6 +397,7 @@ if(BUILD_TX)
     univalue
   )
   install_binary_component(bitcoin-tx HAS_MANPAGE)
+  add_custom_target(rng-tx DEPENDS bitcoin-tx)
 endif()
 
 
@@ -388,12 +405,14 @@ if(BUILD_UTIL)
   add_executable(bitcoin-util bitcoin-util.cpp)
   add_windows_resources(bitcoin-util bitcoin-util-res.rc)
   add_windows_application_manifest(bitcoin-util)
+  set_target_properties(bitcoin-util PROPERTIES OUTPUT_NAME rng-util)
   target_link_libraries(bitcoin-util
     core_interface
     bitcoin_common
     bitcoin_util
   )
   install_binary_component(bitcoin-util HAS_MANPAGE)
+  add_custom_target(rng-util DEPENDS bitcoin-util)
 endif()
 
 
@@ -417,6 +436,7 @@ if(BUILD_UTIL_CHAINSTATE)
   # - https://github.com/hebasto/bitcoin/pull/236#issuecomment-2183120953
   # - https://github.com/bitcoin/bitcoin/pull/30312#issuecomment-2191235833
   set_target_properties(bitcoin-chainstate PROPERTIES
+    OUTPUT_NAME rng-chainstate
     SKIP_BUILD_RPATH OFF
   )
   target_link_libraries(bitcoin-chainstate
@@ -425,6 +445,7 @@ if(BUILD_UTIL_CHAINSTATE)
       bitcoinkernel
   )
   install_binary_component(bitcoin-chainstate INTERNAL)
+  add_custom_target(rng-chainstate DEPENDS bitcoin-chainstate)
 endif()
 
 

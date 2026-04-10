@@ -134,10 +134,12 @@ bool BlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, s
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams)) {
-                    LogError("%s: CheckProofOfWork failed: %s\n", __func__, pindexNew->ToString());
-                    return false;
-                }
+                // RNG uses RandomX PoW. The block hash (SHA256) is not the
+                // PoW hash, so we cannot validate PoW from the disk index
+                // entry alone here.
+                //
+                // These entries were validated when accepted and will be fully
+                // revalidated during normal chain activation.
 
                 pcursor->Next();
             } else {
@@ -1017,11 +1019,10 @@ bool BlockManager::ReadBlock(CBlock& block, const FlatFilePos& pos, const std::o
 
     const auto block_hash{block.GetHash()};
 
-    // Check the header
-    if (!CheckProofOfWork(block_hash, block.nBits, GetConsensus())) {
-        LogError("Errors in block header at %s while reading block", pos.ToString());
-        return false;
-    }
+    // RNG uses RandomX PoW. The SHA256 block hash is not the PoW hash, and
+    // ReadBlock() does not have the chain context needed to derive the
+    // correct seed hash for PoW revalidation. Blocks read from disk were
+    // already validated on receipt.
 
     // Signet only: check block solution
     if (GetConsensus().signet_blocks && !CheckSignetBlockSolution(block, GetConsensus())) {

@@ -18,10 +18,12 @@
 #include <logging.h>
 #include <node/context.h>
 #include <node/kernel_notifications.h>
+#include <node/qsb_pool.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
 #include <pow.h>
 #include <primitives/transaction.h>
+#include <util/check.h>
 #include <util/moneystr.h>
 #include <util/signalinterrupt.h>
 #include <util/time.h>
@@ -86,9 +88,10 @@ static BlockAssembler::Options ClampOptions(BlockAssembler::Options options)
     return options;
 }
 
-BlockAssembler::BlockAssembler(Chainstate& chainstate, const CTxMemPool* mempool, const Options& options)
+BlockAssembler::BlockAssembler(Chainstate& chainstate, const CTxMemPool* mempool, const Options& options, const QSBPool* qsb_pool)
     : chainparams{chainstate.m_chainman.GetParams()},
       m_mempool{options.use_mempool ? mempool : nullptr},
+      m_qsb_pool{options.use_mempool ? qsb_pool : nullptr},
       m_chainstate{chainstate},
       m_options{ClampOptions(options)}
 {
@@ -145,6 +148,10 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock()
 
     pblock->nTime = TicksSinceEpoch<std::chrono::seconds>(NodeClock::now());
     m_lock_time_cutoff = pindexPrev->GetMedianTimePast();
+
+    if (m_qsb_pool) {
+        addQSBTxs(*pindexPrev);
+    }
 
     int nPackagesSelected = 0;
     int nDescendantsUpdated = 0;
@@ -245,6 +252,49 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
         LogPrintf("fee rate %s txid %s\n",
                   CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
                   iter->GetTx().GetHash().ToString());
+    }
+}
+
+void BlockAssembler::AddToBlock(const CTransactionRef& tx, CAmount fee, int64_t sigops_cost)
+{
+    pblocktemplate->block.vtx.emplace_back(tx);
+    pblocktemplate->vTxFees.push_back(fee);
+    pblocktemplate->vTxSigOpsCost.push_back(sigops_cost);
+    nBlockWeight += GetTransactionWeight(*tx);
+    ++nBlockTx;
+    nBlockSigOpsCost += sigops_cost;
+    nFees += fee;
+    inBlock.insert(tx->GetHash());
+
+    if (m_options.print_modified_fee) {
+        LogPrintf("fee rate %s txid %s\n",
+                  CFeeRate(fee, GetVirtualTransactionSize(*tx, sigops_cost, ::nBytesPerSigOp)).ToString(),
+                  tx->GetHash().ToString());
+    }
+}
+
+void BlockAssembler::addQSBTxs(const CBlockIndex& pindexPrev)
+{
+    (void)pindexPrev;
+    const auto* qsb_pool = Assert(m_qsb_pool);
+    const auto script_flags = MANDATORY_SCRIPT_VERIFY_FLAGS;
+
+    for (const QSBPoolEntry& entry : qsb_pool->GetMiningCandidates()) {
+        if (inBlock.count(entry.txid)) continue;
+        if (entry.fee < m_options.blockMinFeeRate.GetFee(entry.vsize)) continue;
+
+        const auto validation_result = m_chainstate.m_chainman.ProcessTransaction(entry.tx, /*test_accept=*/true, /*allow_qsb_toy=*/true);
+        if (validation_result.m_result_type != MempoolAcceptResult::ResultType::VALID) continue;
+
+        CCoinsViewCache view(&m_chainstate.CoinsTip());
+        if (!view.HaveInputs(*entry.tx)) continue;
+
+        const int64_t sigops_cost = GetTransactionSigOpCost(*entry.tx, view, script_flags);
+        const int64_t vsize = *CHECK_NONFATAL(validation_result.m_vsize);
+        if (!TestPackage(vsize, sigops_cost)) continue;
+        if (!IsFinalTx(*entry.tx, nHeight, m_lock_time_cutoff)) continue;
+
+        AddToBlock(entry.tx, *CHECK_NONFATAL(validation_result.m_base_fees), sigops_cost);
     }
 }
 
@@ -464,6 +514,7 @@ void InterruptWait(KernelNotifications& kernel_notifications, bool& interrupt_wa
 std::unique_ptr<CBlockTemplate> WaitAndCreateNewBlock(ChainstateManager& chainman,
                                                       KernelNotifications& kernel_notifications,
                                                       CTxMemPool* mempool,
+                                                      const QSBPool* qsb_pool,
                                                       const std::unique_ptr<CBlockTemplate>& block_template,
                                                       const BlockWaitOptions& options,
                                                       const BlockAssembler::Options& assemble_options,
@@ -527,7 +578,8 @@ std::unique_ptr<CBlockTemplate> WaitAndCreateNewBlock(ChainstateManager& chainma
             auto new_tmpl{BlockAssembler{
                 chainman.ActiveChainstate(),
                 mempool,
-                assemble_options}
+                assemble_options,
+                qsb_pool}
                               .CreateNewBlock()};
 
             // If the tip changed, return the new template regardless of its fees.

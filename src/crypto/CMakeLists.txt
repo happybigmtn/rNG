@@ -12,6 +12,7 @@ add_library(bitcoin_crypto STATIC EXCLUDE_FROM_ALL
   hmac_sha512.cpp
   muhash.cpp
   poly1305.cpp
+  randomx_hash.cpp
   ripemd160.cpp
   sha1.cpp
   sha256.cpp
@@ -25,6 +26,13 @@ add_library(bitcoin_crypto STATIC EXCLUDE_FROM_ALL
 target_link_libraries(bitcoin_crypto
   PRIVATE
     core_interface
+  PUBLIC
+    randomx
+)
+
+target_include_directories(bitcoin_crypto
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 if(HAVE_SSE41)

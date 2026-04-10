@@ -36,6 +36,7 @@ using interfaces::BlockRef;
 
 namespace node {
 class KernelNotifications;
+class QSBPool;
 
 static const bool DEFAULT_PRINT_MODIFIED_FEE = false;
 
@@ -166,6 +167,7 @@ private:
 
     const CChainParams& chainparams;
     const CTxMemPool* const m_mempool;
+    const QSBPool* const m_qsb_pool;
     Chainstate& m_chainstate;
 
 public:
@@ -178,7 +180,7 @@ public:
         bool print_modified_fee{DEFAULT_PRINT_MODIFIED_FEE};
     };
 
-    explicit BlockAssembler(Chainstate& chainstate, const CTxMemPool* mempool, const Options& options);
+    explicit BlockAssembler(Chainstate& chainstate, const CTxMemPool* mempool, const Options& options, const QSBPool* qsb_pool = nullptr);
 
     /** Construct a new block template */
     std::unique_ptr<CBlockTemplate> CreateNewBlock();
@@ -196,6 +198,10 @@ private:
     void resetBlock();
     /** Add a tx to the block */
     void AddToBlock(CTxMemPool::txiter iter);
+    /** Add a local-only operator transaction to the block */
+    void AddToBlock(const CTransactionRef& tx, CAmount fee, int64_t sigops_cost);
+    /** Add supported QSB candidates before ordinary mempool selection. */
+    void addQSBTxs(const CBlockIndex& pindexPrev);
 
     // Methods for how to add transactions to a block.
     /** Add transactions based on feerate including unconfirmed ancestors
@@ -248,6 +254,7 @@ void InterruptWait(KernelNotifications& kernel_notifications, bool& interrupt_wa
 std::unique_ptr<CBlockTemplate> WaitAndCreateNewBlock(ChainstateManager& chainman,
                                                       KernelNotifications& kernel_notifications,
                                                       CTxMemPool* mempool,
+                                                      const QSBPool* qsb_pool,
                                                       const std::unique_ptr<CBlockTemplate>& block_template,
                                                       const BlockWaitOptions& options,
                                                       const BlockAssembler::Options& assemble_options,

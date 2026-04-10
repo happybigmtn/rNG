@@ -37,6 +37,7 @@
 #include <kernel/caches.h>
 #include <kernel/context.h>
 #include <key.h>
+#include <key_io.h>
 #include <logging.h>
 #include <mapport.h>
 #include <net.h>
@@ -55,7 +56,9 @@
 #include <node/mempool_args.h>
 #include <node/mempool_persist.h>
 #include <node/mempool_persist_args.h>
+#include <node/internal_miner.h>
 #include <node/miner.h>
+#include <node/qsb_pool.h>
 #include <node/peerman_args.h>
 #include <policy/feerate.h>
 #include <policy/fees.h>
@@ -309,8 +312,16 @@ void Shutdown(NodeContext& node)
     }
     StopMapPort();
 
+    // Stop the internal miner before tearing down validation signals, chainstate,
+    // or networking. Its worker/coordinator threads read those objects directly.
+    if (node.internal_miner) {
+        node.internal_miner->Stop();
+        node.internal_miner.reset();
+    }
+
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
+    if (node.qsb_pool && node.validation_signals) node.validation_signals->UnregisterValidationInterface(node.qsb_pool.get());
     if (node.peerman && node.validation_signals) node.validation_signals->UnregisterValidationInterface(node.peerman.get());
     if (node.connman) node.connman->Stop();
 
@@ -676,12 +687,18 @@ void SetupServerArgs(ArgsManager& argsman, bool can_listen_ipc)
     argsman.AddArg("-blockreservedweight=<n>", strprintf("Reserve space for the fixed-size block header plus the largest coinbase transaction the mining software may add to the block. (default: %d).", DEFAULT_BLOCK_RESERVED_WEIGHT), ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
     argsman.AddArg("-blockmintxfee=<amt>", strprintf("Set lowest fee rate (in %s/kvB) for transactions to be included in block creation. (default: %s)", CURRENCY_UNIT, FormatMoney(DEFAULT_BLOCK_MIN_TX_FEE)), ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
     argsman.AddArg("-blockversion=<n>", "Override block version to test forking scenarios", ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-mine", "Enable internal multi-threaded mining (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-mineaddress=<addr>", "Address to receive mining rewards (required if -mine is set)", ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-minethreads=<n>", "Number of mining threads (required if -mine is set)", ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-minerandomx=<mode>", "RandomX mode: 'fast' (2GB RAM) or 'light' (256MB) (default: fast)", ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    argsman.AddArg("-minepriority=<level>", "Thread priority: 'low' (nice 19) or 'normal' (default: low)", ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
 
     argsman.AddArg("-rest", strprintf("Accept public REST requests (default: %u)", DEFAULT_REST_ENABLE), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpcallowip=<ip>", "Allow JSON-RPC connections from specified source. Valid values for <ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0), a network/CIDR (e.g. 1.2.3.4/24), all ipv4 (0.0.0.0/0), or all ipv6 (::/0). RFC4193 is allowed only if -cjdnsreachable=0. This option can be specified multiple times", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpcauth=<userpw>", "Username and HMAC-SHA-256 hashed password for JSON-RPC connections. The field <userpw> comes in the format: <USERNAME>:<SALT>$<HASH>. A canonical python script is included in share/rpcauth. The client then connects normally using the rpcuser=<USERNAME>/rpcpassword=<PASSWORD> pair of arguments. This option can be specified multiple times", ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE, OptionsCategory::RPC);
     argsman.AddArg("-rpcbind=<addr>[:port]", "Bind to given address to listen for JSON-RPC connections. Do not expose the RPC server to untrusted networks such as the public internet! This option is ignored unless -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation for IPv6. This option can be specified multiple times (default: 127.0.0.1 and ::1 i.e., localhost)", ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY, OptionsCategory::RPC);
     argsman.AddArg("-rpcdoccheck", strprintf("Throw a non-fatal error at runtime if the documentation for an RPC is incorrect (default: %u)", DEFAULT_RPC_DOC_CHECK), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::RPC);
+    argsman.AddArg("-enableqsboperator", "Enable the local-only QSB operator RPC surface. This does not change public transaction relay policy. (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpccookiefile=<loc>", "Location of the auth cookie. Relative paths will be prefixed by a net-specific datadir location. (default: data dir)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpccookieperms=<readable-by>", strprintf("Set permissions on the RPC auth cookie file so that it is readable by [owner|group|all] (default: owner [via umask 0077])"), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     argsman.AddArg("-rpcpassword=<pw>", "Password for JSON-RPC connections", ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE, OptionsCategory::RPC);
@@ -1428,6 +1445,11 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     g_wallet_init_interface.Construct(node);
     uiInterface.InitWallet();
 
+    if (args.GetBoolArg("-enableqsboperator", false)) {
+        node.qsb_pool = std::make_unique<node::QSBPool>();
+        validation_signals.RegisterValidationInterface(node.qsb_pool.get());
+    }
+
     if (interfaces::Ipc* ipc = node.init->ipc()) {
         for (std::string address : gArgs.GetArgs("-ipcbind")) {
             try {
@@ -1443,6 +1465,9 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
      * available in the GUI RPC console even if external calls are disabled.
      */
     RegisterAllCoreRPCCommands(tableRPC);
+    if (args.GetBoolArg("-enableqsboperator", false)) {
+        RegisterQSBRPCCommands(tableRPC);
+    }
     for (const auto& client : node.chain_clients) {
         client->registerRpcs();
     }
@@ -2152,6 +2177,41 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     SetRPCWarmupFinished();
 
     uiInterface.InitMessage(_("Done loading"));
+
+    if (args.GetBoolArg("-mine", false)) {
+        const std::string mine_address{args.GetArg("-mineaddress", "")};
+        const int mine_threads{static_cast<int>(args.GetIntArg("-minethreads", 0))};
+
+        const CTxDestination dest = DecodeDestination(mine_address);
+        if (!IsValidDestination(dest)) {
+            return InitError(strprintf(_("Invalid -mineaddress: %s"), mine_address));
+        }
+        const auto& expected_hrp = Params().Bech32HRP();
+        if (ToLower(mine_address.substr(0, expected_hrp.size())) != expected_hrp) {
+            return InitError(strprintf(_("mineaddress must be a bech32 address starting with %s1"), expected_hrp));
+        }
+        if (mine_threads <= 0) {
+            return InitError(_("minethreads must be set and > 0 when -mine is enabled"));
+        }
+
+        const std::string randomx_mode{ToLower(args.GetArg("-minerandomx", "fast"))};
+        if (randomx_mode != "fast" && randomx_mode != "light") {
+            return InitError(_("minerandomx must be 'fast' or 'light'"));
+        }
+        const bool fast_mode{randomx_mode == "fast"};
+
+        const std::string priority{ToLower(args.GetArg("-minepriority", "low"))};
+        if (priority != "low" && priority != "normal") {
+            return InitError(_("minepriority must be 'low' or 'normal'"));
+        }
+        const bool low_priority{priority == "low"};
+
+        const CScript coinbase_script = GetScriptForDestination(dest);
+        node.internal_miner = std::make_unique<node::InternalMiner>(*node.chainman, *node.mining, node.connman.get());
+        if (!node.internal_miner->Start(mine_threads, coinbase_script, fast_mode, low_priority)) {
+            return InitError(_("Failed to start internal miner"));
+        }
+    }
 
     for (const auto& client : node.chain_clients) {
         client->start(scheduler);

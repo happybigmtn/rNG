@@ -208,4 +208,22 @@ BOOST_AUTO_TEST_CASE(ChainParams_SIGNET_sanity)
     sanity_check_chainparams(*m_node.args, ChainType::SIGNET);
 }
 
+BOOST_AUTO_TEST_CASE(regtest_get_next_work_stays_fixed)
+{
+    const auto chainParams = CreateChainParams(*m_node.args, ChainType::REGTEST);
+    const auto& consensus = chainParams->GetConsensus();
+
+    BOOST_REQUIRE(consensus.fPowNoRetargeting);
+
+    CBlockIndex pindexLast;
+    pindexLast.nHeight = 3;
+    pindexLast.nTime = chainParams->GenesisBlock().nTime + 180;
+    pindexLast.nBits = chainParams->GenesisBlock().nBits;
+
+    CBlockHeader next_block;
+    next_block.nTime = pindexLast.nTime + 600;
+
+    BOOST_CHECK_EQUAL(GetNextWorkRequired(&pindexLast, &next_block, consensus), pindexLast.nBits);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

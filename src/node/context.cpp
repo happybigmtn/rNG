@@ -13,7 +13,9 @@
 #include <net.h>
 #include <net_processing.h>
 #include <netgroup.h>
+#include <node/internal_miner.h>
 #include <node/kernel_notifications.h>
+#include <node/qsb_pool.h>
 #include <node/warnings.h>
 #include <policy/fees.h>
 #include <scheduler.h>

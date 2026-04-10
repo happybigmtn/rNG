@@ -75,6 +75,8 @@ add_executable(test_bitcoin
   policyestimator_tests.cpp
   pool_tests.cpp
   pow_tests.cpp
+  qsb_tests.cpp
+  randomx_tests.cpp
   prevector_tests.cpp
   raii_event_tests.cpp
   random_tests.cpp

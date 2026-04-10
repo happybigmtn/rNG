@@ -254,6 +254,7 @@ add_executable(bitcoin-qt
 
 add_windows_resources(bitcoin-qt res/bitcoin-qt-res.rc)
 add_windows_application_manifest(bitcoin-qt)
+set_target_properties(bitcoin-qt PROPERTIES OUTPUT_NAME rng-qt)
 
 target_link_libraries(bitcoin-qt
   core_interface
@@ -263,6 +264,7 @@ target_link_libraries(bitcoin-qt
 
 import_plugins(bitcoin-qt)
 install_binary_component(bitcoin-qt HAS_MANPAGE)
+add_custom_target(rng-qt DEPENDS bitcoin-qt)
 if(WIN32)
   set_target_properties(bitcoin-qt PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
@@ -272,6 +274,7 @@ if(ENABLE_IPC)
     main.cpp
     ../init/bitcoin-gui.cpp
   )
+  set_target_properties(bitcoin-gui PROPERTIES OUTPUT_NAME rng-gui)
   target_link_libraries(bitcoin-gui
     core_interface
     bitcoinqt
@@ -280,6 +283,7 @@ if(ENABLE_IPC)
   )
   import_plugins(bitcoin-gui)
   install_binary_component(bitcoin-gui INTERNAL)
+  add_custom_target(rng-gui DEPENDS bitcoin-gui)
   if(WIN32)
     set_target_properties(bitcoin-gui PROPERTIES WIN32_EXECUTABLE TRUE)
   endif()

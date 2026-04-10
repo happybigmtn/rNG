@@ -9,6 +9,7 @@
 #include <consensus/params.h>
 
 #include <cstdint>
+#include <string_view>
 
 class CBlockHeader;
 class CBlockIndex;
@@ -24,7 +25,7 @@ class arith_uint256;
  * @return              the proof-of-work target or nullopt if the nBits value
  *                      is invalid (due to overflow or exceeding pow_limit)
  */
-std::optional<arith_uint256> DeriveTarget(unsigned int nBits, const uint256 pow_limit);
+std::optional<arith_uint256> DeriveTarget(unsigned int nBits, uint256 pow_limit);
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params&);
@@ -32,6 +33,38 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
 bool CheckProofOfWorkImpl(uint256 hash, unsigned int nBits, const Consensus::Params&);
+
+/**
+ * Get the RandomX seed hash for a given block index.
+ * The seed hash is derived from the block hash at the seed height.
+ * For genesis block (height 0), uses Hash(kRandomXGenesisSeedPhrase).
+ *
+ * @param pindex Block index to get seed hash for
+ * @return       The seed hash for RandomX
+ */
+inline constexpr std::string_view kRandomXGenesisSeedPhrase{"RNG Genesis Seed"};
+
+uint256 GetRandomXSeedHash(const CBlockIndex* pindex);
+
+/**
+ * Compute the RandomX PoW hash for a block header.
+ *
+ * @param header      The block header to hash
+ * @param seed_hash   The seed hash for this block's epoch
+ * @return            The RandomX hash
+ */
+uint256 GetBlockPoWHash(const CBlockHeader& header, const uint256& seed_hash);
+
+/**
+ * Check whether a block satisfies the RandomX proof-of-work requirement.
+ * This is the main PoW validation function for RNG.
+ *
+ * @param header  The block header
+ * @param pindex  The block index (for determining seed hash)
+ * @param params  Consensus parameters
+ * @return        true if PoW is valid
+ */
+bool CheckBlockProofOfWork(const CBlockHeader& header, const CBlockIndex* pindexPrev, const Consensus::Params& params);
 
 /**
  * Return false if the proof-of-work requirement specified by new_nbits at a

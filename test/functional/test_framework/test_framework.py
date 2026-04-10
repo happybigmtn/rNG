@@ -282,23 +282,31 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         paths = types.SimpleNamespace()
         binaries = {
-            "bitcoin": "BITCOIN_BIN",
-            "bitcoind": "BITCOIND",
-            "bitcoin-cli": "BITCOINCLI",
-            "bitcoin-util": "BITCOINUTIL",
-            "bitcoin-tx": "BITCOINTX",
-            "bitcoin-chainstate": "BITCOINCHAINSTATE",
-            "bitcoin-wallet": "BITCOINWALLET",
+            "bitcoin": ("BITCOIN_BIN", ["rng", "bitcoin"]),
+            "bitcoind": ("BITCOIND", ["rngd", "bitcoind"]),
+            "bitcoin-cli": ("BITCOINCLI", ["rng-cli", "bitcoin-cli"]),
+            "bitcoin-util": ("BITCOINUTIL", ["rng-util", "bitcoin-util"]),
+            "bitcoin-tx": ("BITCOINTX", ["rng-tx", "bitcoin-tx"]),
+            "bitcoin-chainstate": ("BITCOINCHAINSTATE", ["rng-chainstate", "bitcoin-chainstate"]),
+            "bitcoin-wallet": ("BITCOINWALLET", ["rng-wallet", "bitcoin-wallet"]),
         }
         # Set paths to bitcoin core binaries allowing overrides with environment
         # variables.
-        for binary, env_variable_name in binaries.items():
-            default_filename = os.path.join(
-                self.config["environment"]["BUILDDIR"],
-                "bin",
-                binary + self.config["environment"]["EXEEXT"],
-            )
-            setattr(paths, env_variable_name.lower(), os.getenv(env_variable_name, default=default_filename))
+        bin_dir = os.path.join(self.config["environment"]["BUILDDIR"], "bin")
+        exeext = self.config["environment"]["EXEEXT"]
+        for _, (env_variable_name, candidates) in binaries.items():
+            if env_val := os.getenv(env_variable_name):
+                setattr(paths, env_variable_name.lower(), env_val)
+                continue
+
+            default_filename = os.path.join(bin_dir, candidates[0] + exeext)
+            selected = default_filename
+            for candidate in candidates:
+                candidate_path = os.path.join(bin_dir, candidate + exeext)
+                if os.path.isfile(candidate_path):
+                    selected = candidate_path
+                    break
+            setattr(paths, env_variable_name.lower(), selected)
         # BITCOIN_CMD environment variable can be specified to invoke bitcoin
         # wrapper binary instead of other executables.
         paths.bitcoin_cmd = shlex.split(os.getenv("BITCOIN_CMD", "")) or None

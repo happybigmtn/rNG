@@ -1,0 +1,17 @@
+# RNG public-node example config
+# Use with contrib/init/rngd.service or rng-install-public-node.
+# Replace the rpcpassword below before exposing this host publicly.
+
+server=1
+daemon=0
+listen=1
+rpcuser=agent
+rpcpassword=replace-this-password
+rpcbind=127.0.0.1
+rpcallowip=127.0.0.1
+minerandomx=fast
+
+addnode=95.111.239.142:8433
+addnode=161.97.114.192:8433
+addnode=185.218.126.23:8433
+addnode=185.239.209.227:8433
