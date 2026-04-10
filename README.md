@@ -33,6 +33,19 @@ builder documentation is in [contrib/qsb/README.md](contrib/qsb/README.md), and
 the implementation/rollout state is preserved in [EXECPLAN.md](EXECPLAN.md) and
 [PLANS.md](PLANS.md).
 
+Live Fleet State
+----------------
+
+As of 2026-04-10, the Bitcoin Core `30.2` plus QSB build has been deployed to
+`contabo-validator-01`, `contabo-validator-02`, `contabo-validator-04`, and
+`contabo-validator-05`. The non-canary validators finished sync, the temporary
+`minimumchainwork=0` catch-up override was removed, mining was re-enabled, and
+all four validators reported the same active tip with empty QSB queues.
+
+The detailed rollout log, including binary hashes, service overrides, canary
+funding/spend transaction IDs, rollback notes, and merge-readiness state, is in
+[EXECPLAN.md](EXECPLAN.md).
+
 What Is Bitcoin Core?
 ---------------------
 

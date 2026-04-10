@@ -66,13 +66,13 @@ This plan does not assume SSH access to every published seed-peer IP. It only tr
 - [x] (2026-04-10 01:53Z) Mined the matching live QSB spend transaction `e562d60c7601e120742483cdd7f737383c424e4f55d65bc64f87fe24648fe2b8` in block `b755640d4309a4869cc0bd70947221250d16709fa40fc46f1df37596570a5d2e` at height `29947`.
 - [x] (2026-04-10 02:02Z) Created stripped rollout artifacts for the fleet wave to avoid copying the 291 MB unstripped daemon to every validator. The artifact hashes are `rngd` sha256 `36eb7509a17c15fbca062dc3427bb36d0d19cb24ec4fb299fcea09e20a5ad054` and `rng-cli` sha256 `eff7e8d116b8143f4182197e482804b74a49d8885915e24ab23eec6b3f67b92a`, both reporting RNG Core `v3.0.0`.
 - [x] (2026-04-10 02:08Z) Deployed the stripped `30.2` binary pair, the `Type=notify` systemd compatibility drop-in, `enableqsboperator=1`, and `minethreads=8` to `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05`; all three report `/RNG:3.0.0/`, `version=30000`, `qsb_operator_enabled=true`, and an empty QSB queue.
-- [ ] (2026-04-10 02:24Z) Keep `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05` in safe catch-up mode with `mine=0` until they finish header presync and report `initialblockdownload=false`. At this checkpoint, 02 is at `blocks=headers=3161` with `presynced_headers=11160`, 04 is at `blocks=headers=3159` with `presynced_headers=13158`, and 05 is at `blocks=headers=3165` with `presynced_headers=11164`; remaining work is to re-enable mining one host at a time after each converges with the canary tip.
+- [x] (2026-04-10 02:24Z) Kept `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05` in safe catch-up mode with `mine=0` while they finished header presync and reported `initialblockdownload=false`. This was completed by the 2026-04-10 13:07Z re-enable wave, when mining was restored one host at a time after each converged with the canary tip.
 - [x] (2026-04-10 02:24Z) Re-ran local verification after the live-ops fixes: `python3 -m py_compile contrib/qsb/qsb.py contrib/qsb/state.py contrib/qsb/template_v1.py contrib/qsb/submit_fleet.py`, `feature_qsb_builder.py`, `feature_qsb_rpc.py`, `feature_qsb_mining.py`, `test_bitcoin --run_test=qsb_tests`, and `test_bitcoin --run_test=pow_tests/regtest_get_next_work_stays_fixed` all passed.
 - [x] (2026-04-10 02:34Z) Opened canary P2P only to known validator IPs with UFW allowlist rules for `95.111.229.108`, `161.97.83.147`, and `161.97.97.83` on `8433/tcp`; this made TCP to `contabo-validator-01` reachable from 02/04/05, but the canary was not reliable enough as a header-sync peer to use as the primary catch-up fix.
 - [x] (2026-04-10 02:37Z) Applied a temporary catch-up override `minimumchainwork=0` on `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05`, with config backups at `/root/.rng/rng.conf.pre-minimumchainwork.20260410T023441Z`; all three remain `mine=0` and active after restart.
-- [ ] (2026-04-10 02:45Z) Confirmed that 02/04/05 moved from header presync into normal header sync after the `minimumchainwork=0` override. Current observed headers are 02 at `headers=5160`, 04 at normal `Synchronizing blockheaders, height: 5158`, and 05 at `headers=5164`; remaining work is to wait for CPU-bound RandomX header validation and block sync to reach the canary, then remove the temporary override and re-enable mining one validator at a time.
-- [ ] (2026-04-10 02:47Z) Ran a final bounded health probe. `contabo-validator-01` is active at `blocks=headers=29957`, best block `fda162a55be6273faaf2fd44ddbfe7108acfcf2b17234994f06651780b2b79a6`, `initialblockdownload=false`, `mine=1`, and an empty QSB queue. `contabo-validator-02` is active at `blocks=3161`, `headers=5160`, `initialblockdownload=true`, `mine=0`, `minimumchainwork=0`, and an empty QSB queue. `contabo-validator-04` is active with `mine=0`, `minimumchainwork=0`, and an empty QSB queue, but `getblockchaininfo` timed out during header validation. `contabo-validator-05` is active at `blocks=3165`, `headers=5164`, `initialblockdownload=true`, `mine=0`, `minimumchainwork=0`, and an empty QSB queue.
-- [ ] (2026-04-10 04:10Z) Rechecked whether the non-canary validators were ready for mining and merge. They are not ready: `contabo-validator-01` is healthy at `blocks=headers=29973`, best block `e8e1bf382bce4a39ebe32be6566bba8af8837f9c00ccbe923daa742a793b360b`, `initialblockdownload=false`, `mine=1`, and an empty QSB queue; `contabo-validator-02` is active at `blocks=3167`, `headers=25155`, `initialblockdownload=true`, `mine=0`, `minimumchainwork=0`, and an empty QSB queue; `contabo-validator-04` is active and progressing at about `blocks=5700`, `headers=29973`, `initialblockdownload=true`, `mine=0`, `minimumchainwork=0`, and an empty QSB queue; `contabo-validator-05` is active with `mine=0` and `minimumchainwork=0`, but heavier RPC calls such as `getblockchaininfo` and `getblockcount` timed out while `rngd` was CPU-bound and logs showed header sync around height `27158`. Do not re-enable mining, remove `minimumchainwork=0`, mark the PR ready, or merge until 02/04/05 all report `initialblockdownload=false` and match the canary tip.
+- [x] (2026-04-10 02:45Z) Confirmed that 02/04/05 moved from header presync into normal header sync after the `minimumchainwork=0` override. At that point, the remaining work was to wait for CPU-bound RandomX header validation and block sync to reach the canary, then remove the temporary override and re-enable mining one validator at a time.
+- [x] (2026-04-10 02:47Z) Ran a final bounded health probe before pausing the rollout. At that point, `contabo-validator-01` was active at `blocks=headers=29957`, `initialblockdownload=false`, `mine=1`, and an empty QSB queue, while `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05` were still catching up with `mine=0`, `minimumchainwork=0`, and empty QSB queues.
+- [x] (2026-04-10 04:10Z) Rechecked whether the non-canary validators were ready for mining and merge. They were not ready at that checkpoint, so mining stayed disabled and merge was held until 02/04/05 reported `initialblockdownload=false` and matched the canary tip.
 - [x] (2026-04-10 13:07Z) Completed the non-canary mining re-enable wave. `contabo-validator-02`, `contabo-validator-04`, and `contabo-validator-05` each had `/root/.rng/rng.conf` backed up to `/root/.rng/rng.conf.pre-reenable-mining.<timestamp>`, had the temporary `minimumchainwork=0` line removed, had `mine=1` set, and were restarted one at a time. After propagation settled, all four validators were active at `blocks=headers=30152`, best block `34bd351e4f724abe5acbf7f243dd06e06b1c569ac75171b4aee4bbec1c7def57`, `initialblockdownload=false`, `mine=1`, no `minimumchainwork=0`, and empty QSB queues.
 - [x] (2026-04-10 13:07Z) Identified the broad CI failure root cause for PR #1: GitHub Actions checkouts were not fetching the new `src/crypto/randomx` submodule, so CMake failed with `Missing vendored RandomX source`. Updated `.github/workflows/ci.yml` so the test-each-commit, shared build, and lint checkouts use `submodules: recursive`.
 - [x] Prototype the smallest possible non-standard bare-script funding flow on regtest and confirm that wallet funding plus direct miner submission works before full QSB integration.
@@ -81,7 +81,7 @@ This plan does not assume SSH access to every published seed-peer IP. It only tr
 - [x] Implement miner integration.
 - [x] Add unit and functional coverage for funding, spending, rejection, conflict handling, and block acceptance by unmodified peers.
 - [x] Run the canary rollout on `contabo-validator-01` with a small-value QSB funding transaction, then a matching spend transaction after confirmation.
-- [ ] Roll the validated build to the remaining reachable validators and document the exact outcome in this file.
+- [x] Roll the validated build to the remaining reachable validators and document the exact outcome in this file.
 
 ## Surprises & Discoveries
 
@@ -379,12 +379,13 @@ Expected canary proof:
 
 Live funding submission on the canary:
 
-    python3 contrib/qsb/qsb.py live-fund \
+    python3 contrib/qsb/qsb.py toy-funding \
       --rpc-url http://127.0.0.1:18435 \
       --rpc-user <rpcuser> \
       --rpc-password <rpcpassword> \
       --wallet miner \
       --amount 0.01 \
+      --fee-rate-sat-vb 1 \
       --state-file ./qsb-canary.json
     ssh contabo-validator-01 '/root/rng-cli -conf=/root/.rng/rng.conf -datadir=/root/.rng submitqsbtransaction "<hex>"'
     ssh contabo-validator-01 '/root/rng-cli -conf=/root/.rng/rng.conf -datadir=/root/.rng listqsbtransactions'
@@ -399,11 +400,10 @@ Expected funding proof:
 
 After one confirmation, live spend submission on the canary:
 
-    python3 contrib/qsb/qsb.py live-spend \
+    python3 contrib/qsb/qsb.py toy-spend \
       --state-file ./qsb-canary.json \
-      --destination rng1... \
-      --amount 0.009 \
-      --fee-rate 0.0001
+      --destination-address rng1... \
+      --fee-sats 1000
     ssh contabo-validator-01 '/root/rng-cli -conf=/root/.rng/rng.conf -datadir=/root/.rng submitqsbtransaction "<hex>"'
     ssh contabo-validator-01 '/root/rng-cli -conf=/root/.rng/rng.conf -datadir=/root/.rng listqsbtransactions'
 
@@ -511,7 +511,7 @@ Seed-peer SSH gap artifact:
 
 ## Interfaces and Dependencies
 
-The QSB builder lives under `contrib/qsb/` and depends on Python 3 plus a pinned `requirements.txt`. It must expose a single CLI entry point, `contrib/qsb/qsb.py`, with subcommands for `toy-funding`, `live-fund`, and `live-spend`. The CLI must write a durable state file that records the template version, funding txid, funding vout, destination address, fee assumptions, and whether the one-time spend has already been consumed.
+The QSB builder lives under `contrib/qsb/` and depends on Python 3 plus a pinned `requirements.txt`. It must expose a single CLI entry point, `contrib/qsb/qsb.py`, with subcommands for `fixture`, `toy-funding`, and `toy-spend`. The CLI must write a durable state file that records the template version, funding txid, funding vout, destination address, fee assumptions, and whether the one-time spend has already been consumed.
 
 In `src/script/qsb.h`, define:
 
@@ -582,3 +582,5 @@ Change note (2026-04-10): Added the canary firewall allowlist attempt and the te
 Change note (2026-04-10): Rechecked the live Contabo validators after the merge-readiness fixes: 01/02/04/05 were all active at height 30178 on block `c2cedea70322daaa1ceb136a5eb39c6d7dc27549ff81ec2e86fe48bb8bb82cf4`, with `mine=1`, no `minimumchainwork=0`, and empty QSB queues. Reason: this records the go-forward fleet state before merging or tagging the Bitcoin Core 30.2 + QSB branch.
 
 Change note (2026-04-10): Added CI hardening for RandomX and QSB: patch the copied RandomX CMake metadata, keep RandomX's own C++ linkage, suppress third-party RandomX documentation warnings at the include boundary, split deterministic fixture secret material, and fix lint/build annotations around QSB mining. Reason: these changes remove merge-blocking CI failures without changing RNG consensus parameters.
+
+Change note (2026-04-10): Updated the README and this ExecPlan for merge readiness: the fleet rollout is now recorded as complete, stale `live-fund` and `live-spend` examples were replaced with the implemented `toy-funding` and `toy-spend` commands, and the README now points operators to the completed Contabo rollout state. Reason: the branch is being prepared for PR #2 merge, so the public entry point and living plan must agree with the shipped implementation.
