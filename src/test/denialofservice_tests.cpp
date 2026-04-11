@@ -151,7 +151,11 @@ BOOST_FIXTURE_TEST_CASE(stale_tip_peer_management, OutboundTest)
 
     const auto time_init{GetTime<std::chrono::seconds>()};
     SetMockTime(time_init);
-    const auto time_later{time_init + 3 * std::chrono::seconds{m_node.chainman->GetConsensus().nPowTargetSpacing} + 1s};
+    const auto stale_tip_elapsed{3 * std::chrono::seconds{m_node.chainman->GetConsensus().nPowTargetSpacing} + 1s};
+    // CheckForStaleTipAndEvictPeers() only reevaluates stale tips every 10 minutes.
+    // RNG's shorter block spacing means the stale-tip threshold can be reached sooner.
+    const auto stale_tip_recheck_elapsed{10min + 1s};
+    const auto time_later{time_init + (stale_tip_elapsed > stale_tip_recheck_elapsed ? stale_tip_elapsed : stale_tip_recheck_elapsed)};
     connman->Init(options);
     std::vector<CNode *> vNodes;
 

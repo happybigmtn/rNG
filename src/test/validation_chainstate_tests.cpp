@@ -22,6 +22,20 @@
 
 BOOST_FIXTURE_TEST_SUITE(validation_chainstate_tests, ChainTestingSetup)
 
+namespace {
+
+constexpr int REGTEST_ASSUMEUTXO_HEIGHT{110};
+
+bool SkipSnapshotTestIfUnavailable(const CChainParams& params)
+{
+    if (params.AssumeutxoForHeight(REGTEST_ASSUMEUTXO_HEIGHT)) return false;
+
+    BOOST_TEST_MESSAGE("Skipping snapshot-dependent test: regtest assumeutxo data is not configured for RNG");
+    return true;
+}
+
+} // namespace
+
 //! Test resizing coins-related Chainstate caches during runtime.
 //!
 BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches)
@@ -70,6 +84,7 @@ BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches)
 BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup)
 {
     ChainstateManager& chainman = *Assert(m_node.chainman);
+    if (SkipSnapshotTestIfUnavailable(chainman.GetParams())) return;
     const auto get_notify_tip{[&]() {
         LOCK(m_node.notifications->m_tip_block_mutex);
         BOOST_REQUIRE(m_node.notifications->TipBlock());
