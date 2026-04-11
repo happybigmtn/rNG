@@ -143,11 +143,11 @@ private:
     struct MiningContext {
         CBlock block;              // Block template (workers modify nNonce only)
         uint256 seed_hash;         // RandomX seed hash
-        unsigned int nBits;        // Difficulty bits for CheckProofOfWork
-        uint64_t job_id;           // Monotonic ID to detect staleness
-        int height;                // Block height being mined
+        unsigned int nBits{0};     // Difficulty bits for CheckProofOfWork
+        uint64_t job_id{0};        // Monotonic ID to detect staleness
+        int height{0};             // Block height being mined
 
-        MiningContext() : nBits(0), job_id(0), height(0) {}
+        MiningContext() = default;
     };
 
     /**

@@ -3,9 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <clientversion.h>
+#include <base58.h>
 #include <common/signmessage.h>
 #include <hash.h>
 #include <key.h>
+#include <key_io.h>
 #include <script/parsing.h>
 #include <span.h>
 #include <sync.h>
@@ -90,6 +92,30 @@ public:
         return Assume(get_ip1() != 5);
     }
 };
+
+std::string ReencodeLegacyBase58Destination(const std::string& legacy_address)
+{
+    std::vector<unsigned char> data;
+    if (!DecodeBase58Check(legacy_address, data, 21)) {
+        BOOST_FAIL("Failed to decode base58 destination");
+        return {};
+    }
+    if (data.size() != 21U) {
+        BOOST_FAIL("Unexpected decoded base58 destination length");
+        return {};
+    }
+
+    const std::vector<unsigned char> payload{data.begin() + 1, data.end()};
+    switch (data.front()) {
+    case 0:
+        return EncodeDestination(PKHash(uint160{payload}));
+    case 5:
+        return EncodeDestination(ScriptHash(uint160{payload}));
+    default:
+        BOOST_FAIL("Unsupported legacy base58 destination prefix");
+        return {};
+    }
+}
 } // namespace
 
 BOOST_AUTO_TEST_CASE(util_check)
@@ -1448,7 +1474,7 @@ BOOST_AUTO_TEST_CASE(message_sign)
 {
     const std::array<unsigned char, 32> privkey_bytes = {
         // just some random data
-        // derived address from this private key: 15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs
+        // Bitcoin mainnet legacy address from this private key: 15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs
         0xD9, 0x7F, 0x51, 0x08, 0xF1, 0x1C, 0xDA, 0x6E,
         0xEE, 0xBA, 0xAA, 0x42, 0x0F, 0xEF, 0x07, 0x26,
         0xB1, 0xF8, 0x98, 0x06, 0x0B, 0x98, 0x48, 0x9F,
@@ -1482,6 +1508,11 @@ BOOST_AUTO_TEST_CASE(message_sign)
 
 BOOST_AUTO_TEST_CASE(message_verify)
 {
+    const std::string no_key_address{ReencodeLegacyBase58Destination("3B5fQsEXEaV8v6U3ejYc8XaKXAkyQj2MjV")};
+    const std::string invalid_signature_address{ReencodeLegacyBase58Destination("1KqbBpLy5FARmTPD4VZnDDpYjkUvkr82Pm")};
+    const std::string signed_address{ReencodeLegacyBase58Destination("15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs")};
+    const std::string leading_zero_address{ReencodeLegacyBase58Destination("11canuhp9X2NocwCq7xNrQYTmUgZAnLK3")};
+
     BOOST_CHECK_EQUAL(
         MessageVerify(
             "invalid address",
@@ -1491,42 +1522,42 @@ BOOST_AUTO_TEST_CASE(message_verify)
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "3B5fQsEXEaV8v6U3ejYc8XaKXAkyQj2MjV",
+            no_key_address,
             "signature should be irrelevant",
             "message too"),
         MessageVerificationResult::ERR_ADDRESS_NO_KEY);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "1KqbBpLy5FARmTPD4VZnDDpYjkUvkr82Pm",
+            invalid_signature_address,
             "invalid signature, not in base64 encoding",
             "message should be irrelevant"),
         MessageVerificationResult::ERR_MALFORMED_SIGNATURE);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "1KqbBpLy5FARmTPD4VZnDDpYjkUvkr82Pm",
+            invalid_signature_address,
             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             "message should be irrelevant"),
         MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs",
+            signed_address,
             "IPojfrX2dfPnH26UegfbGQQLrdK844DlHq5157/P6h57WyuS/Qsl+h/WSVGDF4MUi4rWSswW38oimDYfNNUBUOk=",
             "I never signed this"),
         MessageVerificationResult::ERR_NOT_SIGNED);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs",
+            signed_address,
             "IPojfrX2dfPnH26UegfbGQQLrdK844DlHq5157/P6h57WyuS/Qsl+h/WSVGDF4MUi4rWSswW38oimDYfNNUBUOk=",
             "Trust no one"),
         MessageVerificationResult::OK);
 
     BOOST_CHECK_EQUAL(
         MessageVerify(
-            "11canuhp9X2NocwCq7xNrQYTmUgZAnLK3",
+            leading_zero_address,
             "IIcaIENoYW5jZWxsb3Igb24gYnJpbmsgb2Ygc2Vjb25kIGJhaWxvdXQgZm9yIGJhbmtzIAaHRtbCeDZINyavx14=",
             "Trust me"),
         MessageVerificationResult::OK);

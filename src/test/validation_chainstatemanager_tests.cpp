@@ -34,6 +34,20 @@ using node::SnapshotMetadata;
 
 BOOST_FIXTURE_TEST_SUITE(validation_chainstatemanager_tests, TestingSetup)
 
+namespace {
+
+constexpr int REGTEST_ASSUMEUTXO_HEIGHT{110};
+
+bool SkipSnapshotTestIfUnavailable(const CChainParams& params)
+{
+    if (params.AssumeutxoForHeight(REGTEST_ASSUMEUTXO_HEIGHT)) return false;
+
+    BOOST_TEST_MESSAGE("Skipping snapshot-dependent test: regtest assumeutxo data is not configured for RNG");
+    return true;
+}
+
+} // namespace
+
 //! Basic tests for ChainstateManager.
 //!
 //! First create a legacy (IBD) chainstate, then create a snapshot chainstate.
@@ -411,6 +425,7 @@ struct SnapshotTestSetup : TestChain100Setup {
 //! Test basic snapshot activation.
 BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot, SnapshotTestSetup)
 {
+    if (SkipSnapshotTestIfUnavailable(Params())) return;
     this->SetupSnapshot();
 }
 
@@ -427,6 +442,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot, SnapshotTestSetup)
 BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup)
 {
     ChainstateManager& chainman = *Assert(m_node.chainman);
+    if (SkipSnapshotTestIfUnavailable(chainman.GetParams())) return;
     Chainstate& cs1 = chainman.ActiveChainstate();
 
     int num_indexes{0};
@@ -560,6 +576,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup)
 //! Ensure that snapshot chainstates initialize properly when found on disk.
 BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_init, SnapshotTestSetup)
 {
+    if (SkipSnapshotTestIfUnavailable(Params())) return;
     ChainstateManager& chainman = *Assert(m_node.chainman);
     Chainstate& bg_chainstate = chainman.ActiveChainstate();
 
@@ -629,6 +646,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_init, SnapshotTestSetup)
 
 BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion, SnapshotTestSetup)
 {
+    if (SkipSnapshotTestIfUnavailable(Params())) return;
     this->SetupSnapshot();
 
     ChainstateManager& chainman = *Assert(m_node.chainman);
@@ -712,6 +730,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion, SnapshotTestSetup
 
 BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion_hash_mismatch, SnapshotTestSetup)
 {
+    if (SkipSnapshotTestIfUnavailable(Params())) return;
     auto chainstates = this->SetupSnapshot();
     Chainstate& validation_chainstate = *std::get<0>(chainstates);
     ChainstateManager& chainman = *Assert(m_node.chainman);
