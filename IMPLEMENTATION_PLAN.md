@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 1: Spec Truthfulness and Documentation Hygiene
 
-- [ ] `TRUTH-03` Reconcile `specs/consensus.md` block timing claim with actual mainnet params
-
-  Spec: `specs/120426-consensus-chain-rules.md`
-  Why now: `specs/120426-consensus-chain-rules.md` and `specs/consensus.md` both state 120-second block target. But `src/kernel/chainparams.cpp` line 112 confirms `nPowTargetSpacing = 120` for mainnet while lines 229, 323, 454, 534 show testnet/testnet4/signet/regtest all use `nPowTargetSpacing = 60`. The `fPowAllowMinDifficultyBlocks = true` on mainnet (line 115) is unusual — Bitcoin only sets this on testnets. Both facts should be explicitly documented.
-  Codebase evidence: `src/kernel/chainparams.cpp:112` (`nPowTargetSpacing = 120` mainnet), `src/kernel/chainparams.cpp:115` (`fPowAllowMinDifficultyBlocks = true` mainnet), `src/kernel/chainparams.cpp:229` (`nPowTargetSpacing = 60` testnet).
-  Owns: `specs/consensus.md` — add explicit note about mainnet min-difficulty-blocks policy and per-network block spacing table.
-  Integration touchpoints: `specs/testnets.md` (should reflect 60s spacing).
-  Scope boundary: Document the facts. Do not change the consensus parameters.
-  Acceptance criteria: `specs/consensus.md` includes a table showing block spacing per network (mainnet=120s, testnet/regtest=60s). `fPowAllowMinDifficultyBlocks=true` on mainnet is documented with rationale or flagged as open question.
-  Verification: `grep "fPowAllowMinDifficultyBlocks" src/kernel/chainparams.cpp` output matches documented values.
-  Required tests: None (documentation only).
-  Dependencies: None.
-  Estimated scope: XS
-  Completion signal: `specs/consensus.md` matches `src/kernel/chainparams.cpp` on all timing and difficulty parameters.
-
 - [ ] `CHKPT-01` Checkpoint: Spec truthfulness review
 
   Spec: `specs/*.md` (audit only; no new spec introduced by this checkpoint)

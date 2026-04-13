@@ -8,7 +8,8 @@ Define the consensus rules governing RNG's blockchain: block timing, subsidy sch
 
 ### Verified Facts (grounded in source code)
 
-- **Block target spacing**: 120 seconds (`nPowTargetSpacing = 120` in `src/kernel/chainparams.cpp`)
+- **Mainnet block target spacing**: 120 seconds (`nPowTargetSpacing = 120` in `src/kernel/chainparams.cpp`)
+- **Non-mainnet block target spacing**: 60 seconds on testnet, testnet4, signet, and regtest (`nPowTargetSpacing = 60` in `src/kernel/chainparams.cpp`)
 - **Initial block subsidy**: 50 RNG (`GetBlockSubsidy()` in `src/validation.cpp`, halving interval 2,100,000 blocks)
 - **Halving interval**: 2,100,000 blocks (`nSubsidyHalvingInterval = 2100000` in `src/kernel/chainparams.cpp`)
 - **Tail emission floor**: 0.6 RNG per block (custom modification to `GetBlockSubsidy()`)
@@ -19,7 +20,7 @@ Define the consensus rules governing RNG's blockchain: block timing, subsidy sch
 - **Difficulty algorithm**: Per-block LWMA retarget (Monero-style), replacing Bitcoin's 2016-block epoch retarget
 - **Difficulty window**: 720 blocks (`nDifficultyWindow = 720` in `src/kernel/chainparams.cpp`)
 - **Difficulty timestamp cut**: 60 (`nDifficultyCut = 60` — sorted window trims 60 from each end)
-- **Minimum difficulty allowed on mainnet**: `fPowAllowMinDifficultyBlocks = true`
+- **Minimum-difficulty flag on mainnet**: `fPowAllowMinDifficultyBlocks = true`
 - **Retargeting enabled**: `fPowNoRetargeting = false` (mainnet)
 - **Proof-of-work function**: RandomX (replaces SHA256d; see `src/crypto/randomx_hash.cpp`)
 - **Smallest unit**: 1 roshi = 0.00000001 RNG (same precision as satoshi)
@@ -38,6 +39,21 @@ Define the consensus rules governing RNG's blockchain: block timing, subsidy sch
 - **BIP94 enforcement**: disabled (`enforce_BIP94 = false`)
 - **Prune-after height**: 100,000 blocks
 
+### Network Timing And Difficulty Parameters
+
+| Network | Target spacing | Target timespan | Difficulty interval helper | LWMA window / cut | `fPowAllowMinDifficultyBlocks` | `fPowNoRetargeting` | `enforce_BIP94` |
+|---------|----------------|-----------------|----------------------------|-------------------|-------------------------------|---------------------|-----------------|
+| Mainnet | 120 seconds | 120 seconds | 1 block | 720 / 60 | `true` | `false` | `false` |
+| Testnet | 60 seconds | 14 days | 20,160 blocks | 720 / 60 | `true` | `false` | `false` |
+| Testnet4 | 60 seconds | 14 days | 20,160 blocks | 720 / 60 | `true` | `false` | `true` |
+| Signet | 60 seconds | 14 days | 20,160 blocks | 720 / 60 | `false` | `false` | `false` |
+| Regtest | 60 seconds | 1 day | 1,440 blocks | 720 / 60 | `true` | `true` | configurable |
+
+`nDifficultyWindow` and `nDifficultyCut` default to 720 and 60 in
+`src/consensus/params.h`; mainnet sets the same values explicitly. Regtest keeps
+those values in params, but `fPowNoRetargeting = true` makes
+`GetNextWorkRequired()` return the previous block's difficulty.
+
 ### Recommendations (intended system, not yet in code)
 
 - Protocol-native pooled mining would add `DEPLOYMENT_SHAREPOOL` to the BIP9 deployment list
@@ -46,7 +62,7 @@ Define the consensus rules governing RNG's blockchain: block timing, subsidy sch
 
 ### Hypotheses / Unresolved Questions
 
-- Whether `fPowAllowMinDifficultyBlocks = true` on mainnet is intentional long-term policy or a launch convenience (no difficulty floor enforcement means solo mining on empty network won't stall, but may affect difficulty stability at scale)
+- Whether `fPowAllowMinDifficultyBlocks = true` on mainnet is intentional long-term policy, launch-era configuration, or stale configuration. The current LWMA `GetNextWorkRequired()` path in `src/pow.cpp` does not branch on this flag, so its practical effect is unresolved.
 - Exact supply cap: tail emission at 0.6 RNG makes total supply theoretically unbounded; the documented "1,000,000,000 RNG" figure is not a hard consensus cap
 
 ## Acceptance Criteria
@@ -91,11 +107,15 @@ rng-cli getblockchaininfo | jq '.softforks.segwit'
 # Verify Taproot active from genesis
 rng-cli getblockchaininfo | jq '.softforks.taproot'
 # status: "active"
+
+# Verify documented per-network timing and difficulty params against source
+rg -n "nPowTargetSpacing|fPowAllowMinDifficultyBlocks|fPowNoRetargeting|enforce_BIP94" src/kernel/chainparams.cpp
+rg -n "Mainnet \\|.*120 seconds|Testnet \\|.*60 seconds|Regtest \\|.*60 seconds" specs/consensus.md specs/120426-consensus-chain-rules.md
 ```
 
 ## Open Questions
 
-1. Is `fPowAllowMinDifficultyBlocks = true` intended as permanent mainnet policy? On Bitcoin, this flag is testnet-only. On RNG it enables mining when the network is sparse but could allow difficulty manipulation at higher hashrate.
+1. Is `fPowAllowMinDifficultyBlocks = true` intended as permanent mainnet policy? On Bitcoin, this flag is testnet-only. On RNG it is currently configured on mainnet, but the LWMA difficulty implementation does not branch on it.
 2. Should the documented "1 billion RNG" supply figure be reconciled with the unbounded tail emission? The tail emission means supply grows perpetually at 0.6 RNG/block after all halvings complete.
 3. Does the 720-block difficulty window need tuning as network hashrate grows? The current window is calibrated for a small operator-seeded network.
 4. Should `enforce_BIP94` be enabled in a future release? It is currently `false` on mainnet.
