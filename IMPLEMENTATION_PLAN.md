@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 1: Spec Truthfulness and Documentation Hygiene
 
-- [ ] `TRUTH-02` Audit and correct `specs/agent-integration.md` for implemented vs aspirational features
-
-  Spec: `specs/120426-wallet-rpc-surface.md`
-  Why now: `specs/agent-integration.md` documents RPCs like `createagentwallet`, `startmining`, `pool-mine`, `register-agent`, MCP server tools (`rng_balance`, `rng_send`, etc.), webhook endpoints, and autonomy budgets — none of which exist in the codebase. External integrators reading these specs would write code against a phantom API.
-  Codebase evidence: `grep -r "createagentwallet\|startmining\|pool-mine\|register-agent\|rng_balance\|rng_send\|rng-mcp" src/` returns zero matches. No MCP server binary exists. No webhook infrastructure exists.
-  Owns: `specs/agent-integration.md` — clearly mark all unimplemented features as "Planned" with an explicit "Not Yet Implemented" label, or move them to a separate future-work document.
-  Integration touchpoints: `specs/agent-ecosystem.md` (references agent-integration surfaces); README.md (links to specs).
-  Scope boundary: Label existing vs planned. Do not implement any of the planned features. Do not delete the aspirational content — mark it clearly.
-  Acceptance criteria: Every RPC, MCP tool, webhook, and autonomy config in `specs/agent-integration.md` is either (a) verified to exist in `src/` with a file:line citation, or (b) labeled `[NOT YET IMPLEMENTED]`. A "Current Status" section at the top summarizes what works today.
-  Verification: For each RPC claimed as implemented, `grep -r "<rpc_name>" src/rpc/ src/wallet/rpc/` returns a match.
-  Required tests: None (documentation only).
-  Dependencies: `SYNC-01` (need merged codebase to verify QSB RPCs).
-  Estimated scope: S
-  Completion signal: `specs/agent-integration.md` has zero unlabeled phantom features.
-
 - [ ] `TRUTH-03` Reconcile `specs/consensus.md` block timing claim with actual mainnet params
 
   Spec: `specs/120426-consensus-chain-rules.md`
