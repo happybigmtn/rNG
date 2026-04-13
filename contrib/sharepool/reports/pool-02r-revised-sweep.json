@@ -1,0 +1,896 @@
+{
+  "candidates": [
+    {
+      "cold_start": {
+        "blocks_before_full_window": 60,
+        "included": true
+      },
+      "id": "rejected_10s",
+      "name": "10-second rejected baseline",
+      "reward_window_work": 720,
+      "role": "comparison",
+      "seed_42": {
+        "blocks": 100,
+        "coefficient_of_variation_percent": 25.10297804,
+        "mean_reward_roshi": 519754649.93,
+        "mean_reward_share": 0.10395093,
+        "miner": "miner_10pct",
+        "miner_fraction": 0.1,
+        "reward_window_work": 720,
+        "seed": 42,
+        "shares_per_block": 12
+      },
+      "shares_per_block": 12,
+      "status": "comparison_fail",
+      "stress_seeds": [
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 18.81135196,
+          "mean_reward_roshi": 526007974.45,
+          "mean_reward_share": 0.10520159,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 1,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 17.45662046,
+          "mean_reward_roshi": 478920371.54,
+          "mean_reward_share": 0.09578407,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 2,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 9.41441847,
+          "mean_reward_roshi": 521002790.49,
+          "mean_reward_share": 0.10420056,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 3,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 10.47973916,
+          "mean_reward_roshi": 532536095.2,
+          "mean_reward_share": 0.10650722,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 4,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 11.40385493,
+          "mean_reward_roshi": 557357141.85,
+          "mean_reward_share": 0.11147143,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 5,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 9.48518284,
+          "mean_reward_roshi": 537551570.72,
+          "mean_reward_share": 0.10751031,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 6,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 31.33413387,
+          "mean_reward_roshi": 587813059.84,
+          "mean_reward_share": 0.11756261,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 7,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 18.65940317,
+          "mean_reward_roshi": 427228589.78,
+          "mean_reward_share": 0.08544572,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 8,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 13.48852568,
+          "mean_reward_roshi": 662667929.88,
+          "mean_reward_share": 0.13253359,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 9,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 12.94088167,
+          "mean_reward_roshi": 520089521.19,
+          "mean_reward_share": 0.1040179,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 10,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 15.57780756,
+          "mean_reward_roshi": 530387175.06,
+          "mean_reward_share": 0.10607744,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 11,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 20.37728641,
+          "mean_reward_roshi": 454336383.58,
+          "mean_reward_share": 0.09086728,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 12,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 20.83252903,
+          "mean_reward_roshi": 446744055.5,
+          "mean_reward_share": 0.08934881,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 13,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 20.12673248,
+          "mean_reward_roshi": 465239752.45,
+          "mean_reward_share": 0.09304795,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 14,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 13.73376109,
+          "mean_reward_roshi": 455602307.4,
+          "mean_reward_share": 0.09112046,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 15,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.58479649,
+          "mean_reward_roshi": 537738119.56,
+          "mean_reward_share": 0.10754762,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 16,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.45419541,
+          "mean_reward_roshi": 480623746.98,
+          "mean_reward_share": 0.09612475,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 17,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 25.71777293,
+          "mean_reward_roshi": 411815531.92,
+          "mean_reward_share": 0.08236311,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 18,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 16.70144618,
+          "mean_reward_roshi": 455009654.99,
+          "mean_reward_share": 0.09100193,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 19,
+          "shares_per_block": 12
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 16.43816776,
+          "mean_reward_roshi": 586370267.85,
+          "mean_reward_share": 0.11727405,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 720,
+          "seed": 20,
+          "shares_per_block": 12
+        }
+      ],
+      "stress_summary": {
+        "failing_seeds": [
+          {
+            "coefficient_of_variation_percent": 18.81135196,
+            "seed": 1
+          },
+          {
+            "coefficient_of_variation_percent": 17.45662046,
+            "seed": 2
+          },
+          {
+            "coefficient_of_variation_percent": 10.47973916,
+            "seed": 4
+          },
+          {
+            "coefficient_of_variation_percent": 11.40385493,
+            "seed": 5
+          },
+          {
+            "coefficient_of_variation_percent": 31.33413387,
+            "seed": 7
+          },
+          {
+            "coefficient_of_variation_percent": 18.65940317,
+            "seed": 8
+          },
+          {
+            "coefficient_of_variation_percent": 13.48852568,
+            "seed": 9
+          },
+          {
+            "coefficient_of_variation_percent": 12.94088167,
+            "seed": 10
+          },
+          {
+            "coefficient_of_variation_percent": 15.57780756,
+            "seed": 11
+          },
+          {
+            "coefficient_of_variation_percent": 20.37728641,
+            "seed": 12
+          },
+          {
+            "coefficient_of_variation_percent": 20.83252903,
+            "seed": 13
+          },
+          {
+            "coefficient_of_variation_percent": 20.12673248,
+            "seed": 14
+          },
+          {
+            "coefficient_of_variation_percent": 13.73376109,
+            "seed": 15
+          },
+          {
+            "coefficient_of_variation_percent": 25.71777293,
+            "seed": 18
+          },
+          {
+            "coefficient_of_variation_percent": 16.70144618,
+            "seed": 19
+          },
+          {
+            "coefficient_of_variation_percent": 16.43816776,
+            "seed": 20
+          }
+        ],
+        "max_cv_percent": 31.33413387,
+        "mean_cv_percent": 15.90093038,
+        "min_cv_percent": 7.45419541
+      },
+      "target_share_spacing_seconds": 10,
+      "window_horizon_blocks": 60.0,
+      "window_horizon_seconds": 7200
+    },
+    {
+      "cold_start": {
+        "blocks_before_full_window": 60,
+        "included": true
+      },
+      "id": "secondary_2s",
+      "name": "2-second secondary candidate",
+      "reward_window_work": 3600,
+      "role": "secondary",
+      "seed_42": {
+        "blocks": 100,
+        "coefficient_of_variation_percent": 7.17360085,
+        "mean_reward_roshi": 485873422.9,
+        "mean_reward_share": 0.09717468,
+        "miner": "miner_10pct",
+        "miner_fraction": 0.1,
+        "reward_window_work": 3600,
+        "seed": 42,
+        "shares_per_block": 60
+      },
+      "shares_per_block": 60,
+      "status": "fail",
+      "stress_seeds": [
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.59247101,
+          "mean_reward_roshi": 511429053.4,
+          "mean_reward_share": 0.10228581,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 1,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 6.99374524,
+          "mean_reward_roshi": 482507744.84,
+          "mean_reward_share": 0.09650155,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 2,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.34370332,
+          "mean_reward_roshi": 492363167.31,
+          "mean_reward_share": 0.09847263,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 3,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.95343936,
+          "mean_reward_roshi": 510614633.2,
+          "mean_reward_share": 0.10212293,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 4,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 9.97453933,
+          "mean_reward_roshi": 499677330.43,
+          "mean_reward_share": 0.09993547,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 5,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.41899133,
+          "mean_reward_roshi": 524961046.99,
+          "mean_reward_share": 0.10499221,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 6,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.2639195,
+          "mean_reward_roshi": 514502883.42,
+          "mean_reward_share": 0.10290058,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 7,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 9.13262238,
+          "mean_reward_roshi": 471737767.33,
+          "mean_reward_share": 0.09434755,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 8,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 10.3324859,
+          "mean_reward_roshi": 575254642.76,
+          "mean_reward_share": 0.11505093,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 9,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.39042231,
+          "mean_reward_roshi": 483577777.57,
+          "mean_reward_share": 0.09671556,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 10,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 6.02443577,
+          "mean_reward_roshi": 509633954.33,
+          "mean_reward_share": 0.10192679,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 11,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.72800395,
+          "mean_reward_roshi": 459447252.53,
+          "mean_reward_share": 0.09188945,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 12,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 8.99140092,
+          "mean_reward_roshi": 477374282.15,
+          "mean_reward_share": 0.09547486,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 13,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.21693996,
+          "mean_reward_roshi": 480593034.85,
+          "mean_reward_share": 0.09611861,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 14,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 6.78915883,
+          "mean_reward_roshi": 479558644.69,
+          "mean_reward_share": 0.09591173,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 15,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 8.14152626,
+          "mean_reward_roshi": 498930330.02,
+          "mean_reward_share": 0.09978607,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 16,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.85665988,
+          "mean_reward_roshi": 458949690.25,
+          "mean_reward_share": 0.09178994,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 17,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 10.33353533,
+          "mean_reward_roshi": 474574515.35,
+          "mean_reward_share": 0.0949149,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 18,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.14072628,
+          "mean_reward_roshi": 474750418.55,
+          "mean_reward_share": 0.09495008,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 19,
+          "shares_per_block": 60
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.57897536,
+          "mean_reward_roshi": 550305390.95,
+          "mean_reward_share": 0.11006108,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 3600,
+          "seed": 20,
+          "shares_per_block": 60
+        }
+      ],
+      "stress_summary": {
+        "failing_seeds": [
+          {
+            "coefficient_of_variation_percent": 10.3324859,
+            "seed": 9
+          },
+          {
+            "coefficient_of_variation_percent": 10.33353533,
+            "seed": 18
+          }
+        ],
+        "max_cv_percent": 10.33353533,
+        "mean_cv_percent": 7.15988511,
+        "min_cv_percent": 4.21693996
+      },
+      "target_share_spacing_seconds": 2,
+      "window_horizon_blocks": 60.0,
+      "window_horizon_seconds": 7200
+    },
+    {
+      "cold_start": {
+        "blocks_before_full_window": 60,
+        "included": true
+      },
+      "id": "primary_1s",
+      "name": "1-second primary candidate",
+      "reward_window_work": 7200,
+      "role": "primary",
+      "seed_42": {
+        "blocks": 100,
+        "coefficient_of_variation_percent": 3.33048048,
+        "mean_reward_roshi": 487728441.13,
+        "mean_reward_share": 0.09754569,
+        "miner": "miner_10pct",
+        "miner_fraction": 0.1,
+        "reward_window_work": 7200,
+        "seed": 42,
+        "shares_per_block": 120
+      },
+      "shares_per_block": 120,
+      "status": "pass",
+      "stress_seeds": [
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 3.08213445,
+          "mean_reward_roshi": 510188904.72,
+          "mean_reward_share": 0.10203778,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 1,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.48714459,
+          "mean_reward_roshi": 494477362.36,
+          "mean_reward_share": 0.09889547,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 2,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 3.51952078,
+          "mean_reward_roshi": 494081373.76,
+          "mean_reward_share": 0.09881627,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 3,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.5310731,
+          "mean_reward_roshi": 501084141.55,
+          "mean_reward_share": 0.10021683,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 4,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.16432886,
+          "mean_reward_roshi": 493646911.08,
+          "mean_reward_share": 0.09872938,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 5,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 3.65883297,
+          "mean_reward_roshi": 517816653.42,
+          "mean_reward_share": 0.10356333,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 6,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.81471332,
+          "mean_reward_roshi": 499281336.8,
+          "mean_reward_share": 0.09985627,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 7,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 8.06160552,
+          "mean_reward_roshi": 490798314.96,
+          "mean_reward_share": 0.09815966,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 8,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 6.56445105,
+          "mean_reward_roshi": 563176082.65,
+          "mean_reward_share": 0.11263522,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 9,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.94055043,
+          "mean_reward_roshi": 493444588.78,
+          "mean_reward_share": 0.09868892,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 10,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 2.32375139,
+          "mean_reward_roshi": 506799606.22,
+          "mean_reward_share": 0.10135992,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 11,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.26472506,
+          "mean_reward_roshi": 465338238.68,
+          "mean_reward_share": 0.09306765,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 12,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.83462948,
+          "mean_reward_roshi": 489437839.93,
+          "mean_reward_share": 0.09788757,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 13,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 2.7213984,
+          "mean_reward_roshi": 482975909.88,
+          "mean_reward_share": 0.09659518,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 14,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.67719068,
+          "mean_reward_roshi": 485486435.01,
+          "mean_reward_share": 0.09709729,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 15,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.155676,
+          "mean_reward_roshi": 502782493.66,
+          "mean_reward_share": 0.1005565,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 16,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 4.46893272,
+          "mean_reward_roshi": 474669912.19,
+          "mean_reward_share": 0.09493398,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 17,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 7.97882421,
+          "mean_reward_roshi": 487737125.95,
+          "mean_reward_share": 0.09754743,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 18,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.40662864,
+          "mean_reward_roshi": 490918408.4,
+          "mean_reward_share": 0.09818368,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 19,
+          "shares_per_block": 120
+        },
+        {
+          "blocks": 100,
+          "coefficient_of_variation_percent": 5.74273787,
+          "mean_reward_roshi": 537614481.59,
+          "mean_reward_share": 0.1075229,
+          "miner": "miner_10pct",
+          "miner_fraction": 0.1,
+          "reward_window_work": 7200,
+          "seed": 20,
+          "shares_per_block": 120
+        }
+      ],
+      "stress_summary": {
+        "failing_seeds": [],
+        "max_cv_percent": 8.06160552,
+        "mean_cv_percent": 5.01994248,
+        "min_cv_percent": 2.32375139
+      },
+      "target_share_spacing_seconds": 1,
+      "window_horizon_blocks": 60.0,
+      "window_horizon_seconds": 7200
+    }
+  ],
+  "metric": {
+    "blocks": 100,
+    "cold_start_blocks_included": true,
+    "continuity_seed": 42,
+    "miner_fraction": 0.1,
+    "stddev": "population",
+    "stress_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  },
+  "name": "POOL-02R revised sharepool constants sweep",
+  "network": {
+    "block_spacing_seconds": 120,
+    "name": "mainnet-candidate"
+  },
+  "notes": [
+    "10-second candidate is retained only as a rejected baseline comparison.",
+    "2-second candidate passes seed 42 but fails at least one required stress seed.",
+    "1-second candidate is the only revised candidate that passes every POOL-02R variance threshold."
+  ],
+  "recommended_candidate_ids": [
+    "primary_1s"
+  ],
+  "thresholds": {
+    "max_cv_percent": 10.0,
+    "withholding_advantage_percent": 5.0
+  },
+  "withholding": {
+    "advantage_percent": 0.0,
+    "delta_roshi": -177777777,
+    "honest_reward_roshi": 400000000,
+    "miner": "withholder",
+    "published_reward_roshi": 222222223,
+    "status": "pass",
+    "withheld_share_count": 2,
+    "withheld_work": 2
+  }
+}

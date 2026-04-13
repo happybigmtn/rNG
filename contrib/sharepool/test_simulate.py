@@ -146,6 +146,54 @@ def test_reward_variance_for_10_percent_miner_over_100_blocks_is_measured() -> N
     assert result["coefficient_of_variation_percent"] >= 0
 
 
+def test_revised_candidate_sweep_identifies_primary_candidate_and_thresholds() -> None:
+    report = simulate.revised_candidate_sweep()
+    candidates = {candidate["id"]: candidate for candidate in report["candidates"]}
+
+    assert report["thresholds"]["withholding_advantage_percent"] == pytest.approx(5.0)
+    assert report["thresholds"]["max_cv_percent"] == pytest.approx(10.0)
+    assert report["withholding"]["advantage_percent"] < 5.0
+
+    primary = candidates["primary_1s"]
+    assert primary["status"] == "pass"
+    assert primary["seed_42"]["coefficient_of_variation_percent"] < 10.0
+    assert primary["stress_summary"]["max_cv_percent"] < 10.0
+    assert primary["stress_summary"]["failing_seeds"] == []
+
+    secondary = candidates["secondary_2s"]
+    assert secondary["status"] == "fail"
+    assert secondary["seed_42"]["coefficient_of_variation_percent"] < 10.0
+    assert secondary["stress_summary"]["max_cv_percent"] >= 10.0
+
+    rejected = candidates["rejected_10s"]
+    assert rejected["status"] == "comparison_fail"
+    assert rejected["seed_42"]["coefficient_of_variation_percent"] >= 10.0
+
+
+def test_revised_candidate_sweep_is_deterministic_and_cli_wired() -> None:
+    first = simulate.revised_candidate_sweep()
+    second = simulate.revised_candidate_sweep()
+
+    assert first == second
+
+    sharepool_dir = Path(__file__).resolve().parent
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "simulate.py",
+            "--sweep",
+            "revised-candidates",
+        ],
+        cwd=sharepool_dir,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+
+    assert json.loads(completed.stdout) == first
+
+
 def test_required_cli_trace_outputs_proportional_rewards() -> None:
     sharepool_dir = Path(__file__).resolve().parent
     completed = subprocess.run(

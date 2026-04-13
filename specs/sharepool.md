@@ -15,6 +15,15 @@ target-spacing shares is now a rejected baseline, not the likely consensus set.
 Keep the revised constants below as unconfirmed inputs only until POOL-02R
 tests them and POOL-03R is re-run.
 
+POOL-02R simulator sweep (2026-04-13): committed evidence in
+`contrib/sharepool/reports/pool-02r-revised-sweep.json` shows the 1-second
+primary candidate passes the required 10% miner / 100-block variance threshold
+for seed `42` and seeds `1..20` (max CV 8.06%), while the 2-second secondary
+candidate fails the stress check (max CV 10.33%) and the 10-second baseline
+remains rejected (seed `42` CV 25.10%). The withholding metric remains 0.00%
+advantage, below the 5% threshold. These are simulator results only; POOL-03R
+must still decide whether to promote any constant to confirmed status.
+
 Current live-code facts:
 
 - `src/consensus/params.h` defines only `DEPLOYMENT_TESTDUMMY` and
@@ -63,9 +72,9 @@ baseline that POOL-02R may re-run for comparison.
 
 | Name | Candidate value | Notes |
 |------|-----------------|-------|
-| Target share spacing | `[PROPOSED — PENDING SIMULATOR VALIDATION]` candidate family: 1 second primary, 2 seconds secondary, 10 seconds rejected baseline only | Mainnet has 120-second blocks. POOL-02R must sweep shorter spacing because POOL-03 rejected 10-second shares on reward variance. A 60-second test chain may use a different ratio, but it must be reported separately. |
+| Target share spacing | `[PROPOSED — PENDING POOL-03R CONFIRMATION]` candidate family: 1 second primary, 2 seconds measured secondary, 10 seconds rejected baseline only | Mainnet has 120-second blocks. POOL-02R found that 1-second shares pass the required variance sweep, 2-second shares fail the required stress seeds, and 10-second shares remain rejected. A 60-second test chain may use a different ratio, but it must be reported separately. |
 | Share target ratio | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `share_target = min(powLimit, block_target * (block_spacing / share_spacing))` | RNG accepts hashes `<= target`, so an easier share target must be larger than the block target. The older sketch saying `block_target / 12` is reversed for Bitcoin-style target arithmetic. For 120-second mainnet blocks, the revised family implies ratios of 120 for 1-second shares and 60 for 2-second shares. |
-| Reward window work | `[PROPOSED — PENDING SIMULATOR VALIDATION]` candidate family: 7200 target-spacing shares at 1-second spacing, 3600 target-spacing shares at 2-second spacing, 720 only as rejected 10-second baseline | The window is work-based, not count-based. These revised candidates keep roughly the same 60-block smoothing horizon as the rejected 10-second / 720-share baseline; at 120-second mainnet blocks that horizon is about two hours, not one hour. |
+| Reward window work | `[PROPOSED — PENDING POOL-03R CONFIRMATION]` candidate family: 7200 target-spacing shares at 1-second spacing, 3600 target-spacing shares at 2-second spacing, 720 only as rejected 10-second baseline | The window is work-based, not count-based. POOL-02R found that 7200 at 1-second spacing is the only listed candidate that passes every required variance seed. These revised candidates keep roughly the same 60-block smoothing horizon as the rejected 10-second / 720-share baseline; at 120-second mainnet blocks that horizon is about two hours, not one hour. |
 | Max orphan shares | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 64 | In-memory relay buffer for shares whose parents are not yet known. |
 | Claim witness version | `[PROPOSED — PENDING SIMULATOR VALIDATION]` witness version 2 | The next unassigned witness version after Taproot. |
 | Commitment tag | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `RNGS` | Used only if an auxiliary OP_RETURN discovery marker is kept. |
@@ -387,13 +396,13 @@ POOL-02R must report at least:
 | 2-second secondary candidate | 60 | 3600 | Test seed `42` and a multi-seed sweep before promotion. |
 | 1-second primary candidate | 120 | 7200 | Test seed `42` and a multi-seed sweep before promotion. |
 
-The POOL-03 no-go report includes a non-authoritative exploratory sweep where
+The POOL-03 no-go report included a non-authoritative exploratory sweep where
 the 2-second candidate passed seed `42` but had one seed above 10%, while the
-1-second candidate stayed below 10% across seeds 1 through 20. POOL-02R must
-replace that exploratory evidence with committed deterministic sweep output and
-must not cherry-pick a seed that hides variance. Relay cost from shorter share
-spacing remains a POOL-06-GATE input and cannot be ignored when constants are
-later promoted.
+1-second candidate stayed below 10% across seeds 1 through 20. POOL-02R replaced
+that exploratory evidence with committed deterministic sweep output and did not
+cherry-pick a seed that hides variance. Relay cost from shorter share spacing
+remains a POOL-06-GATE input and cannot be ignored when constants are later
+promoted.
 
 ## Open Questions
 

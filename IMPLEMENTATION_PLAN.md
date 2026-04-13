@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-02R` Re-run simulator for revised sharepool constants
-
-  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
-  Why now: The current simulator proves determinism and withholding behavior, but the proposed constants fail the variance threshold. A revised simulator pass must test candidate share spacing and reward-window work before consensus coding resumes.
-  Codebase evidence: `contrib/sharepool/simulate.py` already exposes `shares_per_block` and `reward_window_work` inputs through `measure_reward_variance()`, but no committed parameter-sweep artifact exists.
-  Owns: `contrib/sharepool/` simulator updates, example traces or generated reports for revised constants, README metrics.
-  Integration touchpoints: `specs/sharepool.md`, POOL-03R decision gate.
-  Scope boundary: Offline simulator and documentation only. No node consensus, P2P, wallet, or miner code.
-  Acceptance criteria: (1) Revised candidate constants produce withholding advantage <5%. (2) Revised candidate constants produce reward variance CV <10% for the authoritative 10% miner / 100-block metric. (3) Simulator output is deterministic across repeated runs. (4) Parameter sweep evidence is committed.
-  Verification: `python3 -m pytest contrib/sharepool/test_simulate.py` plus the committed revised sweep command.
-  Required tests: Add or update simulator tests for the revised variance threshold and any new sweep/report code.
-  Dependencies: `POOL-01R`.
-  Estimated scope: M
-  Completion signal: Simulator report shows all POOL-03 thresholds passing for revised proposed constants.
-
 - [ ] `POOL-03R` Decision gate: revised simulator results review
 
   Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`

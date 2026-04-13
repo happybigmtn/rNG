@@ -27,6 +27,35 @@ DEFAULT_SHARE_SPACING_SECONDS = 10
 DEFAULT_REWARD_WINDOW_SHARES = 720
 DEFAULT_SHARE_WORK = 1
 ZERO_ROOT = "00" * 32
+POOL02R_VARIANCE_MINER_FRACTION = 0.10
+POOL02R_VARIANCE_BLOCKS = 100
+POOL02R_CONTINUITY_SEED = 42
+POOL02R_STRESS_SEEDS = tuple(range(1, 21))
+POOL02R_MAX_CV_PERCENT = 10.0
+POOL02R_MAX_WITHHOLDING_ADVANTAGE_PERCENT = 5.0
+POOL02R_REVISED_CANDIDATES = (
+    {
+        "id": "rejected_10s",
+        "name": "10-second rejected baseline",
+        "target_share_spacing_seconds": 10,
+        "reward_window_work": 720,
+        "role": "comparison",
+    },
+    {
+        "id": "secondary_2s",
+        "name": "2-second secondary candidate",
+        "target_share_spacing_seconds": 2,
+        "reward_window_work": 3600,
+        "role": "secondary",
+    },
+    {
+        "id": "primary_1s",
+        "name": "1-second primary candidate",
+        "target_share_spacing_seconds": 1,
+        "reward_window_work": 7200,
+        "role": "primary",
+    },
+)
 
 
 class SimulationError(RuntimeError):
@@ -539,6 +568,143 @@ def measure_reward_variance(*, miner_fraction: float = 0.10, blocks: int = 100, 
     }
 
 
+def built_in_withholding_trace() -> dict[str, Any]:
+    return {
+        "config": {"block_reward_roshi": 20 * COIN, "reward_window_work": 20},
+        "shares": [
+            *[
+                {"share_id": f"a{i}", "miner": "honest", "work": 1}
+                for i in range(1, 17)
+            ],
+            *[
+                {"share_id": f"w{i}", "miner": "withholder", "work": 1, "withheld": i > 2}
+                for i in range(1, 5)
+            ],
+        ],
+        "blocks": [{"block_id": "block-1", "share_id": "w4", "height": 1}],
+        "withholding": {"miner": "withholder"},
+    }
+
+
+def revised_candidate_sweep() -> dict[str, Any]:
+    withholding = dict(run_trace_dict(built_in_withholding_trace()).withholding)
+    withholding["status"] = (
+        "pass"
+        if withholding["advantage_percent"] < POOL02R_MAX_WITHHOLDING_ADVANTAGE_PERCENT
+        else "fail"
+    )
+
+    candidates = [
+        revised_candidate_result(candidate)
+        for candidate in POOL02R_REVISED_CANDIDATES
+    ]
+
+    passing_primary = [
+        candidate["id"]
+        for candidate in candidates
+        if candidate["role"] == "primary" and candidate["status"] == "pass"
+    ]
+    return {
+        "name": "POOL-02R revised sharepool constants sweep",
+        "network": {
+            "name": "mainnet-candidate",
+            "block_spacing_seconds": DEFAULT_BLOCK_SPACING_SECONDS,
+        },
+        "metric": {
+            "miner_fraction": POOL02R_VARIANCE_MINER_FRACTION,
+            "blocks": POOL02R_VARIANCE_BLOCKS,
+            "continuity_seed": POOL02R_CONTINUITY_SEED,
+            "stress_seeds": list(POOL02R_STRESS_SEEDS),
+            "stddev": "population",
+            "cold_start_blocks_included": True,
+        },
+        "thresholds": {
+            "withholding_advantage_percent": POOL02R_MAX_WITHHOLDING_ADVANTAGE_PERCENT,
+            "max_cv_percent": POOL02R_MAX_CV_PERCENT,
+        },
+        "withholding": withholding,
+        "candidates": candidates,
+        "recommended_candidate_ids": passing_primary,
+        "notes": [
+            "10-second candidate is retained only as a rejected baseline comparison.",
+            "2-second candidate passes seed 42 but fails at least one required stress seed.",
+            "1-second candidate is the only revised candidate that passes every POOL-02R variance threshold.",
+        ],
+    }
+
+
+def revised_candidate_result(candidate: dict[str, Any]) -> dict[str, Any]:
+    share_spacing = int(candidate["target_share_spacing_seconds"])
+    shares_per_block = DEFAULT_BLOCK_SPACING_SECONDS // share_spacing
+    reward_window_work = int(candidate["reward_window_work"])
+    seed_42 = measure_reward_variance(
+        miner_fraction=POOL02R_VARIANCE_MINER_FRACTION,
+        blocks=POOL02R_VARIANCE_BLOCKS,
+        seed=POOL02R_CONTINUITY_SEED,
+        shares_per_block=shares_per_block,
+        reward_window_work=reward_window_work,
+    )
+    stress = [
+        measure_reward_variance(
+            miner_fraction=POOL02R_VARIANCE_MINER_FRACTION,
+            blocks=POOL02R_VARIANCE_BLOCKS,
+            seed=seed,
+            shares_per_block=shares_per_block,
+            reward_window_work=reward_window_work,
+        )
+        for seed in POOL02R_STRESS_SEEDS
+    ]
+    stress_summary = variance_stress_summary(stress)
+    passes = (
+        seed_42["coefficient_of_variation_percent"] < POOL02R_MAX_CV_PERCENT
+        and not stress_summary["failing_seeds"]
+    )
+    if passes:
+        status = "pass"
+    elif candidate["role"] == "comparison":
+        status = "comparison_fail"
+    else:
+        status = "fail"
+
+    window_horizon_blocks = reward_window_work / shares_per_block
+    return {
+        "id": candidate["id"],
+        "name": candidate["name"],
+        "role": candidate["role"],
+        "status": status,
+        "target_share_spacing_seconds": share_spacing,
+        "shares_per_block": shares_per_block,
+        "reward_window_work": reward_window_work,
+        "window_horizon_blocks": round(window_horizon_blocks, 8),
+        "window_horizon_seconds": int(reward_window_work * share_spacing),
+        "cold_start": {
+            "included": True,
+            "blocks_before_full_window": math.ceil(window_horizon_blocks),
+        },
+        "seed_42": seed_42,
+        "stress_seeds": stress,
+        "stress_summary": stress_summary,
+    }
+
+
+def variance_stress_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
+    cvs = [float(result["coefficient_of_variation_percent"]) for result in results]
+    failing = [
+        {
+            "seed": int(result["seed"]),
+            "coefficient_of_variation_percent": result["coefficient_of_variation_percent"],
+        }
+        for result in results
+        if float(result["coefficient_of_variation_percent"]) >= POOL02R_MAX_CV_PERCENT
+    ]
+    return {
+        "min_cv_percent": round(min(cvs), 8),
+        "max_cv_percent": round(max(cvs), 8),
+        "mean_cv_percent": round(sum(cvs) / len(cvs), 8),
+        "failing_seeds": failing,
+    }
+
+
 def built_in_baseline_trace() -> dict[str, Any]:
     return {
         "config": {
@@ -589,6 +755,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trace", type=Path, help="JSON or CSV share trace to replay")
     parser.add_argument("--scenario", choices=["baseline"], help="built-in scenario to run")
+    parser.add_argument("--sweep", choices=["revised-candidates"], help="run a deterministic parameter sweep")
     parser.add_argument("--verbose", action="store_true", help="print a human-readable report")
     return parser.parse_args(argv)
 
@@ -596,6 +763,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     try:
+        if args.sweep == "revised-candidates":
+            if args.trace or args.scenario:
+                raise SimulationError("--sweep cannot be combined with --trace or --scenario")
+            print(json.dumps(revised_candidate_sweep(), indent=2, sort_keys=True))
+            return 0
         if args.trace:
             trace = load_trace(args.trace)
         elif args.scenario == "baseline":

@@ -17,6 +17,15 @@ Run the unit tests:
 python3 -m pytest contrib/sharepool/test_simulate.py
 ```
 
+Run the POOL-02R revised candidate sweep and compare it with the committed
+artifact:
+
+```bash
+cd contrib/sharepool
+python3 simulate.py --sweep revised-candidates > /tmp/pool-02r-revised-sweep.json
+diff -u reports/pool-02r-revised-sweep.json /tmp/pool-02r-revised-sweep.json
+```
+
 Trace files can be JSON or CSV. JSON traces may provide explicit `shares` or
 compact `share_runs`. Each share has a miner, positive work, optional parent,
 optional payout script, and optional `withheld` marker.
@@ -41,3 +50,16 @@ whether that measured variance is acceptable or requires revised constants.
 POOL-03 result (2026-04-13): no-go. The 25.10% CV exceeds the 10% decision
 threshold, so the sharepool spec and simulator must be revised before consensus
 implementation starts.
+
+POOL-02R revised sweep result (2026-04-13):
+
+| Candidate | `shares_per_block` | `reward_window_work` | seed `42` CV | seeds `1..20` max CV | Status |
+|-----------|--------------------|----------------------|--------------|----------------------|--------|
+| 10-second rejected baseline | 12 | 720 | 25.10% | 31.33% | comparison fail |
+| 2-second secondary candidate | 60 | 3600 | 7.17% | 10.33% | fail |
+| 1-second primary candidate | 120 | 7200 | 3.33% | 8.06% | pass |
+
+The checked withholding metric remains `0.00%` advantage, below the `5%`
+threshold. The 1-second primary candidate is the only revised candidate that
+passes every POOL-02R variance threshold. Constants remain unconfirmed until
+POOL-03R reviews the committed sweep evidence.
