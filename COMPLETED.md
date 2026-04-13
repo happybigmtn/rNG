@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `POOL-05` — Added the sharepool sharechain data model, deterministic `ShareRecord` serialization, LevelDB-backed share storage, best-tip selection by cumulative share work, 64-entry orphan buffering/resolution, activation-gated `shareinv`/`getshare`/`share` P2P relay, and regtest relay coverage. The functional P2P framework now uses RNG network magic bytes, and `getdeploymentinfo` exposes `sharepool` so activation-gated relay can be verified. Commit: `85bf537d8562a28dafcd208ebf7cd061f2bb2da4`.
+  Validation: initial red proof `cmake --build build --target test_bitcoin -j$(nproc)` failed because `src/node/sharechain.h` did not exist; final `cmake --build build -j$(nproc)`; `build/bin/test_bitcoin --run_test=sharechain_tests`; `build/bin/test_bitcoin --run_test=versionbits_tests`; `python3 test/functional/feature_sharepool_relay.py --configfile=build/test/config.ini`; `git diff --check`.
+
 - `POOL-04` — Added the `DEPLOYMENT_SHAREPOOL` BIP9 activation boundary with deployment name `sharepool`, unique version bit 3, dormant `NEVER_ACTIVE` defaults across networks, and a regtest `-vbparams=sharepool:0:9999999999:0` override path. Mainnet uses the corrected 95% threshold `1916/2016` from the active sharepool spec rather than the older dated-spec typo. Commit: `0742f7314bff54c3181ac7fa883c4519cba1ace4`.
   Validation: initial red proof `cmake --build build -j$(nproc)` failed because `Consensus::DEPLOYMENT_SHAREPOOL` did not exist; final `cmake --build build -j$(nproc)`; `build/bin/test_bitcoin --run_test=versionbits_tests`; `git diff --check`.
 
