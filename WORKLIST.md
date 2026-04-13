@@ -10,6 +10,7 @@
 - [CHKPT-01] `specs/120426-release-distribution.md` describes container build verification and Dockerfile-derived dependencies even though the live checkout has no root `Dockerfile`, and references release process evidence from `CHANGES.md` even though no `CHANGES.md` is tracked.
 - [CHKPT-01] `specs/120426-consensus-chain-rules.md`, `specs/120426-wallet-rpc-surface.md`, and parts of `specs/120426-qsb-operator-support.md` describe the current tree as Bitcoin Core v29.0-derived or pre-merge. Live `README.md` says the current tree is based on Bitcoin Core `30.2`; QSB is merged.
 - [CHKPT-01] Sharepool specs use `1815/2016` as "95%" in planned activation text. Live mainnet BIP9 entries use `1815` of `2016` as `90%`; if a future sharepool spec wants 95%, the threshold must not be copied as `1815`.
+- [POOL-01] Historical sharepool planning text still says `share_target = block_target / 12` and describes a "witness v2 OP_RETURN" commitment. `specs/sharepool.md` corrects the target arithmetic for RNG's `hash <= target` PoW rule and separates the proposed spendable witness-v2 commitment output from optional OP_RETURN metadata.
 
 ## Operations
 

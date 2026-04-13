@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-01` Write sharepool protocol specification (`specs/sharepool.md`)
-
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: This is the foundation document for all sharepool implementation. Plans 002-012 in the corpus all depend on having locked protocol constants, share object format, reward-window formula, payout-commitment encoding, and claim format. No consensus code can be written until the spec exists and the simulator validates it.
-  Codebase evidence: `grep -r "sharepool\|ShareRecord\|shareinv" src/` returns zero matches. No `specs/sharepool.md` exists. The generated spec (`specs/120426-sharepool-protocol.md`) provides the design direction but is not yet a committed protocol spec.
-  Owns: `specs/sharepool.md` — new file defining: share object fields, sharechain tip-selection, reward-window formula, payout-commitment Merkle encoding, claim witness program version, activation semantics (BIP9 `DEPLOYMENT_SHAREPOOL`), P2P message types.
-  Integration touchpoints: `specs/consensus.md` (new deployment), `specs/activation.md` (new BIP9 entry), `src/consensus/params.h` (future `DEPLOYMENT_SHAREPOOL`).
-  Scope boundary: Specification document only. No C++ code. Constants are proposed values pending simulator validation in POOL-02. Mark all proposed constants with `[PROPOSED — PENDING SIMULATOR VALIDATION]`.
-  Acceptance criteria: `specs/sharepool.md` exists with all sections from `specs/120426-sharepool-protocol.md`: share object, sharechain rules, reward window, payout commitment, claim program, activation, P2P relay. Every proposed constant (share spacing, window size, share target ratio, max orphans) is explicitly labeled as proposed.
-  Verification: `test -f specs/sharepool.md && grep "PROPOSED" specs/sharepool.md | wc -l` returns >=4 (one per proposed constant).
-  Required tests: None (specification only).
-  Dependencies: `CHKPT-01` (specs must be trustworthy before adding new ones).
-  Estimated scope: M
-  Completion signal: `specs/sharepool.md` committed and internally consistent with `specs/120426-sharepool-protocol.md` direction.
-
 - [ ] `POOL-02` Build sharepool economic simulator (`contrib/sharepool/simulate.py`)
 
   Spec: `specs/120426-sharepool-protocol.md`
