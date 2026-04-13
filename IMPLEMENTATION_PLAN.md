@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 3: Sharepool Core Implementation
 
-- [ ] `POOL-06-GATE` Decision gate: share relay viability
-
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: Corpus Plan 006. Before building the payout/claim layer, verify that share relay actually works at acceptable bandwidth and latency on a small regtest network that mimics RNG's real topology.
-  Codebase evidence: No relay measurements exist.
-  Owns: Measurement report documenting: relay bandwidth per node, relay latency (p50/p99), orphan rate, share propagation completeness.
-  Integration touchpoints: POOL-05 relay code.
-  Scope boundary: Measurement only. Fix relay bugs if found, but do not redesign the protocol.
-  Acceptance criteria: (1) Bandwidth < 10 KB/s per node at target share rate. (2) Relay latency < 5s p50, < 10s p99. (3) Orphan rate < 20%. If any threshold breached, document specific fix needed.
-  Verification: Regtest network of 4-6 nodes mining at ~10s share interval for 30 minutes; measure with `getpeerinfo` bandwidth counters and share arrival timestamps.
-  Required tests: None (measurement gate).
-  Dependencies: `POOL-05`.
-  Estimated scope: S
-  Completion signal: Measurement report committed with all thresholds met, or documented revision plan.
-
 - [ ] `POOL-07` Implement payout commitment and claim program
 
   Spec: `specs/120426-sharepool-protocol.md`
