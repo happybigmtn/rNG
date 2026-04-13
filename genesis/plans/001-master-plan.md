@@ -1,336 +1,210 @@
-# Protocol-Native Pooled Mining For RNG -- Master Plan
+# Master Plan: Protocol-Native Trustless Pooled Mining
 
-This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds.
-
-This document must be maintained in accordance with `PLANS.md` at the repository root.
+This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds. This document must be maintained in accordance with `PLANS.md` at the repository root.
 
 ## Purpose / Big Picture
 
-This is the master plan for the generated pooled-mining corpus under `genesis/plans/`. Its job is to explain, in one place, what RNG can already do, what protocol-native pooled mining would add, and how the numbered sub-plans fit together.
+RNG is a live CPU-mineable RandomX chain where the block finder currently receives the entire block reward. This plan sequences the work to replace that winner-takes-all model with protocol-native trustless pooled mining, so that every CPU miner earns proportional reward for every valid share they produce, and claims their committed amount after coinbase maturity without trusting any operator.
 
-The user-visible goal is clear even though the feature does not exist yet: after this work, a low-hashrate miner should be able to contribute useful work continuously, see pending proportional reward accrue without joining an external pool, and later claim that reward through a consensus-defined on-chain path. Today, the inspected RNG checkout still uses classical winner-takes-all block rewards.
+After this master plan is fully executed, a user running `rngd -mine -mineaddress=<addr> -minethreads=4` on an activated network will see their pending pooled reward grow with each share they contribute, and their wallet will auto-claim matured settlements. A 10% miner over 100 blocks will receive approximately 10% of total rewards with coefficient of variation below 10%.
 
-This master plan is intentionally conservative about repository reality. It does not assume that untracked local plans or out-of-tree experiments are already present in source. It treats `genesis/` as a supplemental decomposition of existing root planning documents, not as a second active planning surface.
+This master plan is the sequencing index for plans 002 through 012. Each numbered plan is a self-contained ExecPlan following the root `PLANS.md` standard. The dependency order ensures that each plan produces a verifiable artifact before the next plan begins, and decision gates at plans 003, 006, and 010 provide explicit go/no-go checkpoints.
 
 ## Requirements Trace
 
-`R1`. The corpus must describe protocol-native pooled mining as proposed work, not as current behavior in the inspected checkout.
+`R1`. Pooled mining must be protocol-enforced, not an overlay service. No operator ledger, no operator-controlled payout decision point, no single control plane for share admission.
 
-`R2`. After activation, pooled rewards must be consensus-enforced and replayable from public data, not dependent on an operator ledger or external pool runtime.
+`R2`. The protocol must use public RandomX share work proofs that any upgraded node can verify independently.
 
-`R3`. Before activation, existing RNG behavior must remain unchanged.
+`R3`. Reward splits must be deterministic: given the same accepted share history, every node computes the same payout commitment.
 
-`R4`. The first implementation phase must be a spec-plus-simulator pass that can reject bad economics before consensus code lands.
+`R4`. Each block commits to its reward split via a compact settlement output, not one coinbase output per miner.
 
-`R5`. The plan set must preserve explicit decision gates after the simulator phase, the relay phase, and the regtest proof phase.
+`R5`. Miners must see pending pooled reward as soon as their shares enter the reward window, before any block is found.
 
-`R6`. The generated corpus must remain reconciled with the repo-root planning surfaces rather than pretending that `genesis/` already owns the control plane.
+`R6`. Claims must be trustless: any party can construct a claim transaction, but funds can only emerge at the committed payout script.
 
-`R7`. The plan set must stay grounded in verified repo files and commands. Where local planning documents describe parallel work that is not present in the inspected source tree, that uncertainty must be stated plainly.
+`R7`. Solo mining is the degenerate case. A lone miner filling the reward window receives the full block reward through the same settlement mechanism.
 
-`R8`. The future pooled-mining contract must distinguish pending accrual from claimable reward under the existing 100-block coinbase maturity rule unless a separate maturity change is explicitly planned.
+`R8`. Activation uses BIP9 versionbits with explicit regtest proof, devnet adversarial testing, and mainnet activation preparation gates.
 
-`R9`. The future design should prefer extending existing mining, wallet, RPC, and activation surfaces over inventing disconnected replacements.
+`R9`. Pre-activation behavior remains unchanged. Existing miners, wallets, and nodes continue operating normally until activation.
 
-`R10`. The final implementation path should remain staged: simulator, decision gate, activation boundary, sharechain, payout/claim path, miner/wallet integration, regtest proof, decision gate, devnet, mainnet preparation.
-
-`R11`. The numbered plans must stay internally consistent with one another: names, numbering, dependencies, and expected artifacts must match the actual files under `genesis/plans/`.
-
-`R12`. The plan must not assume unmerged QSB source files are present. If parallel QSB work lands later, compatibility should be reassessed from the merged code, not from local planning prose.
+`R10`. Share relay bandwidth must stay under approximately 10 KB/s per node at the confirmed 1-second share cadence.
 
 ## Scope Boundaries
 
-This plan does not claim that pooled mining already exists in RNG.
+This master plan covers the sharepool protocol from specification through mainnet activation. It does not cover:
 
-This plan does not make `genesis/` the active planning surface for the repository. It is a generated planning corpus that must be reconciled back into one chosen root plan before coding.
-
-This plan does not treat Zend as a dependency. Zend remains reference material for tooling, proofs, and onboarding patterns.
-
-This plan does not reduce coinbase maturity.
-
-This plan does not promise agent wallets, MCP, swaps, or identity features. Those surfaces are currently aspirational in the target repo.
-
-This plan does not assume that the root `EXECPLAN.md` QSB rollout is merged into the inspected source tree.
+- Agent wallet or MCP server implementation (FUTURE-04)
+- Atomic swap protocol (FUTURE-06)
+- QSB operator support (already complete, DONE-08)
+- Coinbase maturity changes (intentionally unchanged at 100 blocks)
+- Batched multi-leaf claims (deferred to v2)
+- Non-sharepool uses of witness version 2 (reserved for settlement in v1)
 
 ## Progress
 
-- [x] (2026-04-13 03:00Z) Reconciled this master plan with the actual `genesis/plans/` inventory and the repo-root planning documents.
-- [x] (2026-04-13 03:00Z) Removed assumptions that QSB source files already exist in the inspected checkout.
-- [ ] (2026-04-13 03:00Z) Complete Plan 002 and produce a simulator-backed protocol spec.
-- [ ] (2026-04-13 03:00Z) Pass Plan 003 with a documented go/no-go on constants and soft-fork shape.
-- [ ] (2026-04-13 03:00Z) Implement the activation boundary and sharechain core from Plans 004 and 005.
-- [ ] (2026-04-13 03:00Z) Pass Plan 006 after relay behavior is measured on RNG’s small-network assumptions.
-- [ ] (2026-04-13 03:00Z) Complete payout commitment, claim path, and miner/wallet integration from Plans 007 and 008.
-- [ ] (2026-04-13 03:00Z) Produce a convincing regtest proof in Plan 009 and review it in Plan 010.
-- [ ] (2026-04-13 03:00Z) Run devnet validation in Plan 011 before any mainnet preparation in Plan 012.
+- [x] (2026-04-13) POOL-01: Sharepool protocol specification written and committed
+- [x] (2026-04-13) POOL-02: Offline economic simulator built and tested
+- [x] (2026-04-13) POOL-03: Decision gate -- no-go on 10-second baseline (25.10% CV)
+- [x] (2026-04-13) POOL-01R/02R/03R: Revised constants confirmed (1-second, 7200 shares)
+- [x] (2026-04-13) CHKPT-02: Pre-consensus implementation review (GO for POOL-04)
+- [x] (2026-04-13) POOL-04: BIP9 `DEPLOYMENT_SHAREPOOL` activation boundary
+- [x] (2026-04-13) POOL-05: Sharechain data model, storage, and P2P relay
+- [x] (2026-04-13) POOL-06-GATE: Share relay viability measurement (GO at 10-second test cadence)
+- [x] (2026-04-13) POOL-07A: Settlement state machine specification locked
+- [x] (2026-04-13) POOL-07B: Reference settlement model with deterministic test vectors
+- [x] (2026-04-13) POOL-07C: Pre-consensus settlement design checkpoint (GO)
+- [x] (2026-04-13) POOL-07D: Deterministic C++ consensus helpers with parity tests
+- [x] (2026-04-13) POOL-07E: Solo-settlement coinbase wired into block assembly
+- [ ] POOL-07: Witness-v2 claim verification + ConnectBlock enforcement + multi-leaf commitment
+- [ ] POOL-08: Share-producing miner + wallet auto-claim + sharepool RPCs
+- [ ] CHKPT-03: Regtest end-to-end proof
+- [ ] FUTURE-01: Devnet deployment and adversarial testing
+- [ ] FUTURE-02: Mainnet activation preparation
 
 ## Surprises & Discoveries
 
-- Observation: The generated corpus originally treated `genesis/` as the active planning surface, but the inspected working tree already contains root planning artifacts that predate it.
-  Evidence: `PLANS.md`, `docs/rng-protocol-native-pooled-mining-execplan.md`, `EXECPLAN.md`, and `IMPLEMENTATION_PLAN.md` all exist at repo root.
+- Observation: The original 10-second share spacing with 720-share reward window failed the variance gate (25.10% CV for 10% miner). The 1-second spacing with 7200 shares passes (max CV 8.06% across 20 seeds).
+  Evidence: `contrib/sharepool/reports/pool-02r-revised-sweep.json`
 
-- Observation: The pooled-mining direction is real as a plan, but not as code.
-  Evidence: no sharepool/sharechain implementation was found in the inspected target-repo source files.
+- Observation: Share relay at 10-second intervals measured p50 latency 58ms, p99 79ms, max bandwidth 0.06 KB/s per node. The confirmed 1-second cadence will be approximately 10x higher bandwidth but still well under the 10 KB/s budget.
+  Evidence: `contrib/sharepool/reports/pool-06-relay-viability.json`
 
-- Observation: The root local `EXECPLAN.md` describes QSB work that the inspected checkout does not currently contain as source files.
-  Evidence: file lookups for `src/script/qsb.h`, `src/rpc/qsb.cpp`, `src/node/qsb_pool.h`, and `src/node/qsb_validation.h` in the working tree failed.
-
-- Observation: Repo documentation truthfulness is a first-order planning concern, not cleanup trivia.
-  Evidence: `specs/INDEX.md`, `specs/agent-integration.md`, and `specs/randomx.md` all describe outdated or unimplemented surfaces.
+- Observation: The settlement state machine requires two separate Merkle trees (payout tree for immutable leaf set, status tree for mutable claim flags). This was not obvious from the initial protocol sketch but fell out of the POOL-07A specification work.
+  Evidence: `specs/sharepool-settlement.md`, sections "Payout Leaves" and "Claim-Status Tree"
 
 ## Decision Log
 
-- Decision: Keep the pooled-mining direction, but downgrade all “already implemented” claims to verified reality unless source inspection proves otherwise.
-  Rationale: planning quality depends on source-truth first; otherwise later plans inherit false constraints.
-  Date/Author: 2026-04-13 / Codex
+- Decision: Use 1-second share spacing with 7200 target-spacing shares as the confirmed mainnet constants.
+  Rationale: Only candidate that passes both seed-42 and 20-seed stress variance gates (CV < 10%). The 2-second candidate fails stress seeds (10.33% max CV). The 10-second baseline is rejected (25.10%).
+  Date/Author: 2026-04-13 / POOL-03R decision gate
 
-- Decision: Treat `genesis/` as a generated supplemental corpus instead of the repo-designated control plane.
-  Rationale: the inspected repo-root docs do not authorize `genesis/` to replace existing planning ownership.
-  Date/Author: 2026-04-13 / Codex
+- Decision: Reserve witness version 2 exclusively for sharepool settlement in v1.
+  Rationale: Simplifies consensus verification. No need to disambiguate between sharepool and other witness-v2 uses. Future versions can relax this.
+  Date/Author: 2026-04-13 / POOL-07A specification
 
-- Decision: Preserve the simulator-first and decision-gated execution order.
-  Rationale: the biggest uncertainty is still economics and protocol shape, not coding volume.
-  Date/Author: 2026-04-13 / Codex
+- Decision: One claim per transaction in v1. No batched multi-leaf claims.
+  Rationale: Simpler consensus code, easier to reason about correctness. Batched claims can be layered later if claim throughput becomes a bottleneck.
+  Date/Author: 2026-04-13 / POOL-07A specification
 
-- Decision: Remove hard dependencies on QSB file paths that are absent from the inspected checkout.
-  Rationale: compatibility with parallel local work can only be specified against merged code, not against planning prose.
-  Date/Author: 2026-04-13 / Codex
+- Decision: Claims are permissionless (no inner signature). The payout destination is consensus-locked to the committed payout script.
+  Rationale: Removes the need for wallet-specific signature construction. Any party can build a claim transaction, but funds always go to the committed destination. Enables third-party claim helpers.
+  Date/Author: 2026-04-13 / POOL-07A specification
+
+- Decision: Fees for claims must come from non-settlement inputs.
+  Rationale: Prevents the settlement pool from silently paying fees or being drained by fee-paying claims.
+  Date/Author: 2026-04-13 / POOL-07A specification
 
 ## Outcomes & Retrospective
 
-At this stage the outcome is a corrected master plan, not implementation work. The most important improvement is not architectural novelty. It is trustworthiness: the plan now matches the actual `genesis/plans/` inventory, matches the repo-root planning context, and no longer asks an implementer to rely on source files that are not in the checkout.
-
-The strategic conclusion did not change. Protocol-native pooled mining is still the strongest near-term product direction surfaced by the inspected plans. What changed is the bar for truth: the work starts from a spec-plus-simulator phase and from one chosen root ExecPlan, not from an invented assumption that the protocol or QSB seams already exist in source.
+Not yet complete. The master plan is approximately 60% through its dependency chain, measured by implementation plan item completion. The specification phase and consensus helper phase are done. The critical remaining work is consensus enforcement (POOL-07), user-facing integration (POOL-08), and the testing gates (CHKPT-03, FUTURE-01).
 
 ## Context and Orientation
 
-RNG is a live RandomX-based chain with a Bitcoin-derived node architecture. The checked-in docs still describe it as a fork of Bitcoin Core `v29.0`. The current code relevant to this plan lives in a familiar set of seams:
+This RNG repository is a Bitcoin Core v30.2 fork with RandomX PoW, live on mainnet in the low-32,000 block range per committed docs. Root `EXECPLAN.md` records validator-02/04/05 healthy at height 32122 on 2026-04-13 and validator-01 crash-looping on a zero-byte `settings.json`; this plan does not depend on a fresh live-network probe. The root `PLANS.md` defines the ExecPlan standard. `IMPLEMENTATION_PLAN.md` at the repo root is the active task tracker for the sharepool implementation sequence. This generated `genesis/` corpus is a subordinate plan set and index, not a replacement control plane.
 
-`src/pow.cpp` validates RandomX proof of work and encodes the current difficulty logic.
+Key files and their roles:
 
-`src/node/miner.cpp` and `src/node/internal_miner.cpp` still model mining as classical block production under the current coinbase contract.
-
-`src/consensus/params.h`, `src/deploymentinfo.cpp`, and `src/kernel/chainparams.cpp` define the current activation and consensus parameters. Only `testdummy` and `taproot` are present in code today.
-
-`src/rpc/mining.cpp` is the existing mining-RPC surface that future sharepool work would most naturally extend.
-
-`docs/rng-protocol-native-pooled-mining-execplan.md` is the existing repo-root pooled-mining plan. This corpus should be read as a decomposition and review of that direction, not as a separate authority that supersedes it.
-
-Three planning-surface terms matter here:
-
-An “active planning surface” is the document a contributor would treat as the source of day-to-day implementation truth. This master plan explicitly says `genesis/` is not that by default.
-
-A “decision gate” is a deliberate stop point where later implementation is blocked until a document records either a go decision or a redesign requirement.
-
-A “supplemental corpus” is a generated set of review and decomposition artifacts that may feed the active plan but does not silently replace it.
+- `specs/sharepool.md`: Top-level sharepool protocol spec with confirmed constants
+- `specs/sharepool-settlement.md`: Settlement state machine specification
+- `src/consensus/sharepool.{h,cpp}`: C++ settlement helpers (leaf hashing, Merkle trees, state hashing)
+- `src/node/sharechain.{h,cpp}`: LevelDB-backed share storage with orphan buffering
+- `src/node/miner.cpp`: Block assembly with activated solo-settlement coinbase
+- `src/node/internal_miner.{h,cpp}`: Multi-threaded RandomX miner (block-only, not yet share-producing)
+- `src/net_processing.cpp`: P2P share relay handlers (`shareinv`, `getshare`, `share`)
+- `src/consensus/params.h`: `DEPLOYMENT_SHAREPOOL` definition
+- `src/kernel/chainparams.cpp`: Network parameters including dormant sharepool deployment
+- `contrib/sharepool/simulate.py`: Offline economic simulator
+- `contrib/sharepool/settlement_model.py`: Reference settlement transition model
 
 ## Plan of Work
 
-The work sequence is straightforward once grounded in current repo state.
+The plan sequences twelve numbered plans in dependency order:
 
-First, Plan 002 writes the protocol down in a truthful way and builds a deterministic simulator. That phase must settle constants and expose whether the proposed reward-window and claim design are even worth implementing.
+1. **002**: Sharepool spec and simulator (DONE)
+2. **003**: Decision gate on simulator results (DONE, revised via 003R)
+3. **004**: BIP9 deployment skeleton (DONE)
+4. **005**: Sharechain data model, storage, and relay (DONE)
+5. **006**: Decision gate on relay viability (DONE)
+6. **007**: Payout commitment and claim program (partially done through 07E; remaining: consensus enforcement)
+7. **008**: Miner, wallet, and RPC integration (not started)
+8. **009**: Regtest end-to-end proof (not started)
+9. **010**: Decision gate on regtest proof (not started)
+10. **011**: Devnet deployment and adversarial testing (not started)
+11. **012**: Mainnet activation preparation (not started)
 
-Plan 003 then evaluates the simulator output and records an explicit go/no-go. If the economics or soft-fork assumptions fail there, the right action is to revise the design, not to continue coding optimistically.
-
-If the gate passes, Plan 004 adds only the activation boundary. Plan 005 adds the sharechain data model, storage, and relay. Plan 006 then checks whether that relay model is viable on RNG’s small-network assumptions.
-
-Only after those checkpoints should the corpus proceed to payout commitment and claim design in Plan 007, then miner, wallet, and RPC integration in Plan 008.
-
-Plan 009 proves the end-to-end behavior on regtest. Plan 010 reviews that proof before any devnet rollout. Plan 011 handles devnet validation and adversarial testing. Plan 012 prepares mainnet activation but does not itself activate anything.
+Checkpoint plans at 003, 006, and 010 are explicit decision gates.
 
 ## Implementation Units
 
-### Unit 1: `002-sharepool-spec-and-simulator.md`
-
-Goal: define the protocol contract and build a simulator that can reject bad economics early.
-
-Requirements advanced: `R1`, `R2`, `R4`, `R8`, `R10`.
-
-Dependencies: none.
-
-Files advanced: future spec files under `specs/` plus a future simulator under `contrib/sharepool/`.
-
-Specific proof target: given the same accepted-share trace twice, the simulator emits the same commitment root twice.
-
-### Unit 2: `003-decision-gate-simulator-results.md`
-
-Goal: stop and decide whether the simulator output justifies implementation.
-
-Requirements advanced: `R4`, `R5`, `R10`.
-
-Dependencies: Unit 1.
-
-Specific proof target: a written go/no-go decision with concrete reasons, not implied optimism.
-
-### Unit 3: `004-sharepool-deployment-skeleton.md`
-
-Goal: add a clean activation boundary without changing pre-activation behavior.
-
-Requirements advanced: `R3`, `R9`.
-
-Dependencies: Unit 2.
-
-Specific proof target: a new deployment can be activated on regtest while default behavior remains unchanged elsewhere.
-
-### Unit 4: `005-sharechain-data-model-storage-relay.md`
-
-Goal: add share records, persistence, relay, and basic mining-facing queries.
-
-Requirements advanced: `R2`, `R7`, `R9`.
-
-Dependencies: Unit 3.
-
-Specific proof target: two activated regtest nodes accept and agree on the same best share tip.
-
-### Unit 5: `006-decision-gate-share-relay-viability.md`
-
-Goal: verify that the share-relay model is acceptable on RNG’s target network shape.
-
-Requirements advanced: `R5`, `R10`.
-
-Dependencies: Unit 4.
-
-Specific proof target: a written decision based on measured relay behavior, orphan handling, and replay cost.
-
-### Unit 6: `007-payout-commitment-and-claim-program.md`
-
-Goal: define and implement the compact payout commitment plus claim path.
-
-Requirements advanced: `R2`, `R8`, `R9`.
-
-Dependencies: Unit 5.
-
-Specific proof target: a node can derive one deterministic commitment from one accepted share window and validate claim proofs against it.
-
-### Unit 7: `008-miner-wallet-rpc-integration.md`
-
-Goal: make the future pooled-mining contract visible and usable through the existing miner, wallet, and RPC surfaces.
-
-Requirements advanced: `R8`, `R9`.
-
-Dependencies: Unit 6.
-
-Specific proof target: pending and claimable pooled-reward states are visible without inventing a parallel user surface.
-
-### Unit 8: `009-regtest-end-to-end-proof.md`
-
-Goal: prove the whole flow in a deterministic local network.
-
-Requirements advanced: `R2`, `R3`, `R8`.
-
-Dependencies: Unit 7.
-
-Specific proof target: unequal miners both accrue proportional rewards and an observer independently reproduces the same commitment roots.
-
-### Unit 9: `010-decision-gate-regtest-proof-review.md`
-
-Goal: explicitly review the regtest proof before allowing devnet work.
-
-Requirements advanced: `R5`, `R10`.
-
-Dependencies: Unit 8.
-
-Specific proof target: a written go/no-go decision for devnet.
-
-### Unit 10: `011-devnet-deployment-and-adversarial-testing.md`
-
-Goal: move from local proof to controlled multi-node proof.
-
-Requirements advanced: `R5`, `R9`, `R10`.
-
-Dependencies: Unit 9.
-
-Specific proof target: multiple nodes converge on the same share and payout state under realistic conditions.
-
-### Unit 11: `012-mainnet-activation-preparation.md`
-
-Goal: prepare mainnet parameters, operator docs, and rollout steps without actually activating the feature.
-
-Requirements advanced: `R3`, `R6`, `R10`.
-
-Dependencies: Unit 10.
-
-Specific proof target: a release candidate and operator playbook exist, and the final activation choice remains explicit.
+### Unit 1: Maintain the sharepool plan index
+- Goal: Keep the generated sharepool plan sequence reconciled to root `IMPLEMENTATION_PLAN.md`, source truth, and downstream plan status.
+- Requirements advanced: R1, R2, R3, R4, R5, R6, R7, R8, R9, R10.
+- Dependencies: Root `PLANS.md` standard; root `IMPLEMENTATION_PLAN.md`; numbered plans 002-012.
+- Files to create or modify: `genesis/PLANS.md`, `genesis/GENESIS-REPORT.md`, and numbered plans under `genesis/plans/` when source evidence or root tracker status changes.
+- Tests to add or modify: Test expectation: none -- this is a planning/index artifact. Validation is a corpus shape and evidence-link check.
+- Approach: Keep this master plan as the sequencing map, not the implementation itself. Reconcile against the root tracker before editing statuses, and avoid citing deleted historical checkpoint files as current evidence.
+- Specific test scenarios:
+  - All numbered plans 001-012 contain every mandatory `PLANS.md` section.
+  - `genesis/PLANS.md` maps each root tracker item to exactly one numbered plan or decision gate.
+  - No absent historical checkpoint/report file is cited as current evidence.
+  - Downstream dependency order remains topological: 007 before 008, 008 before 009, 010 before 011, 011 before 012.
 
 ## Concrete Steps
 
-All commands below assume the working directory is the repository root.
+Build the project from the repository root:
 
-1. Re-read the root planning context before implementation:
+    cmake -B build -DENABLE_WALLET=ON -DBUILD_TESTING=ON
+    cmake --build build -j$(nproc)
 
-       sed -n '1,220p' PLANS.md
-       sed -n '1,220p' docs/rng-protocol-native-pooled-mining-execplan.md
-       sed -n '1,220p' genesis/PLANS.md
+Run existing sharepool tests:
 
-2. Start with the simulator/spec documents, not source edits:
+    build/bin/test_bitcoin --run_test=sharepool_commitment_tests
+    build/bin/test_bitcoin --run_test=sharechain_tests
+    python3 test/functional/feature_sharepool_relay.py --configfile=build/test/config.ini
+    python3 -m pytest contrib/sharepool/test_simulate.py
+    python3 contrib/sharepool/settlement_model.py --self-test
 
-       sed -n '1,260p' genesis/plans/002-sharepool-spec-and-simulator.md
-       sed -n '1,260p' genesis/plans/003-decision-gate-simulator-results.md
+Start a regtest node with sharepool activation:
 
-3. Only after Plan 003 records a go decision should implementation work proceed to:
-
-       sed -n '1,260p' genesis/plans/004-sharepool-deployment-skeleton.md
-       sed -n '1,260p' genesis/plans/005-sharechain-data-model-storage-relay.md
-       sed -n '1,260p' genesis/plans/006-decision-gate-share-relay-viability.md
-
-4. Treat Plans 007 through 012 as blocked until the earlier gates pass.
-
-5. Before coding, fold the adopted plan material back into the chosen root ExecPlan so the repository is not running dual planning surfaces.
+    build/bin/rngd -regtest -vbparams=sharepool:0:9999999999:0 -mine -mineaddress=<addr> -minethreads=1
 
 ## Validation and Acceptance
 
-This master plan is acceptable when all of the following remain true:
+The master plan is complete when:
 
-- Its numbering and dependencies match the actual files under `genesis/plans/`.
-- It does not present pooled mining as implemented current behavior.
-- It does not rely on unmerged QSB source files.
-- It preserves the simulator-first and decision-gated execution order.
-- It makes the relationship between `genesis/` and repo-root planning docs explicit.
-
-For the future implementation it describes, acceptance still depends on the later proof points: simulator determinism, regtest end-to-end proof, devnet validation, and explicit mainnet preparation only after those pass.
+1. All twelve numbered plans are complete.
+2. A 4-node regtest network demonstrates the full sharepool lifecycle: activate, produce shares, relay, commit, mine, claim.
+3. A multi-day devnet run shows stability under adversarial conditions (withholding, eclipse, spam).
+4. `DEPLOYMENT_SHAREPOOL` is changed from `NEVER_ACTIVE` to a mainnet activation window.
+5. A release tag includes the activation parameters.
 
 ## Idempotence and Recovery
 
-This document is safe to revise repeatedly as discoveries are made. If a later implementation or local branch changes repo reality, update this master plan from the new inspected source tree rather than layering more assumptions on top of outdated text.
-
-If later review chooses a different root plan as the active surface, this file can remain as historical decomposition so long as it clearly points contributors back to that chosen root plan.
+Each numbered plan is independently verifiable and can be rerun from its starting state. The BIP9 activation mechanism ensures that pre-activation nodes are unaffected. If a plan introduces a regression, the affected code can be reverted without breaking pre-activation behavior.
 
 ## Artifacts and Notes
 
-### Current repo facts that anchor this plan
-
-    README.md says RNG is a fork of Bitcoin Core v29.0.
-    src/consensus/params.h only defines DEPLOYMENT_TESTDUMMY and DEPLOYMENT_TAPROOT.
-    src/deploymentinfo.cpp only exposes testdummy and taproot.
-    No sharepool/sharechain implementation was found in the inspected target-repo source.
-
-### Actual numbered plan mapping
-
-    001 master plan
-    002 spec + simulator
-    003 simulator decision gate
-    004 deployment skeleton
-    005 sharechain data model / storage / relay
-    006 relay decision gate
-    007 payout commitment + claim path
-    008 miner / wallet / RPC integration
-    009 regtest proof
-    010 regtest decision gate
-    011 devnet validation
-    012 mainnet preparation
+- Simulator evidence: `contrib/sharepool/reports/pool-02r-revised-sweep.json`
+- Relay benchmark: `contrib/sharepool/reports/pool-06-relay-viability.json`
+- Settlement vectors: `contrib/sharepool/reports/pool-07b-settlement-vectors.json`
+- Decision gates: `genesis/plans/003-decision-gate-simulator-results.md`, `genesis/plans/006-decision-gate-share-relay-viability.md`, `genesis/plans/010-decision-gate-regtest-proof-review.md`
+- Historical standalone checkpoint/report files (`chkpt-02-pre-consensus-review.md`, `chkpt-03a-settlement-design-review.md`, `003-decision-report.md`, `003r-decision-report.md`) are absent from the current generated tree; reconcile their root-doc references against current source/spec evidence before relying on them.
 
 ## Interfaces and Dependencies
 
-The future implementation described by this corpus is expected to evolve existing RNG surfaces rather than create disconnected replacements.
+The sharepool implementation touches these module boundaries:
 
-The most important future dependencies are:
+- **Consensus**: `src/consensus/sharepool.{h,cpp}` (settlement helpers, already exists)
+- **Script interpreter**: `src/script/interpreter.cpp` (witness v2 verification, to be added in POOL-07)
+- **Validation**: `src/validation.cpp` (ConnectBlock enforcement, to be added in POOL-07)
+- **Miner**: `src/node/miner.cpp` (multi-leaf commitment, to be extended in POOL-07) and `src/node/internal_miner.{h,cpp}` (dual-target production, POOL-08)
+- **Sharechain**: `src/node/sharechain.{h,cpp}` (exists, to be extended for reward-window queries in POOL-08)
+- **Wallet**: `src/wallet/` (pooled reward tracking, auto-claim, POOL-08)
+- **RPC**: `src/rpc/mining.cpp` (sharepool RPCs, POOL-08)
+- **P2P**: `src/net_processing.cpp` (share relay, exists)
+- **Chain params**: `src/kernel/chainparams.cpp` (activation parameters, FUTURE-02)
 
-- activation surfaces in `src/consensus/params.h`, `src/deploymentinfo.cpp`, and `src/kernel/chainparams.cpp`
-- mining surfaces in `src/node/miner.cpp`, `src/node/internal_miner.cpp`, and `src/rpc/mining.cpp`
-- validation surfaces in `src/validation.cpp`
-- future sharechain modules under a new subtree such as `src/sharechain/`
-- wallet surfaces once pending and claimable pooled reward become real
-
-This plan intentionally avoids naming concrete QSB interfaces because those source files were not present in the inspected checkout. If that work lands later, compatibility should be specified from the merged interfaces at that time.
-
-Change note: Rewritten on 2026-04-13 during the corpus review pass. Reason: the generated master plan had incorrect sub-plan numbering, assumed QSB source files that were not present in the inspected checkout, and described `genesis/` as the active planning surface without repo evidence for that claim.
+External dependency: RandomX v1.2.1 (vendored, no changes needed).

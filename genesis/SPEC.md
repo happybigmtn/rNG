@@ -1,85 +1,104 @@
-# RNG Product Specification
+# RNG System Specification
 
-## Current Verified Product Contract
+## Problem Statement
 
-RNG is a CPU-mineable cryptocurrency for AI agents built on a Bitcoin Core-derived node. The checked-in repo docs still describe the base as Bitcoin Core `v29.0`; separate local planning documents discuss later port work, but this specification avoids presenting that as settled current behavior without corresponding in-tree source evidence.
+How might we let any CPU miner on a Bitcoin-derived RandomX chain earn proportional block rewards without trusting a pool operator, so that small miners can start accruing deterministic reward entitlement immediately and claim it trustlessly after maturity?
 
-`README.md` says the current mainnet restarted from genesis on February 26, 2026. The node preserves Bitcoin-style transactions, UTXOs, wallets, RPCs, and script surfaces while replacing proof of work with RandomX and adopting RNG-specific network and economic parameters.
+## System Identity
 
-## Current Concrete Behaviors
+RNG is a Bitcoin Core v30.2-derived full node for the RNG mainnet, a live proof-of-work chain using RandomX for CPU-friendly block mining. The chain has been live since January 30, 2025. Committed root docs record the chain in the low-32,000 block range on 2026-04-13, with validator-02/04/05 healthy at height 32122 and validator-01 crash-looping on a zero-byte `settings.json`; this corpus review did not perform a fresh live-network probe.
+
+The intended near-term direction, not current behavior, is protocol-native trustless pooled mining: after BIP9 activation of `DEPLOYMENT_SHAREPOOL`, every miner automatically participates in a deterministic reward-sharing protocol. The protocol smooths block-finder lumpiness by distributing each block's reward proportionally to recent public share work, and lets miners claim their committed share after coinbase maturity without any operator involvement.
+
+## Current Behavior (Pre-Activation)
 
 ### Mining
+A miner starts with `rngd -mine -mineaddress=<addr> -minethreads=N`. The internal miner spawns one coordinator thread and N worker threads. Workers grind RandomX nonces in lock-free stride-based loops. When a worker finds a hash meeting the block difficulty target, the coordinator submits the block. The block finder receives the entire block reward (subsidy + fees) in the coinbase output. No reward sharing occurs.
 
-- `rngd` can run the built-in internal miner with `-mine`, `-mineaddress`, `-minethreads`, and `-minerandomx`.
-- `src/node/internal_miner.cpp` implements a multithreaded RandomX miner.
-- Mining is still classical block mining: one winning block pays the block finder under the existing coinbase model.
+### Block production
+Blocks target 120-second spacing on mainnet. Difficulty adjusts per-block using LWMA with a 720-block window and 60-timestamp outlier cut. RandomX uses a fixed genesis seed `"RNG Genesis Seed"` with Argon salt `"RNGCHAIN01"`. The subsidy starts at 50 RNG and halves every 2,100,000 blocks.
 
-### Consensus and block production
+### Wallet
+The wallet is the standard Bitcoin Core v30.2 descriptor-based SQLite wallet. It supports P2WPKH, P2WSH, and P2TR addresses with Bech32 HRP `rng`. The wallet tracks confirmed, unconfirmed, and immature balances. There is no concept of pooled reward.
 
-- Target spacing is 120 seconds.
-- Subsidy starts at 50 RNG, halves every 2,100,000 blocks, and floors at 0.6 RNG tail emission.
-- Coinbase maturity remains 100 confirmations.
-- `src/kernel/chainparams.cpp` currently enables only the documented Bitcoin-derived soft-fork deployments already present in code (`testdummy`, `taproot`).
+### GUI
+The repository includes inherited Qt wallet/node GUI code and an optional `rng-qt` target, but no sharepool-specific GUI is implemented or planned in the near-term critical path. Planned pooled-balance behavior is specified for RPC/wallet internals first; GUI parity is a future support question if Qt remains a first-class distribution surface.
 
-### Transactions, wallet, and script
+### P2P
+Peers communicate using Bitcoin-style P2P with RNG network magic `0xB07C010E` on port 8433. BIP324 encrypted transport is available from genesis. Four hardcoded seed IPs provide initial peer discovery.
 
-- RNG preserves Bitcoin-style transaction format and script execution.
-- SegWit and Taproot are active from genesis per current code and specs.
-- Wallet behavior remains Bitcoin-derived; mining rewards accrue through the existing wallet surfaces.
+### QSB (operator-only)
+The QSB path lets operators create and mine quantum-safe transactions via local-only RPCs (`submitqsbtransaction`, `listqsbtransactions`, `removeqsbtransaction`). Enabled with `-enableqsboperator`. Not exposed to public relay. Proven on mainnet with canary funding/spend at heights 29946-29947.
 
-### Network and tooling
+## Planned Behavior (Post-Activation)
 
-- P2P port: 8433
-- RPC port: 8432
-- Bech32 prefix: `rng1`
-- The repo includes bootstrap assets and operator helper scripts such as `rng-start-miner`, `rng-doctor`, and public-node install/apply helpers.
+### Shares
+The internal miner checks each RandomX hash against two targets: the block difficulty target and a lower share difficulty target (block target * 120 for 1-second shares on 120-second mainnet blocks). When a hash meets the share target but not the block target, the miner constructs a `ShareRecord` containing the candidate header, share nBits, parent share link, and payout script, then relays it via `shareinv`/`getshare`/`share` P2P messages.
 
-## Proposed Near-Term Direction
+### Reward window
+For each block, the assembler walks backward through accepted shares from the best share tip, accumulating share work until reaching 7200 target-spacing shares of work. Shares in the window are aggregated by payout script. Each script's share of the total reward is `floor(total_reward * script_work / window_work)`, with deterministic remainder distribution.
 
-The near-term product direction documented in the root pooled-mining plan and this `genesis/` corpus is protocol-native pooled mining:
+### Payout commitment
+The block assembler builds sorted payout leaves (by `Hash(payout_script)`) into a binary Merkle tree. The payout root, together with an initial all-unclaimed claim-status root, forms the settlement state hash. The coinbase contains a witness-v2 settlement output: `OP_2 <state_hash>` with `nValue = total_reward`.
 
-- public shares rather than external pool admission
-- deterministic reward windows
-- a compact payout commitment in each block
-- delayed but trustless post-maturity claims
+### Claims
+After 100-block coinbase maturity, any party can construct a claim transaction that:
+1. Spends the current settlement output (input 0)
+2. Pays exactly one committed leaf's amount to that leaf's payout script (output 0)
+3. Creates a successor settlement output with updated claim-status root (output 1, unless final claim)
+4. Funds fees from non-settlement inputs
 
-This is a proposal, not current behavior. No sharepool/sharechain implementation was verified in the inspected target repo.
+The claim witness stack is: settlement descriptor, leaf index, leaf data, payout branch, status branch. No inner signature is needed because the payout destination is consensus-locked.
 
-## Important Non-Current Surfaces
+### Wallet integration (planned)
+`getbalances` will add `pooled.pending` (reward window entitlement before maturity) and `pooled.claimable` (matured, ready to claim). The wallet will auto-construct claim transactions when settlements mature.
 
-These are documented somewhere in the repo or local planning docs, but are not verified current behavior in the inspected target code:
+### RPCs (planned)
+- `submitshare <hex>`: Validate, store, and relay a share
+- `getsharechaininfo`: Best share tip, height, orphan count, reward window size
+- `getrewardcommitment <blockhash>`: Commitment root, leaves, amounts for an activated block
 
-- Protocol-native pooled mining
-- Sharechain / share relay
-- `submitshare`, `getsharechaininfo`, `getrewardcommitment`
-- `createagentwallet`
-- MCP server support
-- `pool-mine --pool ...`
-- P2P atomic swaps
-- Agent identity / autonomy / webhook surfaces
+### Solo mining under sharepool
+Solo mining is the degenerate case. If only one miner fills the reward window, that miner gets a single-leaf settlement output for the full block reward. The claim path works identically. The transition from "one miner" to "many miners" is seamless and requires no configuration change.
 
-## QSB Status
+## Architecture Boundaries
 
-The local root `EXECPLAN.md` describes QSB rollout work, but the corresponding QSB source files named there were not present in the inspected checkout. This specification therefore does not treat QSB as a current product contract. If that work lands in-tree later, the pooled-mining plans should be rechecked for interaction points at that time.
+### What RNG consensus owns
+- Share validity rules (RandomX proof, target bounds, parent chain, payout script)
+- Sharechain tip selection (cumulative work, deterministic tie break)
+- Reward window construction and payout leaf computation
+- Settlement output creation in coinbase
+- Witness-v2 settlement program verification
+- Claim transaction shape enforcement and value conservation
+- Claim-status state transitions
 
-## System Properties
+### What RNG node owns
+- SharechainStore (LevelDB persistence, orphan buffering)
+- P2P share relay (activation-gated `shareinv`/`getshare`/`share`)
+- Block template construction with settlement commitment
+- Internal miner dual-target production
+- Sharepool RPCs
 
-| Property | Current verified value |
-|---|---|
-| Block target | 120 seconds |
-| Initial reward | 50 RNG |
-| Halving interval | 2,100,000 blocks |
-| Tail emission floor | 0.6 RNG |
-| Coinbase maturity | 100 blocks |
-| Proof of work | RandomX |
-| P2P port | 8433 |
-| RPC port | 8432 |
-| Address HRP | `rng1` |
-| Documented genesis restart | February 26, 2026 |
-| In-code named deployments | `testdummy`, `taproot` |
+### What the wallet owns
+- Pending/claimable pooled reward tracking
+- Auto-claim transaction construction
+- Fee management for claims
 
-## Product Truthfulness Rules
+### What stays outside RNG (e.g., in Zend or other tooling)
+- Operator fleet management and deployment
+- Mobile control planes and UX
+- HTTP-based pool protocols for external miners
+- Explorer and block visualization
+- Third-party miner management dashboards
 
-- Present pooled mining as planned work until sharepool code exists in-tree.
-- Present agent-wallet, MCP, swap, and external-pool examples as aspirational or future-only until implemented.
-- Treat local planning files as planning inputs, not as substitutes for inspected source behavior.
+## Activation
+
+`DEPLOYMENT_SHAREPOOL` uses BIP9 versionbits activation with bit 3, period 2016, and threshold 1916/2016 (95%). Mainnet remains `NEVER_ACTIVE` until regtest proof, devnet adversarial testing, and mainnet activation preparation are complete. Regtest can activate immediately with `-vbparams=sharepool:0:9999999999:0`.
+
+## Constraints
+
+- All changes layer on Bitcoin Core v30.2. No changes to transaction format, script evaluation (except witness v2), or P2P framing.
+- Coinbase maturity remains 100 blocks. Claims cannot spend settlement outputs before maturity.
+- Share relay bandwidth must stay under ~10 KB/s per node at the 1-second cadence.
+- v1 settlement supports one claim per transaction. Batched claims are deferred.
+- Witness version 2 with 32-byte programs is reserved exclusively for sharepool settlement in v1.
