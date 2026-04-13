@@ -1,5 +1,26 @@
 # COMPLETED
 
+## POOL-07G Coinbase Settlement Output Enforcement in ConnectBlock
+
+- Enforced activated sharepool coinbase shape in `ConnectBlock`: exactly one
+  `OP_2 <32-byte state hash>` settlement output, with value equal to the full
+  block reward including fees.
+- Added `SCRIPT_VERIFY_SHAREPOOL` to activated block script flags so witness-v2
+  settlement programs are verified during block connection.
+- Added `sharepool_enforcement_tests` coverage for preactivation legacy
+  coinbase acceptance, activated valid settlement acceptance, missing
+  settlement rejection, wrong-value rejection, duplicate settlement rejection,
+  and activated witness-v2 script-flag enforcement.
+- Validation:
+  - `cmake --build build -j$(nproc)`
+  - `ctest --test-dir build -R sharepool_enforcement --output-on-failure`
+  - `ctest --test-dir build -R 'sharepool_enforcement|sharepool_commitment|sharepool_verification|miner_tests' --output-on-failure`
+  - `python3 build/test/functional/feature_sharepool_relay.py --configfile=/home/r/Coding/RNG/build/test/config.ini --timeout-factor=4`
+- Notes:
+  - The broad CTest regex also matched and passed `miniminer_tests` and
+    `testnet4_miner_tests`.
+- Commit: `20613ec99b9ecb5f7f7fd1981895f12a857b939a`
+
 ## POOL-07F Witness-v2 Settlement Program Verification
 
 - Completed witness-v2 settlement program verification and interpreter dispatch.
