@@ -51,14 +51,33 @@ function(add_randomx subdir)
   get_target_interface(RANDOMX_APPEND_LDFLAGS "" sanitize_interface LINK_OPTIONS)
   string(STRIP "${RANDOMX_APPEND_LDFLAGS} ${APPEND_LDFLAGS}" RANDOMX_APPEND_LDFLAGS)
 
+  set(RANDOMX_REPRO_CFLAGS "")
+  set(RANDOMX_REPRO_CXXFLAGS "")
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    string(APPEND RANDOMX_REPRO_CFLAGS
+      " -ffile-prefix-map=${RANDOMX_BUILD_SOURCE_DIR}=src/crypto/randomx"
+      " -fmacro-prefix-map=${RANDOMX_BUILD_SOURCE_DIR}=src/crypto/randomx"
+      " -ffile-prefix-map=${RANDOMX_BINARY_DIR}=randomx-build"
+      " -fmacro-prefix-map=${RANDOMX_BINARY_DIR}=randomx-build"
+    )
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    string(APPEND RANDOMX_REPRO_CXXFLAGS
+      " -ffile-prefix-map=${RANDOMX_BUILD_SOURCE_DIR}=src/crypto/randomx"
+      " -fmacro-prefix-map=${RANDOMX_BUILD_SOURCE_DIR}=src/crypto/randomx"
+      " -ffile-prefix-map=${RANDOMX_BINARY_DIR}=randomx-build"
+      " -fmacro-prefix-map=${RANDOMX_BINARY_DIR}=randomx-build"
+    )
+  endif()
+
   # We want to build RandomX with the most tested RelWithDebInfo configuration.
   foreach(config IN LISTS CMAKE_BUILD_TYPE CMAKE_CONFIGURATION_TYPES)
     if(config STREQUAL "")
       continue()
     endif()
     string(TOUPPER "${config}" config)
-    set(CMAKE_C_FLAGS_${config} "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-    set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    set(CMAKE_C_FLAGS_${config} "${CMAKE_C_FLAGS_RELWITHDEBINFO}${RANDOMX_REPRO_CFLAGS}")
+    set(CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${RANDOMX_REPRO_CXXFLAGS}")
   endforeach()
 
   # If the CFLAGS environment variable is defined during building depends

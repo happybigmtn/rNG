@@ -42,10 +42,11 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Estimated scope: L
   Completion signal: Two-miner regtest scenario passes end-to-end; all new RPCs return expected data.
 
-- [ ] `CHKPT-03` Checkpoint: Regtest end-to-end proof
+- [!] `CHKPT-03` Checkpoint: Regtest end-to-end proof
 
   Spec: `specs/120426-sharepool-protocol.md`
   Why now: Corpus Plans 009/010. Before any devnet or mainnet work, prove the full sharepool lifecycle works on regtest: activation, share production, relay, commitment, mining, claim.
+  Blocker: The task's explicit dependency `POOL-08` remains blocked by `POOL-07`. Live code has the sharepool activation boundary and share relay (`src/consensus/params.h`, `src/node/sharechain.{h,cpp}`, `src/net_processing.cpp`), but it still has no consensus payout commitment/claim implementation, no dual-target share-producing miner, no wallet pooled-balance/auto-claim surface, no `submitshare`/`getsharechaininfo`/`getrewardcommitment` RPCs, and no `test/functional/feature_sharepool_e2e.py`. A regtest end-to-end proof cannot be truthfully implemented until `POOL-07` and `POOL-08` are unblocked and landed.
   Codebase evidence: All preceding POOL tasks.
   Owns: End-to-end regtest proof script and review document.
   Integration touchpoints: All sharepool code.
@@ -58,21 +59,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Completion signal: Reproducible regtest proof passes; review document committed.
 
 ### Tier 5: Release and Distribution
-
-- [ ] `REL-01` Validate end-to-end reproducible build pipeline
-
-  Spec: `specs/120426-release-distribution.md`
-  Why now: `scripts/build-release.sh` uses PAX format, `SOURCE_DATE_EPOCH`, and normalized ownership for reproducibility, but this has never been verified end-to-end (two independent builds producing identical tarballs).
-  Codebase evidence: `scripts/build-release.sh` sets `SOURCE_DATE_EPOCH` from git log, uses `--format=posix` (PAX), normalizes ownership to `root:root`. No CI job verifies reproducibility.
-  Owns: Verification that two independent builds from the same commit produce byte-identical tarballs (or document what prevents it and fix).
-  Integration touchpoints: `scripts/build-release.sh`, `.github/workflows/release.yml`.
-  Scope boundary: Verify and fix. Do not redesign the build system.
-  Acceptance criteria: Two clean builds from the same git commit on the same platform produce identical SHA256 for the tarball. If not achievable, document the specific non-determinism and whether it's fixable.
-  Verification: `scripts/build-release.sh --output-dir /tmp/build1 && scripts/build-release.sh --output-dir /tmp/build2 && diff <(sha256sum /tmp/build1/*.tar.gz) <(sha256sum /tmp/build2/*.tar.gz)`
-  Required tests: None (verification task).
-  Dependencies: `SYNC-01`.
-  Estimated scope: S
-  Completion signal: Reproducibility confirmed or non-determinism documented with fix plan.
 
 ---
 
@@ -143,10 +129,10 @@ Items below are real work identified by the specs but either depend on unresolve
 - [ ] `FUTURE-05` Cross-platform release expansion (Windows, ARM64 native)
 
   Spec: `specs/120426-release-distribution.md`
-  Why now: Not urgent — current releases cover linux-x86_64, linux-arm64, macos-x86_64, macos-arm64. Windows builds exist in CI but no Windows release tarball is cut. ARM64 native testing (vs cross-compile) is untested for RandomX JIT.
-  Codebase evidence: `.github/workflows/release.yml` builds 4 platforms. `.github/workflows/ci.yml` includes Windows MSVC and MinGW targets. No Windows release artifact in release.yml.
-  Owns: Add Windows release tarball to release pipeline; verify RandomX JIT on native ARM64.
-  Integration touchpoints: `scripts/build-release.sh`, `.github/workflows/release.yml`.
+  Why now: Not urgent — same-platform linux-x86_64 release reproducibility is now verified by `scripts/check-reproducible-release.sh`, but there is no tracked release workflow for cross-platform artifacts. Windows builds exist in CI, and ARM64 native testing (vs cross-compile) is untested for RandomX JIT.
+  Codebase evidence: live `.github/workflows/` contains only `ci.yml`; `.github/workflows/release.yml` and `.github/workflows/ghcr.yml` are absent. `.github/workflows/ci.yml` includes Windows MSVC and MinGW targets. No Windows release artifact pipeline is tracked.
+  Owns: Add or restore the release pipeline, add Windows release tarball support if desired, and verify RandomX JIT on native ARM64.
+  Integration touchpoints: `scripts/build-release.sh`, future `.github/workflows/release.yml` if restored.
   Scope boundary: Release pipeline only. Do not port platform-specific code.
   Acceptance criteria: Windows tarball included in releases. ARM64 RandomX JIT verified functional.
   Verification: Release pipeline produces 5+ platform tarballs.
@@ -213,8 +199,8 @@ Items below are real work identified by the specs but either depend on unresolve
 - [x] `DONE-07` Release and distribution pipeline
 
   Spec: `specs/120426-release-distribution.md`
-  Codebase evidence: `.github/workflows/release.yml` (5.3 KB) — 4-platform deterministic builds with SHA256SUMS and build provenance attestation. `.github/workflows/ghcr.yml` — container publishing. `scripts/build-release.sh` — tarball construction with PAX format and normalized ownership.
-  Verification: Live releases published; fleet deployed from release artifacts per EXECPLAN.md.
+  Codebase evidence: `scripts/build-release.sh` constructs deterministic tarballs with PAX format and normalized ownership; `scripts/check-reproducible-release.sh` verifies same-platform reproducibility. Live `.github/workflows/` currently contains only `ci.yml`; tracked release and GHCR workflows are absent.
+  Verification: Same-commit linux-x86_64 reproducibility passes with `scripts/check-reproducible-release.sh`; live releases/fleet deployment remain historical evidence per EXECPLAN.md.
 
 - [x] `DONE-08` QSB operator support (on main branch)
 

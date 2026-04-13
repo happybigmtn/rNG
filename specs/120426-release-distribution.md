@@ -28,7 +28,7 @@ Define the build, packaging, verification, and distribution pipeline for RNG bin
 
 **Standard build command** (from README and build-release.sh):
 ```bash
-cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
 cmake --build build -j$(nproc)
 ```
 
@@ -40,12 +40,19 @@ cmake --build build -j$(nproc)
 **Release builder** (`scripts/build-release.sh`):
 - Auto-detects version from `git describe --tags` or `CMakeLists.txt`
 - Auto-detects platform: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`
+- Configures release binaries with `CMAKE_BUILD_TYPE=Release`
 - Tarball naming: `rng-${VERSION}-${PLATFORM}.tar.gz`
 - Tarball format: PAX, `tar.gz`, owner normalized to `root:root`
 - Source date epoch: from `git log` commit timestamp (for reproducibility)
 - Permissions: 0755 (executables), 0644 (data files)
-- Checksums: SHA256SUMS file (appended, not overwritten)
+- Staged binaries are stripped when `strip` is available; Linux GNU build-id notes are removed from staged copies when `objcopy` is available so the final tarball does not inherit nondeterministic build IDs
+- Checksums: SHA256SUMS file rewritten for the output directory on each run
 - Flags: `--version`, `--platform`, `--build-dir`, `--output-dir`, `--skip-build`
+
+**Reproducible release check** (`scripts/check-reproducible-release.sh`):
+- Performs two independent release builds in temporary build directories and compares the resulting tarballs byte-for-byte
+- Supports `--version`, `--platform`, `--skip-build`, and `--keep-temp`
+- On 2026-04-13, same-commit linux-x86_64 verification produced identical `rng-v3.0.0-linux-x86_64.tar.gz` artifacts with SHA256 `4d6d0fe99a0f407fd054f22c438df1638ae65c98913156db7809358d74ca097f`
 
 **Tarball contents**:
 - `rngd` (0755)
@@ -74,7 +81,9 @@ cmake --build build -j$(nproc)
 ```
 
 **Release verification** (`scripts/verify-release.sh`):
-- Verifies tarball checksum against SHA256SUMS
+- Verifies a published release tarball checksum against the published GitHub `SHA256SUMS`
+- Verifies GitHub attestations when `gh` is available, unless `--skip-attestation` is passed
+- Accepts `--version`, `--platform`, `--file`, and `--skip-attestation`; positional tarball arguments are not supported
 - Exists in `scripts/` directory
 
 **Container image** (`Dockerfile`):
@@ -103,7 +112,7 @@ cmake --build build -j$(nproc)
 - `rngd`: `36eb7509a17c15fbca062dc3427bb36d0d19cb24ec4fb299fcea09e20a5ad054`
 - `rng-cli`: `eff7e8d116b8143f4182197e482804b74a49d8885915e24ab23eec6b3f67b92a`
 
-**Release process** (from README and CHANGES.md):
+**Release process** (from README and repository history):
 - Tag-first releases: create git tag, then build
 - Release artifacts committed via `git tag`
 - Verification: `scripts/verify-release.sh` against SHA256SUMS
@@ -115,7 +124,7 @@ cmake --build build -j$(nproc)
 
 ### Hypotheses / Unresolved Questions
 
-- Whether reproducible builds are fully achievable (PAX format + source_date_epoch + normalized ownership suggest intent, but not verified end-to-end)
+- Cross-machine reproducibility is not yet verified; same-machine, same-commit linux-x86_64 reproducibility is verified by `scripts/check-reproducible-release.sh`
 - Whether cross-compilation (e.g., ARM64 on x86_64) is supported via the `depends/` system
 
 ## Acceptance Criteria
@@ -137,7 +146,7 @@ cmake --build build -j$(nproc)
 
 ```bash
 # Build from source
-cmake -B build -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
 cmake --build build -j$(nproc)
 ./build/src/rngd --version
 # Expected: RNG Core v3.0.0
@@ -147,8 +156,11 @@ cmake --build build -j$(nproc)
 ls dist/rng-v3.0.0-linux-x86_64.tar.gz
 cat dist/SHA256SUMS
 
-# Verify release
-./scripts/verify-release.sh dist/rng-v3.0.0-linux-x86_64.tar.gz
+# Verify a published release asset
+./scripts/verify-release.sh --version v3.0.0 --file dist/rng-v3.0.0-linux-x86_64.tar.gz --skip-attestation
+
+# Verify same-commit release reproducibility on the current platform
+./scripts/check-reproducible-release.sh
 
 # Inspect tarball contents
 tar tzf dist/rng-v3.0.0-linux-x86_64.tar.gz
@@ -169,7 +181,7 @@ sha256sum bootstrap/rng-mainnet-29944.utxo
 
 ## Open Questions
 
-1. Are reproducible builds verified? The PAX format and source_date_epoch suggest intent, but has anyone built the same tarball from the same commit on two different machines and compared checksums?
+1. Are release builds reproducible across two different machines, not just across two clean same-machine build directories?
 2. Should the `depends/` cross-compilation system be documented for ARM64 builds, or is native compilation the only supported path?
 3. Should bootstrap assets be hosted externally (e.g., GitHub Releases, CDN) rather than committed to the repository? The chain bundle is ~60 MB and will grow.
 4. Is there a GPG signing process for releases, or is SHA256SUMS the only verification mechanism?

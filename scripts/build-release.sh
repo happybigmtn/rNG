@@ -129,6 +129,7 @@ build_binaries() {
 
     info "Building RNG release binaries"
     cmake -B "$BUILD_DIR" \
+        -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_TESTING=OFF \
         -DENABLE_IPC=OFF \
         -DWITH_ZMQ=OFF \
@@ -143,6 +144,9 @@ maybe_strip_binary() {
     file="$1"
     if command -v strip >/dev/null 2>&1; then
         strip "$file" 2>/dev/null || true
+    fi
+    if command -v objcopy >/dev/null 2>&1; then
+        objcopy --remove-section .note.gnu.build-id "$file" 2>/dev/null || true
     fi
 }
 
