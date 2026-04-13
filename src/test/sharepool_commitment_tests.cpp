@@ -39,6 +39,23 @@ using consensus::sharepool::SortSettlementLeaves;
 
 fs::path SourceRoot()
 {
+    std::vector<fs::path> search_roots{
+        fs::absolute(fs::PathFromString(__FILE__)),
+        fs::current_path(),
+    };
+
+    for (fs::path root : search_roots) {
+        if (fs::is_regular_file(root)) root = root.parent_path();
+        while (!root.empty()) {
+            if (fs::exists(root / "contrib" / "sharepool" / "reports" / "pool-07b-settlement-vectors.json")) {
+                return root;
+            }
+            const fs::path parent{root.parent_path()};
+            if (parent == root) break;
+            root = parent;
+        }
+    }
+
     fs::path source{fs::absolute(fs::PathFromString(__FILE__))};
     return source.parent_path().parent_path().parent_path();
 }

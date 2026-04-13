@@ -5,6 +5,7 @@
 
 #include <script/interpreter.h>
 
+#include <consensus/sharepool.h>
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
 #include <crypto/sha256.h>
@@ -1982,6 +1983,9 @@ static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, 
             }
             return set_success(serror);
         }
+    } else if (witversion == 2 && program.size() == 32 && !is_p2sh) {
+        if (!(flags & SCRIPT_VERIFY_SHAREPOOL)) return set_success(serror);
+        return consensus::sharepool::VerifySharepoolSettlement(program, witness.stack, serror);
     } else if (!is_p2sh && CScript::IsPayToAnchor(witversion, program)) {
         return true;
     } else {

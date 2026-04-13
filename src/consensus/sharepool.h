@@ -6,6 +6,7 @@
 #define BITCOIN_CONSENSUS_SHAREPOOL_H
 
 #include <script/script.h>
+#include <script/script_error.h>
 #include <serialize.h>
 #include <uint256.h>
 
@@ -68,6 +69,7 @@ std::vector<uint256> ComputeSettlementMerkleBranch(std::vector<uint256> leaves, 
 uint256 ComputeSettlementMerkleRootFromBranch(const uint256& leaf_hash, size_t index, const std::vector<uint256>& branch);
 
 int64_t ComputeRemainingSettlementValue(const std::vector<SettlementLeaf>& ordered_leaves, const std::vector<bool>& claimed_flags);
+bool VerifySharepoolSettlement(const std::vector<unsigned char>& program, const std::vector<std::vector<unsigned char>>& witness_stack, ScriptError* serror);
 
 } // namespace consensus::sharepool
 

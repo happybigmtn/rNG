@@ -5,11 +5,14 @@
 #include <consensus/sharepool.h>
 
 #include <hash.h>
+#include <script/script_error.h>
 #include <serialize.h>
+#include <streams.h>
 #include <util/check.h>
 
 #include <algorithm>
 #include <array>
+#include <ios>
 #include <numeric>
 #include <span>
 #include <string_view>
@@ -77,6 +80,50 @@ std::vector<uint256> SettlementPayoutLeafHashes(const std::vector<SettlementLeaf
         hashes.push_back(HashSettlementLeaf(leaf));
     }
     return hashes;
+}
+
+bool SetSharepoolError(ScriptError* serror, ScriptError error)
+{
+    if (serror) *serror = error;
+    return false;
+}
+
+template <typename T>
+bool DeserializeSettlementElement(const std::vector<unsigned char>& element, T& value)
+{
+    try {
+        DataStream stream{element};
+        stream >> value;
+        return stream.empty();
+    } catch (const std::ios_base::failure&) {
+        return false;
+    }
+}
+
+bool DecodeSettlementLeafIndex(const std::vector<unsigned char>& element, uint32_t leaf_count, size_t& leaf_index)
+{
+    if (leaf_count == 0) return false;
+    try {
+        const CScriptNum index_num{element, /*fRequireMinimal=*/false, /*nMaxNumSize=*/5};
+        const int64_t index_value{index_num.GetInt64()};
+        if (index_value < 0) return false;
+        if (static_cast<uint64_t>(index_value) >= leaf_count) return false;
+        leaf_index = static_cast<size_t>(index_value);
+        return true;
+    } catch (const scriptnum_error&) {
+        return false;
+    }
+}
+
+bool DecodeSettlementHashBranch(const std::vector<unsigned char>& element, std::vector<uint256>& branch)
+{
+    if (element.size() % uint256::size() != 0) return false;
+    branch.clear();
+    branch.reserve(element.size() / uint256::size());
+    for (size_t offset{0}; offset < element.size(); offset += uint256::size()) {
+        branch.emplace_back(std::span<const unsigned char>{element.data() + offset, uint256::size()});
+    }
+    return true;
 }
 
 } // namespace
@@ -261,6 +308,57 @@ int64_t ComputeRemainingSettlementValue(const std::vector<SettlementLeaf>& order
         }
     }
     return remaining;
+}
+
+bool VerifySharepoolSettlement(const std::vector<unsigned char>& program, const std::vector<std::vector<unsigned char>>& witness_stack, ScriptError* serror)
+{
+    if (witness_stack.size() != 5) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_WITNESS_SIZE);
+    }
+    if (program.size() != uint256::size()) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    SettlementDescriptor descriptor;
+    if (!DeserializeSettlementElement(witness_stack[0], descriptor)) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+    if (descriptor.version != SETTLEMENT_DESCRIPTOR_VERSION) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_DESCRIPTOR_VERSION);
+    }
+
+    size_t leaf_index{0};
+    if (!DecodeSettlementLeafIndex(witness_stack[1], descriptor.leaf_count, leaf_index)) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    SettlementLeaf leaf;
+    if (!DeserializeSettlementElement(witness_stack[2], leaf)) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    std::vector<uint256> payout_branch;
+    std::vector<uint256> status_branch;
+    if (!DecodeSettlementHashBranch(witness_stack[3], payout_branch) ||
+        !DecodeSettlementHashBranch(witness_stack[4], status_branch)) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    const uint256 payout_root{ComputeSettlementMerkleRootFromBranch(HashSettlementLeaf(leaf), leaf_index, payout_branch)};
+    if (payout_root != descriptor.payout_root) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    const uint256 old_status_root{
+        ComputeSettlementMerkleRootFromBranch(HashSettlementClaimFlag(leaf_index, /*claimed=*/false), leaf_index, status_branch)};
+    const uint256 expected_state_hash{ComputeSettlementStateHash(descriptor, old_status_root)};
+    const uint256 program_state_hash{std::span<const unsigned char>{program.data(), program.size()}};
+    if (expected_state_hash != program_state_hash) {
+        return SetSharepoolError(serror, SCRIPT_ERR_SHAREPOOL_VERIFY_FAILED);
+    }
+
+    if (serror) *serror = SCRIPT_ERR_OK;
+    return true;
 }
 
 } // namespace consensus::sharepool
