@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 3: Sharepool Core Implementation
 
-- [ ] `POOL-04` Add `DEPLOYMENT_SHAREPOOL` BIP9 activation boundary
-
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: Corpus Plan 004. The activation boundary must exist before any consensus-changing code so that all new rules are gated behind `DeploymentActiveAt()`. Ships as `NEVER_ACTIVE` on mainnet — no risk to live network.
-  Codebase evidence: `src/consensus/params.h:35-36` — BIP9 enum has `DEPLOYMENT_TESTDUMMY` and `DEPLOYMENT_TAPROOT`. New entry goes after `DEPLOYMENT_TAPROOT`. `MAX_VERSION_BITS_DEPLOYMENTS` needs incrementing. `src/kernel/chainparams.cpp` needs deployment parameters for all network types.
-  Owns: `src/consensus/params.h` (new enum entry), `src/kernel/chainparams.cpp` (deployment params per network), `src/deploymentinfo.cpp` (name string).
-  Integration touchpoints: `src/versionbits.cpp` (automatic via BIP9 framework), `-vbparams` regtest override.
-  Scope boundary: Activation wiring only. No consensus rule changes. No share code. Mainnet: `NEVER_ACTIVE`. Regtest: activatable via `-vbparams=sharepool:0:9999999999:0`.
-  Acceptance criteria: `DEPLOYMENT_SHAREPOOL` compiles. `DeploymentActiveAt(tip, DEPLOYMENT_SHAREPOOL)` returns false on mainnet. Regtest with `-vbparams=sharepool:0:9999999999:0` activates after signaling window.
-  Verification: `cmake --build build -j$(nproc) && build/bin/test_bitcoin --run_test=versionbits_tests`
-  Required tests: Existing `versionbits_tests` pass with new deployment. Add one test confirming `DEPLOYMENT_SHAREPOOL` is `NEVER_ACTIVE` by default.
-  Dependencies: `CHKPT-02`.
-  Estimated scope: S
-  Completion signal: Build succeeds; versionbits tests pass; regtest activation works via `-vbparams`.
-
 - [ ] `POOL-05` Implement sharechain data model, storage, and P2P relay
 
   Spec: `specs/120426-sharepool-protocol.md`

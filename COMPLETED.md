@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `POOL-04` — Added the `DEPLOYMENT_SHAREPOOL` BIP9 activation boundary with deployment name `sharepool`, unique version bit 3, dormant `NEVER_ACTIVE` defaults across networks, and a regtest `-vbparams=sharepool:0:9999999999:0` override path. Mainnet uses the corrected 95% threshold `1916/2016` from the active sharepool spec rather than the older dated-spec typo. Commit: `0742f7314bff54c3181ac7fa883c4519cba1ace4`.
+  Validation: initial red proof `cmake --build build -j$(nproc)` failed because `Consensus::DEPLOYMENT_SHAREPOOL` did not exist; final `cmake --build build -j$(nproc)`; `build/bin/test_bitcoin --run_test=versionbits_tests`; `git diff --check`.
+
 - `CHKPT-02` — Completed the pre-consensus sharepool implementation checkpoint and added the written review checklist at `genesis/plans/chkpt-02-pre-consensus-review.md`. Verified that `DEPLOYMENT_SHAREPOOL` is not yet present, live BIP9 slots only cover testdummy/taproot with bits 28 and 2, witness version 2 remains unassigned and available, the internal miner dual-target insertion path is clear, and merged QSB code does not block the activation skeleton. Commit: `01f63caf22cd8a887222830f028d57eedae5398e`.
   Validation: `grep "DEPLOYMENT_" src/consensus/params.h`; `grep "CONFIRMED" specs/sharepool.md | wc -l`; `if rg -n "DEPLOYMENT_SHAREPOOL|submitshare|getsharechaininfo|getrewardcommitment|shareinv|getshare" src/consensus/params.h src/rpc src/protocol.h src/net_processing.cpp src/node/internal_miner.h src/node/internal_miner.cpp; then exit 1; else echo "no sharepool code yet"; fi`; `rg -n "\.bit =" src/kernel/chainparams.cpp`; `git diff --check`; `cmake --build build -j$(nproc)`.
 
