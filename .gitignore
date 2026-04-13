@@ -42,6 +42,13 @@ ARCHIVE*.md
 IMPLEMENTATION*.md
 PROMPT*.md
 RALPH*.md
+EXECPLAN.md
+PLANS.md
+docs/*execplan*.md
+
+# Generated planning corpora
+/genesis/
+/gen-*/
 
 # Private operational docs (never publish)
 docs-private/
