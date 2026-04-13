@@ -7,6 +7,11 @@ protocol-native pooled mining work. It is a specification artifact only. No
 sharepool consensus, P2P, miner, wallet, RPC, or simulator code exists in the
 live tree yet.
 
+POOL-03 decision (2026-04-13): no-go on the current candidate constants. The
+simulator reports 25.10% CV for a 10% miner over 100 blocks, above the 10%
+decision threshold. Keep the constants below as unconfirmed inputs only until
+POOL-01/POOL-02 are revised and POOL-03 is re-run.
+
 Current live-code facts:
 
 - `src/consensus/params.h` defines only `DEPLOYMENT_TESTDUMMY` and

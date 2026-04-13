@@ -37,3 +37,7 @@ With the default deterministic variance seed (`42`), the current candidate
 constants report a 10.40% mean reward share for the 10% miner and a 25.10%
 per-block coefficient of variation across 100 blocks. POOL-03 must decide
 whether that measured variance is acceptable or requires revised constants.
+
+POOL-03 result (2026-04-13): no-go. The 25.10% CV exceeds the 10% decision
+threshold, so the sharepool spec and simulator must be revised before consensus
+implementation starts.

@@ -40,26 +40,27 @@ This plan does not produce activation parameters, deployment timelines, or mainn
 
 ## Progress
 
-- [ ] Confirm Plan 002 is complete: `specs/sharepool.md` exists, `contrib/sharepool/simulate.py` runs, all example traces produce expected output.
-- [ ] Review the sharepool spec for completeness and internal consistency.
-- [ ] Review the simulator's deterministic replay property: run each trace twice and verify byte-identical output.
-- [ ] Evaluate Question 1: Are the proposed share spacing and window constants economically sound?
-- [ ] Evaluate Question 2: Does share withholding produce unacceptable advantage?
-- [ ] Evaluate Question 3: Is the reward variance acceptable for small miners?
-- [ ] Evaluate Question 4: Can the Merkle commitment fit in a standard coinbase?
-- [ ] Evaluate Question 5: Does the claim witness program design survive analysis?
-- [ ] Evaluate Question 6: Is version-bits activation realistic, or does the design require a hard fork?
-- [ ] Write the decision report at `genesis/plans/003-decision-report.md`.
-- [ ] Record the go/no-go recommendation.
+- [x] Confirm Plan 002 is complete enough for the active gate: `specs/sharepool.md` exists, `contrib/sharepool/simulate.py` runs, and the checked example trace produces expected output.
+- [x] Review the sharepool spec for completeness and internal consistency.
+- [x] Review the simulator's deterministic replay property: run the baseline trace twice and verify byte-identical output.
+- [x] Evaluate Question 1: Are the proposed share spacing and window constants economically sound?
+- [x] Evaluate Question 2: Does share withholding produce unacceptable advantage?
+- [x] Evaluate Question 3: Is the reward variance acceptable for small miners?
+- [x] Evaluate Question 4: Can the Merkle commitment fit in a standard coinbase?
+- [x] Evaluate Question 5: Does the claim witness program design survive analysis?
+- [x] Evaluate Question 6: Is version-bits activation realistic, or does the design require a hard fork?
+- [x] Write the decision report at `genesis/plans/003-decision-report.md`.
+- [x] Record the go/no-go recommendation.
 - [ ] If go: confirm the locked constants file at `contrib/sharepool/constants.json` is authoritative.
-- [ ] If no-go: document the specific findings and required revisions for Plan 002.
+- [x] If no-go: document the specific findings and required revisions for Plan 002.
 
 ## Surprises & Discoveries
 
-No evaluation work has started. This section will be populated as the decision gate proceeds.
+- Observation: The live Plan 002 artifact shape differs from the older corpus checklist. `contrib/sharepool/constants.json`, `withholding-attack.json`, and `variance-100-blocks.json` are not present; the active simulator stores defaults in code and covers withholding/variance through tests and callable functions.
+  Evidence: `find contrib/sharepool -maxdepth 3 -type f -print | sort`; `python3 -m pytest contrib/sharepool/test_simulate.py`.
 
-- Observation: (placeholder)
-  Evidence: (placeholder)
+- Observation: The current constants fail the small-miner variance threshold.
+  Evidence: `simulate.measure_reward_variance(miner_fraction=0.10, blocks=100, seed=42)` reports `coefficient_of_variation_percent: 25.10297804`.
 
 ## Decision Log
 
@@ -71,9 +72,13 @@ No evaluation work has started. This section will be populated as the decision g
   Rationale: Without concrete thresholds, decision gates become rubber stamps. The thresholds chosen (5% withholding advantage, 10% reward variance, 100-byte commitment size) are informed by the practical constraints of a small CPU-mined network and the Bitcoin-derived coinbase and OP_RETURN limits.
   Date/Author: 2026-04-12 / genesis corpus
 
+- Decision: NO-GO on the current 10-second / 720-share candidate constants.
+  Rationale: The simulator reports 0.0% withholding advantage for the checked trace, but reports 25.10% CV for a 10% miner over 100 blocks, exceeding the 10% gate. Consensus implementation must not start until the spec and simulator are revised and this gate is re-run.
+  Date/Author: 2026-04-13 / Codex
+
 ## Outcomes & Retrospective
 
-This plan has not started. Outcomes will be recorded as the evaluation proceeds and when the decision report is finalized. The expected outcome is a clear go or no-go recommendation with quantitative evidence.
+The decision report was written at `genesis/plans/003-decision-report.md` with a NO-GO recommendation. The active queue must re-enter the spec and simulator revision loop before any consensus implementation begins.
 
 ## Context and Orientation
 

@@ -10,20 +10,50 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-03` Decision gate: simulator results review
+- [ ] `POOL-01R` Revise sharepool constants after POOL-03 no-go
 
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: Corresponds to corpus Plan 003. This is a hard decision gate. If the simulator reveals unacceptable withholding advantage (>5%) or unacceptable reward variance (CV >10% for 10% miner over 100 blocks), the proposed constants must be revised and POOL-02 re-run before any consensus code is written.
-  Codebase evidence: No prior simulator results exist.
-  Owns: Decision document recording: (a) go/no-go on proposed constants, (b) withholding advantage metric, (c) reward variance metric, (d) any constant revisions needed, (e) confirmed claim witness program version.
-  Integration touchpoints: `specs/sharepool.md` (constants may be revised), POOL-02 simulator (may need re-run).
-  Scope boundary: Review and decide. No code changes unless constants need revision (which loops back to POOL-01/POOL-02).
-  Acceptance criteria: Written decision with metrics. If go: constants in `specs/sharepool.md` are promoted from `[PROPOSED]` to `[CONFIRMED]`. If no-go: specific revision needed documented and POOL-01/POOL-02 re-entered.
-  Verification: `grep "CONFIRMED" specs/sharepool.md | wc -l` returns >=4 (all constants confirmed) OR a documented revision plan exists.
-  Required tests: None (decision gate).
-  Dependencies: `POOL-02`.
+  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
+  Why now: POOL-03 rejected the current 10-second / 720-share candidate because the simulator measured 25.10% CV for a 10% miner over 100 blocks, above the 10% decision threshold.
+  Codebase evidence: `genesis/plans/003-decision-report.md` records the no-go decision and a non-authoritative sweep showing shorter share spacing may reduce variance.
+  Owns: `specs/sharepool.md` constant candidates and any spec text needed to define the authoritative variance metric.
+  Integration touchpoints: `contrib/sharepool/simulate.py`, `contrib/sharepool/README.md`, later POOL-02R simulator sweep.
+  Scope boundary: Spec revision only. Do not add consensus code. Do not mark constants confirmed.
+  Acceptance criteria: `specs/sharepool.md` no longer presents the failed 10-second / 720-share candidate as the likely consensus set; it defines the revised candidate family and the exact variance metric POOL-02R must test.
+  Verification: `rg -n "POOL-03 decision|25.10|10-second|720" specs/sharepool.md genesis/plans/003-decision-report.md`
+  Required tests: None (spec revision).
+  Dependencies: `POOL-03` no-go decision, recorded in `genesis/plans/003-decision-report.md`.
   Estimated scope: S
-  Completion signal: Decision document committed; constants either confirmed or revision loop initiated.
+  Completion signal: Revised constants and variance metric are documented as proposed inputs for POOL-02R.
+
+- [ ] `POOL-02R` Re-run simulator for revised sharepool constants
+
+  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
+  Why now: The current simulator proves determinism and withholding behavior, but the proposed constants fail the variance threshold. A revised simulator pass must test candidate share spacing and reward-window work before consensus coding resumes.
+  Codebase evidence: `contrib/sharepool/simulate.py` already exposes `shares_per_block` and `reward_window_work` inputs through `measure_reward_variance()`, but no committed parameter-sweep artifact exists.
+  Owns: `contrib/sharepool/` simulator updates, example traces or generated reports for revised constants, README metrics.
+  Integration touchpoints: `specs/sharepool.md`, POOL-03R decision gate.
+  Scope boundary: Offline simulator and documentation only. No node consensus, P2P, wallet, or miner code.
+  Acceptance criteria: (1) Revised candidate constants produce withholding advantage <5%. (2) Revised candidate constants produce reward variance CV <10% for the authoritative 10% miner / 100-block metric. (3) Simulator output is deterministic across repeated runs. (4) Parameter sweep evidence is committed.
+  Verification: `python3 -m pytest contrib/sharepool/test_simulate.py` plus the committed revised sweep command.
+  Required tests: Add or update simulator tests for the revised variance threshold and any new sweep/report code.
+  Dependencies: `POOL-01R`.
+  Estimated scope: M
+  Completion signal: Simulator report shows all POOL-03 thresholds passing for revised proposed constants.
+
+- [ ] `POOL-03R` Decision gate: revised simulator results review
+
+  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
+  Why now: POOL-03 produced a no-go. After POOL-01R and POOL-02R revise the constants and simulator evidence, the decision gate must be re-run before any consensus implementation starts.
+  Codebase evidence: Current decision report says "NO-GO" and leaves all constants unconfirmed.
+  Owns: A superseding decision report with go/no-go on revised constants, withholding metric, variance metric, any remaining revisions, and the claim witness program version.
+  Integration touchpoints: `specs/sharepool.md`, `contrib/sharepool/`, CHKPT-02.
+  Scope boundary: Review and decide. No consensus code changes.
+  Acceptance criteria: If go: constants in `specs/sharepool.md` are promoted from `[PROPOSED]` to `[CONFIRMED]`. If no-go: specific revision needed is documented and POOL-01R/POOL-02R are re-entered again.
+  Verification: `grep "CONFIRMED" specs/sharepool.md | wc -l` returns >=4 OR a documented revision plan exists.
+  Required tests: None (decision gate).
+  Dependencies: `POOL-02R`.
+  Estimated scope: S
+  Completion signal: Superseding decision document committed; constants either confirmed or another revision loop initiated.
 
 - [ ] `CHKPT-02` Checkpoint: Pre-consensus implementation review
 
@@ -36,7 +66,7 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Acceptance criteria: (1) No BIP9 slot conflict. (2) Chosen witness version is available. (3) Internal miner extension path identified (file, function, insertion point). (4) No blocking QSB interaction identified.
   Verification: `grep "DEPLOYMENT_" src/consensus/params.h` shows no `DEPLOYMENT_SHAREPOOL` yet (expected). Manual review of witness version allocation.
   Required tests: None.
-  Dependencies: `POOL-03`, `SYNC-01`.
+  Dependencies: `POOL-03R`, `SYNC-01`.
   Estimated scope: XS
   Completion signal: Written checklist with all items green.
 
