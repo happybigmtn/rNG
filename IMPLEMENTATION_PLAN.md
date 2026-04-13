@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 0: Branch Synchronization and QSB Landing
 
-- [ ] `SYNC-01` Merge main into working branch to land QSB operator support
-
-  Spec: `specs/120426-qsb-operator-support.md`
-  Why now: Current branch `feat/bitcoin-30-qsb` is behind `main` by 15 commits including the entire Bitcoin Core v30.2 port (`bf58671eb3`) with QSB source files (`src/script/qsb.{h,cpp}`, `src/node/qsb_pool.{h,cpp}`, `src/node/qsb_validation.{h,cpp}`, `contrib/qsb/`). No QSB-dependent work or spec verification is possible until the merge lands locally.
-  Codebase evidence: `git log --oneline HEAD..main` shows 15 commits; `git ls-tree main -- src/script/qsb.h` confirms files exist on main but not on HEAD. Current HEAD has no QSB source files anywhere in `src/`.
-  Owns: Branch state synchronization. After this task, working branch includes all of main including QSB code.
-  Integration touchpoints: Every file touched by `bf58671eb3` through `ece7ab967d` (CI, docs, tests, QSB source).
-  Scope boundary: Merge only. Do not resolve conflicts by dropping QSB code. Do not modify QSB logic.
-  Acceptance criteria: `git diff main..HEAD` shows only untracked gen-*/genesis/ planning artifacts, not missing QSB source. `src/script/qsb.h`, `src/node/qsb_pool.h`, `src/node/qsb_validation.h`, `contrib/qsb/qsb.py` all exist on working branch.
-  Verification: `git merge main && cmake -B build -DBUILD_TESTING=ON && cmake --build build -j$(nproc) && build/bin/test_bitcoin --run_test=qsb_tests && python3 test/functional/feature_qsb_builder.py`
-  Required tests: `qsb_tests` unit suite passes; `feature_qsb_builder.py` passes; `feature_qsb_rpc.py` passes; `feature_qsb_mining.py` passes.
-  Dependencies: None.
-  Estimated scope: S
-  Completion signal: All QSB tests pass on merged branch; `git log --oneline main..HEAD` shows only post-merge commits.
-
 - [ ] `SYNC-02` Post-merge QSB fleet status verification checkpoint
 
   Spec: `specs/120426-qsb-operator-support.md`
