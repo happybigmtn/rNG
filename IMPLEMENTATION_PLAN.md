@@ -8,23 +8,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ## Priority Work
 
-### Tier 0: Branch Synchronization and QSB Landing
-
-- [ ] `SYNC-02` Post-merge QSB fleet status verification checkpoint
-
-  Spec: `specs/120426-qsb-operator-support.md`
-  Why now: EXECPLAN.md documents 3 validators (02, 04, 05) stuck in IBD with temporary `minimumchainwork=0` overrides as of 2026-04-10. Fleet health must be reassessed before any new work ships.
-  Codebase evidence: EXECPLAN.md lines 69-74 show validators 02/04/05 at blocks ~3161-3165 with `mine=0` and temporary overrides still applied.
-  Owns: Fleet health assessment. Document current block heights, IBD status, override removal readiness.
-  Integration touchpoints: EXECPLAN.md progress section; validator SSH access.
-  Scope boundary: Assessment and documentation only. Do not change validator configs or binaries. Do not remove overrides without confirming full sync.
-  Acceptance criteria: EXECPLAN.md updated with current validator heights and IBD status. Decision recorded: are overrides safe to remove? Is mining safe to re-enable on each host?
-  Verification: `ssh contabo-validator-0{1,2,4,5} '/root/rng-cli getblockchaininfo'` — check `blocks`, `headers`, `initialblockdownload`, `verificationprogress` on each host.
-  Required tests: None (operational verification only).
-  Dependencies: `SYNC-01` (need merged branch context).
-  Estimated scope: XS
-  Completion signal: EXECPLAN.md progress section updated with dated checkpoint for all 4 validators.
-
 ### Tier 1: Spec Truthfulness and Documentation Hygiene
 
 - [ ] `TRUTH-01` Correct stale spec claims in `specs/randomx.md`
