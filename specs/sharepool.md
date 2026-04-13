@@ -4,13 +4,16 @@
 
 This document is the active protocol specification for RNG's planned
 protocol-native pooled mining work. It is a specification artifact only. No
-sharepool consensus, P2P, miner, wallet, RPC, or simulator code exists in the
-live tree yet.
+sharepool consensus, P2P, miner, wallet, or RPC code exists in the live tree
+yet. The offline simulator exists in `contrib/sharepool/` and is the current
+economic proof surface for this protocol.
 
 POOL-03 decision (2026-04-13): no-go on the current candidate constants. The
 simulator reports 25.10% CV for a 10% miner over 100 blocks, above the 10%
-decision threshold. Keep the constants below as unconfirmed inputs only until
-POOL-01/POOL-02 are revised and POOL-03 is re-run.
+decision threshold. The failed 10-second target share spacing with 720
+target-spacing shares is now a rejected baseline, not the likely consensus set.
+Keep the revised constants below as unconfirmed inputs only until POOL-02R
+tests them and POOL-03R is re-run.
 
 Current live-code facts:
 
@@ -24,9 +27,11 @@ Current live-code facts:
 - SegWit witness v0 and Taproot witness v1 are active; witness versions 2
   through 16 remain unassigned in the current code.
 - Coinbase maturity remains the existing 100-block rule.
+- `contrib/sharepool/simulate.py` implements the offline reward-window,
+  payout-leaf, commitment-root, withholding, and 10% miner variance metrics.
 
-The constants in this document are starting candidates for the POOL-02
-simulator and POOL-03 decision gate. They are not confirmed consensus
+The constants in this document are starting candidates for the POOL-02R
+simulator and POOL-03R decision gate. They are not confirmed consensus
 parameters.
 
 ## Goals
@@ -52,12 +57,15 @@ The protocol goals are:
 ## Proposed Constants
 
 All constants in this section are `[PROPOSED — PENDING SIMULATOR VALIDATION]`.
+The share-spacing and reward-window candidates are revised after the POOL-03
+no-go. The old 10-second / 720-share candidate remains only as a rejected
+baseline that POOL-02R may re-run for comparison.
 
 | Name | Candidate value | Notes |
 |------|-----------------|-------|
-| Target share spacing | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 10 seconds | Mainnet candidate. A 60-second test chain may use a different ratio to keep 10-second shares. |
-| Share target ratio | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `share_target = min(powLimit, block_target * (block_spacing / share_spacing))` | RNG accepts hashes `<= target`, so an easier share target must be larger than the block target. The older sketch saying `block_target / 12` is reversed for Bitcoin-style target arithmetic. For 120-second mainnet blocks and 10-second shares, the ratio is 12. |
-| Reward window work | `[PROPOSED — PENDING SIMULATOR VALIDATION]` about 720 target-spacing shares | The window is work-based, not count-based. The 720-share count is only the expected size at target share spacing. |
+| Target share spacing | `[PROPOSED — PENDING SIMULATOR VALIDATION]` candidate family: 1 second primary, 2 seconds secondary, 10 seconds rejected baseline only | Mainnet has 120-second blocks. POOL-02R must sweep shorter spacing because POOL-03 rejected 10-second shares on reward variance. A 60-second test chain may use a different ratio, but it must be reported separately. |
+| Share target ratio | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `share_target = min(powLimit, block_target * (block_spacing / share_spacing))` | RNG accepts hashes `<= target`, so an easier share target must be larger than the block target. The older sketch saying `block_target / 12` is reversed for Bitcoin-style target arithmetic. For 120-second mainnet blocks, the revised family implies ratios of 120 for 1-second shares and 60 for 2-second shares. |
+| Reward window work | `[PROPOSED — PENDING SIMULATOR VALIDATION]` candidate family: 7200 target-spacing shares at 1-second spacing, 3600 target-spacing shares at 2-second spacing, 720 only as rejected 10-second baseline | The window is work-based, not count-based. These revised candidates keep roughly the same 60-block smoothing horizon as the rejected 10-second / 720-share baseline; at 120-second mainnet blocks that horizon is about two hours, not one hour. |
 | Max orphan shares | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 64 | In-memory relay buffer for shares whose parents are not yet known. |
 | Claim witness version | `[PROPOSED — PENDING SIMULATOR VALIDATION]` witness version 2 | The next unassigned witness version after Taproot. |
 | Commitment tag | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `RNGS` | Used only if an auxiliary OP_RETURN discovery marker is kept. |
@@ -151,9 +159,11 @@ Window construction:
    threshold or the sharechain segment is exhausted.
 5. Return shares ordered oldest to newest for deterministic replay.
 
-The candidate threshold is `[PROPOSED — PENDING SIMULATOR VALIDATION]` enough
-work for about 720 target-spacing shares. At 10-second shares, that is about one
-hour of share history on mainnet.
+The revised candidate threshold is `[PROPOSED — PENDING SIMULATOR VALIDATION]`
+enough work for about 7200 target-spacing shares at 1-second spacing or 3600
+target-spacing shares at 2-second spacing. Both are proposed inputs for
+POOL-02R, not confirmed values. The rejected 10-second baseline used 720
+target-spacing shares and failed the POOL-03 variance gate.
 
 Reward calculation:
 
@@ -335,7 +345,7 @@ Existing mining and wallet surfaces should be extended rather than replaced:
 
 ## Simulator Gate
 
-POOL-02 must implement the deterministic simulator against this spec before any
+POOL-02R must test the revised candidate family against this spec before any
 consensus code is written.
 
 The simulator must prove or reject:
@@ -350,13 +360,48 @@ The simulator must prove or reject:
 - Reward variance for a 10% miner over 100 blocks stays below the decision
   threshold or forces constant revision.
 
+Authoritative POOL-02R variance metric:
+
+- Model a miner with 10% of total hash rate over 100 consecutive blocks.
+- For each candidate, set `shares_per_block = block_spacing_seconds /
+  target_share_spacing_seconds`, using the 120-second mainnet block spacing
+  unless the sweep is explicitly labeled for a different network.
+- Set `reward_window_work` to the candidate work threshold, with unit share work
+  in the current simulator model.
+- Generate candidate shares with a deterministic pseudorandom Bernoulli process
+  using `miner_fraction = 0.10`.
+- Pay each synthetic block at the final share generated for that block.
+- Compute the miner's per-block rewards, the arithmetic mean, the population
+  standard deviation with denominator `N = 100`, and
+  `coefficient_of_variation_percent = 100 * stddev / mean_reward`.
+- The continuity check uses seed `42` because it is the seed that failed
+  POOL-03. The stress check uses seeds `1` through `20` inclusive.
+- Passing requires `coefficient_of_variation_percent < 10.00` for seed `42`
+  and for every seed in the required stress check.
+
+POOL-02R must report at least:
+
+| Candidate | `shares_per_block` | `reward_window_work` | Required status |
+|-----------|--------------------|----------------------|-----------------|
+| 10-second rejected baseline | 12 | 720 | Re-run only as comparison to the 25.10% POOL-03 failure. |
+| 2-second secondary candidate | 60 | 3600 | Test seed `42` and a multi-seed sweep before promotion. |
+| 1-second primary candidate | 120 | 7200 | Test seed `42` and a multi-seed sweep before promotion. |
+
+The POOL-03 no-go report includes a non-authoritative exploratory sweep where
+the 2-second candidate passed seed `42` but had one seed above 10%, while the
+1-second candidate stayed below 10% across seeds 1 through 20. POOL-02R must
+replace that exploratory evidence with committed deterministic sweep output and
+must not cherry-pick a seed that hides variance. Relay cost from shorter share
+spacing remains a POOL-06-GATE input and cannot be ignored when constants are
+later promoted.
+
 ## Open Questions
 
 - Does the claim accounting model for one compact commitment survive UTXO
   semantics without operator coordination?
 - Should the first version include a finder bonus or publication incentive?
-- Should 60-second test networks keep the same 10-second share spacing or the
-  same target ratio as mainnet?
+- Should 60-second test networks keep the same target share spacing as the
+  revised mainnet family or the same target ratio as mainnet?
 - Which payout script forms are supported by the first claim verifier?
 - Should share relay be available pre-activation on regtest for testing?
 - How does merged QSB policy interact with witness-v2 claim standardness?
