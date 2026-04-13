@@ -68,7 +68,7 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 - Tarball format: `tar.gz`, PAX format, normalized owner `root:root`
 - Checksums: SHA256SUMS file
 - Manifest: JSON with version, platform, git_commit, source_date_epoch, artifacts list
-- Platform detection: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`
+- Platform detection: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`, and Windows under Git Bash/MSYS; Windows release packaging uses prebuilt `rngd.exe` and `rng-cli.exe`
 
 **Container** (`Dockerfile`):
 - Build stage: Ubuntu 24.04 with `BUILD_TESTS=OFF`, `BUILD_GUI=OFF`, `ENABLE_IPC=OFF`, `WITH_ZMQ=OFF`, and `ENABLE_WALLET=ON`

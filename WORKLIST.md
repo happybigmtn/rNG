@@ -9,8 +9,6 @@
 - [CHKPT-01] `specs/120426-consensus-chain-rules.md`, `specs/120426-wallet-rpc-surface.md`, and parts of `specs/120426-qsb-operator-support.md` describe the current tree as Bitcoin Core v29.0-derived or pre-merge. Live `README.md` says the current tree is based on Bitcoin Core `30.2`; QSB is merged.
 - [CHKPT-01] Sharepool specs use `1815/2016` as "95%" in planned activation text. Live mainnet BIP9 entries use `1815` of `2016` as `90%`; if a future sharepool spec wants 95%, the threshold must not be copied as `1815`.
 - [POOL-01] Historical sharepool planning text still says `share_target = block_target / 12` and describes a "witness v2 OP_RETURN" commitment. `specs/sharepool.md` corrects the target arithmetic for RNG's `hash <= target` PoW rule and separates the proposed spendable witness-v2 commitment output from optional OP_RETURN metadata.
-- [REL-01] Release planning text historically referenced `.github/workflows/release.yml` and `.github/workflows/ghcr.yml`, but the live checkout only tracks `.github/workflows/ci.yml`. Future release automation work should either restore those workflows or update remaining docs/plans to treat `scripts/build-release.sh` and `scripts/check-reproducible-release.sh` as the current release surface.
-
 ## Operations
 
 - Repair `contabo-validator-01` startup: `/root/.rng/settings.json` is zero bytes as of 2026-04-13 03:52Z, causing `rngd.service` to crash-loop before RPC starts. After repair, verify the daemon reaches the fleet tip before allowing `mine=1` to resume active mining.

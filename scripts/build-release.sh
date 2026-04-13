@@ -22,6 +22,7 @@ Usage:
 Examples:
   ./scripts/build-release.sh --version v3.0.0 --platform linux-x86_64
   ./scripts/build-release.sh --version v3.0.0 --platform macos-arm64 --skip-build
+  ./scripts/build-release.sh --version v3.0.0 --platform windows-x86_64 --skip-build
 EOF
 }
 
@@ -41,6 +42,7 @@ detect_platform() {
     case "$os" in
         linux*) os="linux" ;;
         darwin*) os="macos" ;;
+        mingw*|msys*|cygwin*) os="windows" ;;
         *) error "Unsupported OS for release packaging: $os" ;;
     esac
 
@@ -51,6 +53,52 @@ detect_platform() {
     esac
 
     printf '%s-%s\n' "$os" "$arch"
+}
+
+validate_platform() {
+    case "$PLATFORM" in
+        linux-x86_64|linux-arm64|macos-x86_64|macos-arm64|windows-x86_64|windows-arm64) ;;
+        *) error "Unsupported release platform: $PLATFORM" ;;
+    esac
+}
+
+is_windows_platform() {
+    case "$PLATFORM" in
+        windows-*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+binary_name() {
+    local name suffix
+
+    name="$1"
+    suffix=""
+    if is_windows_platform; then
+        suffix=".exe"
+    fi
+
+    printf '%s%s\n' "$name" "$suffix"
+}
+
+resolve_binary_path() {
+    local name filename candidate
+
+    name="$1"
+    filename="$(binary_name "$name")"
+
+    for candidate in \
+        "$BUILD_DIR/bin/$filename" \
+        "$BUILD_DIR/bin/Release/$filename" \
+        "$BUILD_DIR/src/$filename" \
+        "$BUILD_DIR/src/Release/$filename"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return
+        fi
+    done
+
+    error "Missing release binary $filename under $BUILD_DIR"
 }
 
 parse_args() {
@@ -123,6 +171,10 @@ build_binaries() {
 
     ensure_randomx_present
 
+    if is_windows_platform; then
+        error "Windows release packaging expects an existing MSVC or MinGW build; rerun with --skip-build"
+    fi
+
     if [ "$(uname -s)" = "Darwin" ]; then
         openssl_flag=(-DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)")
     fi
@@ -130,7 +182,7 @@ build_binaries() {
     info "Building RNG release binaries"
     cmake -B "$BUILD_DIR" \
         -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_TESTING=OFF \
+        -DBUILD_TESTS=OFF \
         -DENABLE_IPC=OFF \
         -DWITH_ZMQ=OFF \
         -DENABLE_WALLET=ON \
@@ -142,6 +194,10 @@ maybe_strip_binary() {
     local file
 
     file="$1"
+    if is_windows_platform; then
+        return
+    fi
+
     if command -v strip >/dev/null 2>&1; then
         strip "$file" 2>/dev/null || true
     fi
@@ -151,12 +207,14 @@ maybe_strip_binary() {
 }
 
 make_manifest() {
-    local stage_dir commit
+    local stage_dir commit rngd_name rng_cli_name
 
     stage_dir="$1"
     commit="$(git rev-parse HEAD)"
+    rngd_name="$(binary_name rngd)"
+    rng_cli_name="$(binary_name rng-cli)"
 
-    python3 - "$stage_dir/release-manifest.json" "$VERSION" "$PLATFORM" "$commit" "$SOURCE_DATE_EPOCH" <<'PY'
+    python3 - "$stage_dir/release-manifest.json" "$VERSION" "$PLATFORM" "$commit" "$SOURCE_DATE_EPOCH" "$rngd_name" "$rng_cli_name" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -168,8 +226,8 @@ payload = {
     "git_commit": sys.argv[4],
     "source_date_epoch": int(sys.argv[5]),
     "artifacts": [
-        "rngd",
-        "rng-cli",
+        sys.argv[6],
+        sys.argv[7],
         "rng-load-bootstrap",
         "rng-start-miner",
         "rng-doctor",
@@ -187,7 +245,7 @@ PY
 }
 
 package_release() {
-    local package_root stage_root tarball
+    local package_root stage_root tarball rngd_binary rng_cli_binary rngd_name rng_cli_name
 
     mkdir -p "$OUTPUT_DIR"
 
@@ -195,8 +253,13 @@ package_release() {
     stage_root="$(mktemp -d)/$package_root"
     mkdir -p "$stage_root"
 
-    cp "$BUILD_DIR/bin/rngd" "$stage_root/rngd"
-    cp "$BUILD_DIR/bin/rng-cli" "$stage_root/rng-cli"
+    rngd_name="$(binary_name rngd)"
+    rng_cli_name="$(binary_name rng-cli)"
+    rngd_binary="$(resolve_binary_path rngd)"
+    rng_cli_binary="$(resolve_binary_path rng-cli)"
+
+    cp "$rngd_binary" "$stage_root/$rngd_name"
+    cp "$rng_cli_binary" "$stage_root/$rng_cli_name"
     cp scripts/load-bootstrap.sh "$stage_root/rng-load-bootstrap"
     cp scripts/start-miner.sh "$stage_root/rng-start-miner"
     cp scripts/doctor.sh "$stage_root/rng-doctor"
@@ -208,15 +271,15 @@ package_release() {
     cp doc/public-node.md "$stage_root/PUBLIC-NODE.md"
     cp COPYING "$stage_root/COPYING"
 
-    chmod 755 "$stage_root/rngd" "$stage_root/rng-cli" \
+    chmod 755 "$stage_root/$rngd_name" "$stage_root/$rng_cli_name" \
         "$stage_root/rng-load-bootstrap" "$stage_root/rng-start-miner" \
         "$stage_root/rng-doctor" "$stage_root/rng-install-public-node" \
         "$stage_root/rng-install-public-miner" "$stage_root/rng-public-apply"
     chmod 644 "$stage_root/rngd.service" "$stage_root/rng.conf.example" \
         "$stage_root/PUBLIC-NODE.md" "$stage_root/COPYING"
 
-    maybe_strip_binary "$stage_root/rngd"
-    maybe_strip_binary "$stage_root/rng-cli"
+    maybe_strip_binary "$stage_root/$rngd_name"
+    maybe_strip_binary "$stage_root/$rng_cli_name"
     make_manifest "$stage_root"
 
     tarball="$OUTPUT_DIR/${package_root}.tar.gz"
@@ -279,6 +342,7 @@ main() {
     parse_args "$@"
 
     [ -n "$PLATFORM" ] || PLATFORM="$(detect_platform)"
+    validate_platform
     resolve_version
     resolve_source_date_epoch
 
@@ -286,8 +350,8 @@ main() {
         build_binaries
     fi
 
-    [ -x "$BUILD_DIR/bin/rngd" ] || error "Missing $BUILD_DIR/bin/rngd"
-    [ -x "$BUILD_DIR/bin/rng-cli" ] || error "Missing $BUILD_DIR/bin/rng-cli"
+    resolve_binary_path rngd >/dev/null
+    resolve_binary_path rng-cli >/dev/null
 
     rm -f "$OUTPUT_DIR/SHA256SUMS"
     package_release

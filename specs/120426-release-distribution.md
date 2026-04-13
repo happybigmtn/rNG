@@ -39,15 +39,23 @@ cmake --build build -j$(nproc)
 
 **Release builder** (`scripts/build-release.sh`):
 - Auto-detects version from `git describe --tags` or `CMakeLists.txt`
-- Auto-detects platform: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`
+- Auto-detects platform: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`, and `windows-x86_64`/`windows-arm64` when run under Git Bash/MSYS
 - Configures release binaries with `CMAKE_BUILD_TYPE=Release`
 - Tarball naming: `rng-${VERSION}-${PLATFORM}.tar.gz`
 - Tarball format: PAX, `tar.gz`, owner normalized to `root:root`
 - Source date epoch: from `git log` commit timestamp (for reproducibility)
 - Permissions: 0755 (executables), 0644 (data files)
-- Staged binaries are stripped when `strip` is available; Linux GNU build-id notes are removed from staged copies when `objcopy` is available so the final tarball does not inherit nondeterministic build IDs
+- Windows packaging accepts prebuilt `rngd.exe` and `rng-cli.exe` from either `build/bin/` or `build/bin/Release/`; Windows builds are produced by the release workflow and packaged with `--skip-build`
+- Staged non-Windows binaries are stripped when `strip` is available; Linux GNU build-id notes are removed from staged copies when `objcopy` is available so the final tarball does not inherit nondeterministic build IDs
 - Checksums: SHA256SUMS file rewritten for the output directory on each run
 - Flags: `--version`, `--platform`, `--build-dir`, `--output-dir`, `--skip-build`
+
+**Release workflow** (`.github/workflows/release.yml`):
+- Triggers on pushed `v*` tags and manual `workflow_dispatch` with an existing release tag
+- Builds and packages five release tarballs: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`, and `windows-x86_64`
+- Runs `randomx_tests` before packaging on every release platform
+- Verifies RandomX/JIT on native ARM64 runners through `linux-arm64` (`ubuntu-24.04-arm`) and `macos-arm64` (`macos-14`) release jobs
+- Produces a combined `SHA256SUMS`, verifies it before upload, uploads all binary tarballs plus the tracked bootstrap assets to the GitHub release, and attests each binary tarball with GitHub build provenance
 
 **Reproducible release check** (`scripts/check-reproducible-release.sh`):
 - Performs two independent release builds in temporary build directories and compares the resulting tarballs byte-for-byte
@@ -55,8 +63,8 @@ cmake --build build -j$(nproc)
 - On 2026-04-13, same-commit linux-x86_64 verification produced identical `rng-v3.0.0-linux-x86_64.tar.gz` artifacts with SHA256 `4d6d0fe99a0f407fd054f22c438df1638ae65c98913156db7809358d74ca097f`
 
 **Tarball contents**:
-- `rngd` (0755)
-- `rng-cli` (0755)
+- `rngd` / `rngd.exe` (0755)
+- `rng-cli` / `rng-cli.exe` (0755)
 - `rng-load-bootstrap` (0755)
 - `rng-start-miner` (0755)
 - `rng-doctor` (0755)
@@ -114,7 +122,7 @@ cmake --build build -j$(nproc)
 
 **Release process** (from README and repository history):
 - Tag-first releases: create git tag, then build
-- Release artifacts committed via `git tag`
+- Release artifacts produced by `.github/workflows/release.yml` from the pushed tag
 - Verification: `scripts/verify-release.sh` against SHA256SUMS
 
 ### Recommendations (intended system)
@@ -131,6 +139,7 @@ cmake --build build -j$(nproc)
 
 - `cmake -B build ... && cmake --build build` produces `rngd` and `rng-cli` on Linux x86_64
 - `build-release.sh` produces a tarball containing all listed artifacts
+- `.github/workflows/release.yml` produces at least five platform tarballs including `windows-x86_64`
 - Tarball checksums match those recorded in SHA256SUMS
 - `verify-release.sh` successfully validates a freshly built tarball
 - Release manifest JSON contains accurate version, platform, and git commit
@@ -155,6 +164,10 @@ cmake --build build -j$(nproc)
 ./scripts/build-release.sh --version v3.0.0
 ls dist/rng-v3.0.0-linux-x86_64.tar.gz
 cat dist/SHA256SUMS
+
+# Package prebuilt Windows release binaries from a Windows CI build tree
+./scripts/build-release.sh --version v3.0.0 --platform windows-x86_64 --build-dir build --skip-build
+tar tzf dist/rng-v3.0.0-windows-x86_64.tar.gz
 
 # Verify a published release asset
 ./scripts/verify-release.sh --version v3.0.0 --file dist/rng-v3.0.0-linux-x86_64.tar.gz --skip-attestation
@@ -186,4 +199,4 @@ sha256sum bootstrap/rng-mainnet-29944.utxo
 3. Should bootstrap assets be hosted externally (e.g., GitHub Releases, CDN) rather than committed to the repository? The chain bundle is ~60 MB and will grow.
 4. Is there a GPG signing process for releases, or is SHA256SUMS the only verification mechanism?
 5. Should the Dockerfile be updated to use a newer Ubuntu base (24.04) for longer support lifetime?
-6. Should CI/CD pipelines be formalized for automated release building and testing?
+6. Should a separate GHCR workflow be restored for container image publishing, or should container publishing live in the release workflow?

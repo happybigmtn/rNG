@@ -114,21 +114,6 @@ Items below are real work identified by the specs but either depend on unresolve
   Estimated scope: S
   Completion signal: Scoping document committed.
 
-- [ ] `FUTURE-05` Cross-platform release expansion (Windows, ARM64 native)
-
-  Spec: `specs/120426-release-distribution.md`
-  Why now: Not urgent — same-platform linux-x86_64 release reproducibility is now verified by `scripts/check-reproducible-release.sh`, but there is no tracked release workflow for cross-platform artifacts. Windows builds exist in CI, and ARM64 native testing (vs cross-compile) is untested for RandomX JIT.
-  Codebase evidence: live `.github/workflows/` contains only `ci.yml`; `.github/workflows/release.yml` and `.github/workflows/ghcr.yml` are absent. `.github/workflows/ci.yml` includes Windows MSVC and MinGW targets. No Windows release artifact pipeline is tracked.
-  Owns: Add or restore the release pipeline, add Windows release tarball support if desired, and verify RandomX JIT on native ARM64.
-  Integration touchpoints: `scripts/build-release.sh`, future `.github/workflows/release.yml` if restored.
-  Scope boundary: Release pipeline only. Do not port platform-specific code.
-  Acceptance criteria: Windows tarball included in releases. ARM64 RandomX JIT verified functional.
-  Verification: Release pipeline produces 5+ platform tarballs.
-  Required tests: CI tests pass on all platforms.
-  Dependencies: None.
-  Estimated scope: M
-  Completion signal: Release pipeline produces Windows tarball.
-
 - [!] `FUTURE-06` Atomic swap protocol implementation
 
   Spec: None in generated specs (referenced in `specs/swaps.md` which is not in this run's scope).

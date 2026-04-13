@@ -23,7 +23,7 @@ Before cutting a tag:
 
 1. Create and push a signed tag, for example `v3.0.0`.
 2. Pushing the tag triggers the release workflow.
-3. The workflow builds the platform binaries, packages them with [`scripts/build-release.sh`](/scripts/build-release.sh), publishes `SHA256SUMS`, and uploads the bootstrap assets.
+3. The workflow builds five platform tarballs (`linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`, and `windows-x86_64`), packages them with [`scripts/build-release.sh`](/scripts/build-release.sh), publishes `SHA256SUMS`, and uploads the bootstrap assets.
 4. Each binary tarball is attested with GitHub build provenance.
 5. Container images are published and attested by the GHCR workflow when it is present.
 
@@ -32,6 +32,7 @@ Before cutting a tag:
 [`scripts/build-release.sh`](/scripts/build-release.sh) is the canonical packager. It:
 
 - builds `rngd` and `rng-cli` or packages already-built binaries
+- packages prebuilt Windows `rngd.exe` and `rng-cli.exe` from CI build output when `--platform windows-x86_64 --skip-build` is used
 - includes `rng-load-bootstrap`, `rng-start-miner`, and `rng-doctor`
 - writes `release-manifest.json`
 - normalizes archive ownership, permissions, and timestamps
