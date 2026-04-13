@@ -2,7 +2,7 @@
 
 ## 2026-04-13
 
-- `POOL-01` — Added the active sharepool protocol specification at `specs/sharepool.md`, covering share objects, sharechain tip selection, reward-window math, payout commitment encoding, claim witness program proposal, activation semantics, and P2P relay. The spec keeps all constants marked `[PROPOSED — PENDING SIMULATOR VALIDATION]`, corrects stale share-target arithmetic from older planning text, and records the OP_RETURN versus witness-v2 funding ambiguity as a POOL-07 design risk. Commit: `PENDING`.
+- `POOL-01` — Added the active sharepool protocol specification at `specs/sharepool.md`, covering share objects, sharechain tip selection, reward-window math, payout commitment encoding, claim witness program proposal, activation semantics, and P2P relay. The spec keeps all constants marked `[PROPOSED — PENDING SIMULATOR VALIDATION]`, corrects stale share-target arithmetic from older planning text, and records the OP_RETURN versus witness-v2 funding ambiguity as a POOL-07 design risk. Commit: `669d89ab4b5d82fb83fad3196c559834d323138d`.
   Validation: `test -f specs/sharepool.md && grep "PROPOSED" specs/sharepool.md | wc -l`; `rg -n "block_target / 12|1815 \\(95%\\)|witness v2 OP_RETURN" specs/sharepool.md`; `git diff --check`.
 
 - `CHKPT-01` — Completed the read-only spec truthfulness checkpoint across `specs/*.md`, cataloged remaining spec-vs-code discrepancies in `WORKLIST.md`, and removed the checkpoint from the active queue. No blockers were found for the next task. Commit: `88f8c0b55bd7b757fb86121ceb5f4725cfc2f6cc`.
