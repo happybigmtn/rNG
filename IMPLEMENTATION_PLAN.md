@@ -8,23 +8,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ## Priority Work
 
-### Tier 1: Spec Truthfulness and Documentation Hygiene
-
-- [ ] `CHKPT-01` Checkpoint: Spec truthfulness review
-
-  Spec: `specs/*.md` (audit only; no new spec introduced by this checkpoint)
-  Why now: After TRUTH-01 through TRUTH-03, confirm that no remaining spec file makes verifiably false claims about the codebase before proceeding to new feature work.
-  Codebase evidence: The three TRUTH tasks address the highest-risk lies; this checkpoint catches stragglers.
-  Owns: Final pass across all `specs/*.md` files comparing major claims to code.
-  Integration touchpoints: All spec files.
-  Scope boundary: Read-only audit. Flag issues as GitHub issues or inline TODOs. Do not fix everything — just catalog.
-  Acceptance criteria: A list of remaining spec-vs-code discrepancies (if any) is documented in a tracking comment or issue. Zero blockers for subsequent tasks.
-  Verification: Manual review of each `specs/*.md` file header claims against codebase grep.
-  Required tests: None.
-  Dependencies: `TRUTH-01`, `TRUTH-02`, `TRUTH-03`.
-  Estimated scope: S
-  Completion signal: Written list of remaining discrepancies (may be empty).
-
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
 - [ ] `POOL-01` Write sharepool protocol specification (`specs/sharepool.md`)
