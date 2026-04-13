@@ -8,23 +8,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ## Priority Work
 
-### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
-
-- [ ] `CHKPT-02` Checkpoint: Pre-consensus implementation review
-
-  Spec: `specs/sharepool.md` (authoritative), `specs/120426-sharepool-protocol.md` (historical context)
-  Why now: After the POOL-03R simulator decision gate passed, pause to verify that (a) all spec constants are confirmed, (b) the claim witness version doesn't conflict with existing witness versions, (c) the BIP9 deployment slot doesn't conflict with existing deployments, and (d) the internal miner extension path is clear.
-  Codebase evidence: `src/consensus/params.h` lines 35-36 show only `DEPLOYMENT_TESTDUMMY` and `DEPLOYMENT_TAPROOT` in the BIP9 enum. Witness v0 (SegWit) and v1 (Taproot) are active; v2-v16 are reserved.
-  Owns: Checklist verification before consensus code begins.
-  Integration touchpoints: `src/consensus/params.h`, `src/node/internal_miner.h`, `specs/sharepool.md`.
-  Scope boundary: Read-only verification. Flag any conflicts as blockers.
-  Acceptance criteria: (1) No BIP9 slot conflict. (2) Chosen witness version is available. (3) Internal miner extension path identified (file, function, insertion point). (4) No blocking QSB interaction identified.
-  Verification: `grep "DEPLOYMENT_" src/consensus/params.h` shows no `DEPLOYMENT_SHAREPOOL` yet (expected). Manual review of witness version allocation.
-  Required tests: None.
-  Dependencies: `POOL-03R`, `SYNC-01`.
-  Estimated scope: XS
-  Completion signal: Written checklist with all items green.
-
 ### Tier 3: Sharepool Core Implementation
 
 - [ ] `POOL-04` Add `DEPLOYMENT_SHAREPOOL` BIP9 activation boundary
