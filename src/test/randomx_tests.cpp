@@ -130,14 +130,13 @@ BOOST_AUTO_TEST_CASE(seed_height_calculation)
 }
 
 /**
- * Test: Epoch length and lag constants are correct.
- * Acceptance: Constants match specs/randomx.md.
+ * Test: Historical length and lag constants remain stable.
+ * Acceptance: Compatibility constants keep their legacy values while seed
+ * height selection stays fixed at genesis.
  */
 BOOST_AUTO_TEST_CASE(randomx_constants)
 {
-    // From specs/randomx.md:
-    // - Epoch: 2048 blocks (~34 hours at 60s blocks)
-    // - Lag: 64 blocks (~1 hour)
+    // These public-header compatibility values do not select a seed block.
     BOOST_CHECK_EQUAL(RANDOMX_EPOCH_LENGTH, 2048ULL);
     BOOST_CHECK_EQUAL(RANDOMX_EPOCH_LAG, 64ULL);
 }

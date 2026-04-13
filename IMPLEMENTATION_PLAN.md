@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 1: Spec Truthfulness and Documentation Hygiene
 
-- [ ] `TRUTH-01` Correct stale spec claims in `specs/randomx.md`
-
-  Spec: `specs/120426-randomx-pow.md`
-  Why now: `specs/randomx.md` contains a claim about seed rotation every 2048 blocks that contradicts the live codebase. `GetRandomXSeedHash()` in `src/pow.cpp:211-239` always returns the genesis seed hash. This is the highest-risk documentation lie because external miners relying on rotation would fail.
-  Codebase evidence: `src/pow.cpp` lines 211-239 — `GetRandomXSeedHash` returns `Hash("RNG Genesis Seed")` for genesis or seed height 0; seed height is always 0 in `src/consensus/params.h` (no seed rotation epoch defined). `specs/randomx.md` claims rotation every 2048 blocks.
-  Owns: `specs/randomx.md` — correct seed rotation claim to match fixed-seed-forever policy.
-  Integration touchpoints: `specs/consensus.md` (references randomx.md); README.md (documents seed phrase).
-  Scope boundary: Fix the factual error. Do not redesign the seed policy. Do not add rotation code.
-  Acceptance criteria: `specs/randomx.md` states that the seed is fixed at genesis for all block heights, with explicit note that no rotation occurs. No claim of 2048-block epochs remains.
-  Verification: `grep -i "2048\|rotation\|epoch" specs/randomx.md` returns zero matches. `grep "fixed\|genesis.*seed\|all.*height" specs/randomx.md` returns the corrected text.
-  Required tests: None (documentation only).
-  Dependencies: None.
-  Estimated scope: XS
-  Completion signal: `specs/randomx.md` seed policy section matches `src/pow.cpp` behavior.
-
 - [ ] `TRUTH-02` Audit and correct `specs/agent-integration.md` for implemented vs aspirational features
 
   Spec: `specs/120426-wallet-rpc-surface.md`
