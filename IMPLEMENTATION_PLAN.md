@@ -43,23 +43,6 @@ every checkpoint/gate. The intended critical path is:
 
 ## Priority Work
 
-### Cluster 1: Settlement Consensus Verification
-
-- [ ] `CHKPT-07A` Solo settlement claim verification checkpoint
-
-  Spec: `specs/130426-settlement-consensus-enforcement.md`
-  Why now: Witness-v2 verification is the highest-risk consensus change. Stop and validate before building ConnectBlock enforcement on top of it.
-  Codebase evidence: After POOL-07F, the verifier and dispatch exist but ConnectBlock does not yet enforce the flag. This checkpoint confirms the verifier is correct in isolation.
-  Owns: No new files. Review-only checkpoint.
-  Integration touchpoints: Verifier in sharepool.{h,cpp}, dispatch in interpreter.cpp, flag in interpreter.h, errors in script_error.{h,cpp}
-  Scope boundary: Run the full test suite. Manually construct a claim transaction on regtest and verify the script interpreter path. Do not proceed to POOL-07G if any test fails or if the verifier produces unexpected error codes.
-  Acceptance criteria: (1) `ctest --test-dir build` passes with zero failures. (2) `test/functional/test_runner.py feature_sharepool_relay` passes (no regression). (3) Manual regtest exercise: activate sharepool, mine a block with solo settlement output, construct a claim transaction with correct witness stack, submit via sendrawtransaction, confirm it enters the mempool (script verification passes with unknown-witness semantics since flag not yet set in ConnectBlock).
-  Verification: `cmake --build build -j$(nproc) && ctest --test-dir build` for full unit tests. `test/functional/test_runner.py feature_sharepool_relay` for relay regression.
-  Required tests: No new tests. Runs existing suites.
-  Dependencies: `POOL-07F`
-  Estimated scope: XS
-  Completion signal: Full unit test suite and relay functional test pass. Manual regtest claim transaction enters mempool.
-
 ### Cluster 2: ConnectBlock Enforcement
 
 - [ ] `POOL-07G` Coinbase settlement output enforcement in ConnectBlock

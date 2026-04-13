@@ -639,9 +639,14 @@ public:
         fDefaultConsistencyChecks = true;
         m_is_mockable_chain = true;
 
-        // RNG: Clear assumeutxo data - new chain with different genesis
-        // TODO: Regenerate assumeutxo data after chain stabilizes
-        m_assumeutxo_data = {};
+        m_assumeutxo_data = {
+            AssumeutxoData{
+                .height = 110,
+                .hash_serialized = AssumeutxoHash{consteval_ctor(uint256{"b952555c8ab81fec46f3d4253b7af256d766ceb39fb7752b9d18cdf4a0141327"})},
+                .m_chain_tx_count = 111,
+                .blockhash = consteval_ctor(uint256{"646ed38b253c1bf19a2e02df04a1fd7de3284d7e3eca3e63efb47e5f023e32aa"}),
+            },
+        };
 
         chainTxData = ChainTxData{
             .nTime = 0,

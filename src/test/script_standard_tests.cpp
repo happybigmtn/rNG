@@ -447,7 +447,7 @@ BOOST_AUTO_TEST_CASE(script_standard_taproot_builder)
     BOOST_CHECK(builder.IsValid() && builder.IsComplete());
     builder.Finalize(key_inner);
     BOOST_CHECK(builder.IsValid() && builder.IsComplete());
-    BOOST_CHECK_EQUAL(EncodeDestination(builder.GetOutput()), "bc1pj6gaw944fy0xpmzzu45ugqde4rz7mqj5kj0tg8kmr5f0pjq8vnaqgynnge");
+    BOOST_CHECK_EQUAL(EncodeDestination(builder.GetOutput()), "rng1pj6gaw944fy0xpmzzu45ugqde4rz7mqj5kj0tg8kmr5f0pjq8vnaqy9fdwr");
 }
 
 BOOST_AUTO_TEST_CASE(bip341_spk_test_vectors)
@@ -458,6 +458,36 @@ BOOST_AUTO_TEST_CASE(bip341_spk_test_vectors)
     tests.read(json_tests::bip341_wallet_vectors);
 
     const auto& vectors = tests["scriptPubKey"];
+    const std::map<std::string, std::string> rng_addresses{
+        {
+            "bc1p2wsldez5mud2yam29q22wgfh9439spgduvct83k3pm50fcxa5dps59h4z5",
+            "rng1p2wsldez5mud2yam29q22wgfh9439spgduvct83k3pm50fcxa5dpscydtyw",
+        },
+        {
+            "bc1pz37fc4cn9ah8anwm4xqqhvxygjf9rjf2resrw8h8w4tmvcs0863sa2e586",
+            "rng1pz37fc4cn9ah8anwm4xqqhvxygjf9rjf2resrw8h8w4tmvcs0863s3tr2pq",
+        },
+        {
+            "bc1punvppl2stp38f7kwv2u2spltjuvuaayuqsthe34hd2dyy5w4g58qqfuag5",
+            "rng1punvppl2stp38f7kwv2u2spltjuvuaayuqsthe34hd2dyy5w4g58qvgxrww",
+        },
+        {
+            "bc1pwyjywgrd0ffr3tx8laflh6228dj98xkjj8rum0zfpd6h0e930h6saqxrrm",
+            "rng1pwyjywgrd0ffr3tx8laflh6228dj98xkjj8rum0zfpd6h0e930h6s3pua9p",
+        },
+        {
+            "bc1pwl3s54fzmk0cjnpl3w9af39je7pv5ldg504x5guk2hpecpg2kgsqaqstjq",
+            "rng1pwl3s54fzmk0cjnpl3w9af39je7pv5ldg504x5guk2hpecpg2kgsq3p2456",
+        },
+        {
+            "bc1pjxmy65eywgafs5tsunw95ruycpqcqnev6ynxp7jaasylcgtcxczs6n332e",
+            "rng1pjxmy65eywgafs5tsunw95ruycpqcqnev6ynxp7jaasylcgtcxczskjt0vr",
+        },
+        {
+            "bc1pw5tf7sqp4f50zka7629jrr036znzew70zxyvvej3zrpf8jg8hqcssyuewe",
+            "rng1pw5tf7sqp4f50zka7629jrr036znzew70zxyvvej3zrpf8jg8hqcsu9x8gr",
+        },
+    };
 
     for (const auto& vec : vectors.getValues()) {
         TaprootBuilder spktest;
@@ -478,7 +508,9 @@ BOOST_AUTO_TEST_CASE(bip341_spk_test_vectors)
         parse_tree(vec["given"]["scriptTree"], 0);
         spktest.Finalize(XOnlyPubKey(ParseHex(vec["given"]["internalPubkey"].get_str())));
         BOOST_CHECK_EQUAL(HexStr(GetScriptForDestination(spktest.GetOutput())), vec["expected"]["scriptPubKey"].get_str());
-        BOOST_CHECK_EQUAL(EncodeDestination(spktest.GetOutput()), vec["expected"]["bip350Address"].get_str());
+        const auto expected_address = rng_addresses.find(vec["expected"]["bip350Address"].get_str());
+        BOOST_REQUIRE(expected_address != rng_addresses.end());
+        BOOST_CHECK_EQUAL(EncodeDestination(spktest.GetOutput()), expected_address->second);
         auto spend_data = spktest.GetSpendData();
         BOOST_CHECK_EQUAL(vec["intermediary"]["merkleRoot"].isNull(), spend_data.merkle_root.IsNull());
         if (!spend_data.merkle_root.IsNull()) {
