@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-02` Build sharepool economic simulator (`contrib/sharepool/simulate.py`)
-
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: Plan 002 mandates simulator-backed validation of protocol constants before any consensus code. The simulator is the decision gate for Plans 003-012. Without it, sharepool constants are unvalidated guesses.
-  Codebase evidence: No `contrib/sharepool/` directory exists. No simulator code exists anywhere in repo.
-  Owns: `contrib/sharepool/simulate.py` — deterministic Python simulator accepting share traces and producing payout commitment roots and per-miner reward leaves. Plus `contrib/sharepool/examples/` with trace files.
-  Integration touchpoints: `specs/sharepool.md` (consumes constants from spec), `contrib/qsb/` (follows same contrib pattern).
-  Scope boundary: Offline Python tool only. No C++ code. No RPC integration. No P2P code. Simulator reads JSON/CSV trace files, not live network data.
-  Acceptance criteria: (1) 90/10 work split produces proportional reward leaves (±1%). (2) Deterministic replay produces identical commitment roots. (3) Reorged share suffix changes only affected window outputs. (4) Pending entitlement visible before block found. (5) Share-withholding advantage measured and documented. (6) Reward variance for 10% miner over 100 blocks measured and documented.
-  Verification: `cd contrib/sharepool && python3 simulate.py --trace examples/two_miners_90_10.json --verbose` exits 0 and prints proportional rewards. `python3 -m pytest contrib/sharepool/test_simulate.py` passes.
-  Required tests: Unit tests in `contrib/sharepool/test_simulate.py` covering all 6 acceptance scenarios.
-  Dependencies: `POOL-01` (spec must define the formulas the simulator implements).
-  Estimated scope: M
-  Completion signal: All 6 acceptance scenarios pass; withholding advantage and variance metrics documented.
-
 - [ ] `POOL-03` Decision gate: simulator results review
 
   Spec: `specs/120426-sharepool-protocol.md`

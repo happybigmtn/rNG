@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `POOL-02` — Added the offline sharepool economic simulator in `contrib/sharepool/`. The simulator accepts JSON and CSV traces, expands compact share runs, constructs work-based reward windows, emits deterministic payout leaves and Merkle commitment roots, reports pending entitlement before block discovery, measures share-withholding impact, and measures deterministic 10% miner variance across 100 blocks. The checked example trace produces a 90.00% / 10.00% reward split and records the current variance metric in the simulator README. Commit: `PENDING`.
+  Validation: `python3 -m pytest contrib/sharepool/test_simulate.py`; `cd contrib/sharepool && python3 simulate.py --trace examples/two_miners_90_10.json --verbose`; `python3 contrib/sharepool/simulate.py --scenario baseline`; `python3 -m py_compile contrib/sharepool/simulate.py contrib/sharepool/test_simulate.py`.
+
 - `POOL-01` — Added the active sharepool protocol specification at `specs/sharepool.md`, covering share objects, sharechain tip selection, reward-window math, payout commitment encoding, claim witness program proposal, activation semantics, and P2P relay. The spec keeps all constants marked `[PROPOSED — PENDING SIMULATOR VALIDATION]`, corrects stale share-target arithmetic from older planning text, and records the OP_RETURN versus witness-v2 funding ambiguity as a POOL-07 design risk. Commit: `669d89ab4b5d82fb83fad3196c559834d323138d`.
   Validation: `test -f specs/sharepool.md && grep "PROPOSED" specs/sharepool.md | wc -l`; `rg -n "block_target / 12|1815 \\(95%\\)|witness v2 OP_RETURN" specs/sharepool.md`; `git diff --check`.
 
