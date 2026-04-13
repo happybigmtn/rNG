@@ -5,6 +5,8 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <consensus/params.h>
+#include <deploymentinfo.h>
+#include <deploymentstatus.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <util/chaintype.h>
@@ -478,6 +480,58 @@ BOOST_FIXTURE_TEST_CASE(versionbits_computeblockversion, BlockVersionTest)
         const auto chainParams = CreateChainParams(args, ChainType::REGTEST);
         check_computeblockversion(vbcache, chainParams->GetConsensus(), Consensus::DEPLOYMENT_TESTDUMMY);
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(sharepool_deployment_boundary, BlockVersionTest)
+{
+    VersionBitsCache versionbitscache;
+
+    ArgsManager args;
+    const auto main_chain_params{CreateChainParams(args, ChainType::MAIN)};
+    const auto& main_consensus{main_chain_params->GetConsensus()};
+    const auto& main_sharepool{main_consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL]};
+
+    BOOST_CHECK_EQUAL(DeploymentName(Consensus::DEPLOYMENT_SHAREPOOL), "sharepool");
+    BOOST_CHECK_EQUAL(main_sharepool.bit, 3);
+    BOOST_CHECK_EQUAL(main_sharepool.nStartTime, Consensus::BIP9Deployment::NEVER_ACTIVE);
+    BOOST_CHECK_EQUAL(main_sharepool.nTimeout, Consensus::BIP9Deployment::NO_TIMEOUT);
+    BOOST_CHECK_EQUAL(main_sharepool.min_activation_height, 0);
+    BOOST_CHECK_EQUAL(main_sharepool.threshold, 1916);
+    BOOST_CHECK_EQUAL(main_sharepool.period, 2016);
+    BOOST_CHECK(!versionbitscache.IsActiveAfter(nullptr, main_consensus, Consensus::DEPLOYMENT_SHAREPOOL));
+    CBlockIndex main_tip;
+    BOOST_CHECK(!DeploymentActiveAt(main_tip, main_consensus, Consensus::DEPLOYMENT_SHAREPOOL, versionbitscache));
+
+    ArgsManager regtest_args;
+    regtest_args.ForceSetArg("-vbparams", "sharepool:0:9999999999:0");
+    const auto regtest_chain_params{CreateChainParams(regtest_args, ChainType::REGTEST)};
+    const auto& regtest_consensus{regtest_chain_params->GetConsensus()};
+    const auto& regtest_sharepool{regtest_consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL]};
+
+    BOOST_CHECK_EQUAL(regtest_sharepool.bit, 3);
+    BOOST_CHECK_EQUAL(regtest_sharepool.nStartTime, 0);
+    BOOST_CHECK_EQUAL(regtest_sharepool.nTimeout, 9999999999);
+    BOOST_CHECK_EQUAL(regtest_sharepool.min_activation_height, 0);
+    BOOST_CHECK_EQUAL(regtest_sharepool.threshold, 108);
+    BOOST_CHECK_EQUAL(regtest_sharepool.period, 144);
+
+    VersionBitsTester chain{m_rng};
+    versionbitscache.Clear();
+    const CBlockIndex* tip{nullptr};
+    const auto period{regtest_sharepool.period};
+    const int32_t sharepool_signal_version{VERSIONBITS_TOP_BITS | (int32_t{1} << regtest_sharepool.bit)};
+
+    tip = chain.Mine(period, 0, VERSIONBITS_LAST_OLD_BLOCK_VERSION).Tip();
+    BOOST_CHECK(!versionbitscache.IsActiveAfter(tip, regtest_consensus, Consensus::DEPLOYMENT_SHAREPOOL));
+
+    tip = chain.Mine(period * 2, 0, sharepool_signal_version).Tip();
+    BOOST_CHECK(!versionbitscache.IsActiveAfter(tip, regtest_consensus, Consensus::DEPLOYMENT_SHAREPOOL));
+
+    tip = chain.Mine((period * 3) - 1, 0, VERSIONBITS_LAST_OLD_BLOCK_VERSION).Tip();
+    BOOST_CHECK(!versionbitscache.IsActiveAfter(tip, regtest_consensus, Consensus::DEPLOYMENT_SHAREPOOL));
+
+    tip = chain.Mine(period * 3, 0, VERSIONBITS_LAST_OLD_BLOCK_VERSION).Tip();
+    BOOST_CHECK(versionbitscache.IsActiveAfter(tip, regtest_consensus, Consensus::DEPLOYMENT_SHAREPOOL));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

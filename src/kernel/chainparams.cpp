@@ -130,6 +130,14 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1815; // 90%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
 
+        // Sharepool remains dormant on mainnet until regtest and devnet gates pass.
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].min_activation_height = 0;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].threshold = 1916; // 95%
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].period = 2016;
+
         // Mainnet trust defaults pinned to a live 2026-03-19 chain view.
         // assumevalid stays on the buried assumeutxo base block while
         // minimum-chain-work tracks a more recent fully synced tip.
@@ -245,6 +253,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1512; // 75%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
 
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].min_activation_height = 0;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].threshold = 1916; // 95%
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].period = 2016;
+
         consensus.nMinimumChainWork = uint256{}; // RNG: New chain
         consensus.defaultAssumeValid = uint256{}; // RNG: New chain
 
@@ -339,6 +354,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 0; // No activation delay
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1512; // 75%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
+
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].min_activation_height = 0; // No activation delay
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].threshold = 1916; // 95%
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].period = 2016;
 
         consensus.nMinimumChainWork = uint256{}; // RNG: New chain
         consensus.defaultAssumeValid = uint256{}; // RNG: New chain
@@ -472,6 +494,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1815; // 90%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
 
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].min_activation_height = 0; // No activation delay
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].threshold = 1916; // 95%
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].period = 2016;
+
         // message start is defined as the first 4 bytes of the sha256d of the block script
         HashWriter h{};
         h << consensus.signet_challenge;
@@ -550,6 +579,13 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 108; // 75%
         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 144;
+
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].bit = 3;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].min_activation_height = 0;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].threshold = 108; // 75%
+        consensus.vDeployments[Consensus::DEPLOYMENT_SHAREPOOL].period = 144;
 
         consensus.nMinimumChainWork = uint256{};
         consensus.defaultAssumeValid = uint256{};
