@@ -17,13 +17,13 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 - Installs helper scripts: `rng-load-bootstrap`, `rng-start-miner`, `rng-doctor`, `rng-install-public-node`, `rng-install-public-miner`
 
 **Bootstrap assets** (`bootstrap/`):
-- Chain bundle: `rng-mainnet-15244-datadir.tar.gz` (height 15244)
-  - SHA256: `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d`
-- AssumeUTXO snapshot: `rng-mainnet-15091.utxo` (height 15091)
-  - Base block hash: `2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb`
-  - UTXO set hash: `9ca1b551b9837c0b0e9158436bac5051e4984d39f691e1374c4786a6c0ed5393`
-  - Transaction count: 15107
-  - SHA256: `622cd6255b8f44380fb9fa51809f783665d54e2d10d2e74135f00aa9ca34c882`
+- Chain bundle: `rng-mainnet-29944-datadir.tar.gz` (height 29944)
+  - SHA256: `fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4`
+- AssumeUTXO snapshot: `rng-mainnet-29944.utxo` (height 29944)
+  - Base block hash: `4287ff94a9fc6197b66efa47fc8493e5d64cfab78f910a24952446e76bce742b`
+  - UTXO set hash: `e3beaab3c1031e45b1b63d08d74331cc08a0541e44b91cb8f7c73fb1b3f40562`
+  - Transaction count: 29962
+  - SHA256: `70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1`
 - Bootstrap header wait timeout: 900 seconds (`$RNG_BOOTSTRAP_HEADER_WAIT_SECONDS`)
 
 **Miner startup script** (`scripts/start-miner.sh`):
@@ -86,12 +86,12 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 ### Hypotheses / Unresolved Questions
 
 - Whether the Dockerfile's hardcoded `rpcpassword=changeme` is a security concern for production container deployments
-- Whether the bootstrap assets will be updated as the chain grows (current bundle is at height 15244)
+- How frequently the bootstrap assets should be refreshed as the chain grows (current bundle is at height 29944)
 
 ## Acceptance Criteria
 
 - `install.sh` with no flags installs `rngd` and `rng-cli` to `$HOME/.local/bin` and creates a valid `rng.conf`
-- `install.sh --bootstrap` loads the chain bundle and the node starts syncing from height 15244
+- `install.sh --bootstrap` loads the chain bundle and the node starts syncing from height 29944
 - `rng-start-miner` creates a wallet, derives an address, and starts `rngd` with mining enabled
 - `rng-doctor` reports PASS for genesis hash verification on a correctly synced mainnet node
 - `rng-doctor --json` outputs machine-readable JSON health report
@@ -103,8 +103,8 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 - `build-release.sh` produces a tarball with all expected artifacts and a SHA256SUMS file
 - The release manifest JSON contains accurate version, platform, and git commit
 - All scripts start with `set -euo pipefail` or equivalent error handling
-- Bootstrap chain bundle SHA256 matches `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d`
-- Bootstrap UTXO snapshot SHA256 matches `622cd6255b8f44380fb9fa51809f783665d54e2d10d2e74135f00aa9ca34c882`
+- Bootstrap chain bundle SHA256 matches `fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4`
+- Bootstrap UTXO snapshot SHA256 matches `70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1`
 
 ## Verification
 
@@ -116,7 +116,7 @@ which rngd && which rng-cli
 # Test bootstrap
 ./install.sh --bootstrap
 rng-cli getblockcount
-# Should show height >= 15244
+# Should show height >= 29944
 
 # Test miner startup
 rng-start-miner --threads 2 --randomx fast
@@ -146,8 +146,11 @@ ls dist/rng-v3.0.0-linux-x86_64.tar.gz
 cat dist/SHA256SUMS
 
 # Verify bootstrap checksums
-sha256sum bootstrap/rng-mainnet-15244-datadir.tar.gz
-# Expected: bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d
+sha256sum bootstrap/rng-mainnet-29944-datadir.tar.gz
+# Expected: fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4
+
+sha256sum bootstrap/rng-mainnet-29944.utxo
+# Expected: 70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1
 ```
 
 ## Open Questions

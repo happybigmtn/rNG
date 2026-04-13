@@ -89,12 +89,14 @@ cmake --build build -j$(nproc)
 - Present in repository root (confirms container workflow is supported)
 
 **Bootstrap assets** (bundled in release and repository):
-- Chain bundle: `bootstrap/rng-mainnet-15244-datadir.tar.gz`
-  - SHA256: `bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d`
-  - Height: 15244
-- UTXO snapshot: `bootstrap/rng-mainnet-15091.utxo`
-  - SHA256: `622cd6255b8f44380fb9fa51809f783665d54e2d10d2e74135f00aa9ca34c882`
-  - Height: 15091
+- Chain bundle: `bootstrap/rng-mainnet-29944-datadir.tar.gz`
+  - SHA256: `fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4`
+  - Height: 29944
+- UTXO snapshot: `bootstrap/rng-mainnet-29944.utxo`
+  - SHA256: `70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1`
+  - Height: 29944
+  - Base block hash: `4287ff94a9fc6197b66efa47fc8493e5d64cfab78f910a24952446e76bce742b`
+  - UTXO set hash: `e3beaab3c1031e45b1b63d08d74331cc08a0541e44b91cb8f7c73fb1b3f40562`
 
 **Live binary hashes** (from EXECPLAN.md, QSB-enabled build):
 - `rngd`: `36eb7509a17c15fbca062dc3427bb36d0d19cb24ec4fb299fcea09e20a5ad054`
@@ -127,7 +129,7 @@ cmake --build build -j$(nproc)
 - Container exposes ports 8432 and 8433
 - Container runs as non-root user `rng`
 - `rngd --version` inside the container reports `RNG Core v3.0.0`
-- Bootstrap assets inside the tarball allow a new node to start syncing from height 15244
+- Bootstrap assets inside the tarball allow a new node to start syncing from height 29944
 - All helper scripts in the tarball are executable (mode 0755)
 - The tarball uses PAX format with normalized ownership for reproducibility
 
@@ -158,11 +160,11 @@ docker run --rm rng:local --version
 # Expected: RNG Core v3.0.0
 
 # Verify bootstrap asset checksums
-sha256sum bootstrap/rng-mainnet-15244-datadir.tar.gz
-# Expected: bf0bfad8054c73dc732391f2420d8b9f20f3c8276360745706783079a004c73d
+sha256sum bootstrap/rng-mainnet-29944-datadir.tar.gz
+# Expected: fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4
 
-sha256sum bootstrap/rng-mainnet-15091.utxo
-# Expected: 622cd6255b8f44380fb9fa51809f783665d54e2d10d2e74135f00aa9ca34c882
+sha256sum bootstrap/rng-mainnet-29944.utxo
+# Expected: 70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1
 ```
 
 ## Open Questions

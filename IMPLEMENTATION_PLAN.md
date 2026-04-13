@@ -10,10 +10,11 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 3: Sharepool Core Implementation
 
-- [ ] `POOL-07` Implement payout commitment and claim program
+- [!] `POOL-07` Implement payout commitment and claim program
 
-  Spec: `specs/120426-sharepool-protocol.md`
+  Spec: `specs/sharepool.md` (authoritative), with `specs/120426-sharepool-protocol.md` retained as historical context only.
   Why now: Corpus Plan 007. The payout commitment (Merkle root in coinbase) and claim program (witness v2 spend path) are the consensus-enforcing layer. Without them, shares have no economic meaning.
+  Blocker: The current specs and live code do not yet define a safe multi-claim accounting model for pooled rewards. A single shared reward UTXO can normally be spent only once; the historical simple witness-v2 leaf proof model would make the first valid claimant consume the whole reward output unless the design adds either a residual-output covenant model or explicit per-leaf claim-state accounting. `src/script/interpreter.cpp` still treats unknown witness v2 programs as anyone-can-spend for soft-fork compatibility, and `genesis/plans/007-payout-commitment-and-claim-program.md` only sketches a single-claim witness path. Consensus implementation must wait for that accounting design to be specified.
   Codebase evidence: `src/node/miner.cpp` (`CreateNewBlock()`) is where commitment would be inserted into coinbase. `src/script/interpreter.cpp` handles witness version dispatch — v2 is currently an anyone-can-spend pass-through.
   Owns: New files: `src/consensus/sharepool.{h,cpp}` (reward window computation, Merkle commitment construction), modifications to `src/node/miner.cpp` (insert commitment in coinbase when active), modifications to `src/script/interpreter.cpp` (witness v2 claim verification), modifications to `src/validation.cpp` (verify commitment in `ConnectBlock` when active).
   Integration touchpoints: `src/consensus/params.h` (references constants from spec), `src/wallet/` (future claim scanning in POOL-08).
@@ -56,21 +57,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Completion signal: Reproducible regtest proof passes; review document committed.
 
 ### Tier 4: Operator Onboarding Hardening
-
-- [ ] `OPS-01` Update bootstrap assets for current chain height
-
-  Spec: `specs/120426-operator-onboarding.md`, `specs/120426-release-distribution.md`
-  Why now: Bundled bootstrap assets are at height 15244 (chain bundle) and 15091 (UTXO snapshot). If the chain is now at height ~30000+, new operators sync from a stale starting point. Fresh assets cut sync time in half.
-  Codebase evidence: `bootstrap/rng-mainnet-15244-datadir.tar.gz` (SHA256 `bf0bfad8...`), `bootstrap/rng-mainnet-15091.utxo` (SHA256 `622cd625...`). EXECPLAN.md shows canary at height 29957 as of 2026-04-10.
-  Owns: Updated `bootstrap/` assets at current chain tip. Updated SHA256 hashes in `scripts/load-bootstrap.sh`, README.md, and spec docs.
-  Integration touchpoints: `scripts/load-bootstrap.sh` (hash verification), `scripts/install.sh` (bootstrap path), README.md (bootstrap docs), `.github/workflows/release.yml` (asset inclusion).
-  Scope boundary: Asset refresh only. Do not change bootstrap loading logic. Do not change assumeutxo framework.
-  Acceptance criteria: (1) Chain bundle height > 25000. (2) UTXO snapshot height > 25000. (3) All SHA256 hashes updated in scripts and docs. (4) `scripts/load-bootstrap.sh` loads new assets without error.
-  Verification: `sha256sum bootstrap/rng-mainnet-*.tar.gz bootstrap/rng-mainnet-*.utxo` matches documented values. `scripts/load-bootstrap.sh --help` shows new heights.
-  Required tests: `python3 test/functional/feature_bootstrap.py` if it exists, or manual verification.
-  Dependencies: `SYNC-01` (need merged branch with current chain access).
-  Estimated scope: S
-  Completion signal: Bootstrap assets refreshed; all hash references updated; load-bootstrap smoke test passes.
 
 - [ ] `OPS-02` Harden Dockerfile default RPC password
 
@@ -237,7 +223,7 @@ Items below are real work identified by the specs but either depend on unresolve
 - [x] `DONE-06` Operator onboarding scripts
 
   Spec: `specs/120426-operator-onboarding.md`
-  Codebase evidence: `scripts/install.sh` (796 lines), `scripts/start-miner.sh` (233 lines), `scripts/doctor.sh` (379 lines), `scripts/load-bootstrap.sh` (380 lines), `scripts/install-public-node.sh` (185 lines), `scripts/install-public-miner.sh` (205 lines), `scripts/build-release.sh`, `scripts/verify-release.sh`. Bootstrap assets in `bootstrap/` at heights 15244/15091.
+  Codebase evidence: live checkout includes `scripts/start-miner.sh` (233 lines), `scripts/doctor.sh` (377 lines), `scripts/load-bootstrap.sh` (386 lines), `scripts/install-public-node.sh` (185 lines), `scripts/install-public-miner.sh` (205 lines), `scripts/build-release.sh` (295 lines), and `scripts/verify-release.sh` (225 lines). Root `install.sh` and `scripts/install.sh` remain absent and are tracked in `WORKLIST.md`. Bootstrap assets in `bootstrap/` are at height 29944.
   Verification: Scripts have been used in live fleet deployment per EXECPLAN.md.
 
 - [x] `DONE-07` Release and distribution pipeline

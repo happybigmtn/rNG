@@ -68,6 +68,12 @@ guides in `doc/build-*.md`. Release asset verification helpers live in
 helper for source checkouts lives in
 [`scripts/load-bootstrap.sh`](scripts/load-bootstrap.sh).
 
+The tracked bootstrap assets are current to height 29944:
+`bootstrap/rng-mainnet-29944-datadir.tar.gz` has SHA256
+`fd2db803584a99089812b4d59b9dd92f52821149a8add329d246635a406a22b4`, and
+`bootstrap/rng-mainnet-29944.utxo` has SHA256
+`70bde51d839bb000c4455d493e873553486e9c2b34c5734bb08d073d9d3d11a1`.
+
 What Is Bitcoin Core?
 ---------------------
 

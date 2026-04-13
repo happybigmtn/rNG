@@ -7,9 +7,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="${RNG_RELEASE_REPO:-happybigmtn/rng}"
 GITHUB_URL="https://github.com/$REPO"
 GITHUB_API_URL="https://api.github.com/repos/$REPO"
-SNAPSHOT_BASE_HASH="2c97b53893d5d4af36f2c500419a1602d8217b93efd50fac45f0c8ad187466eb"
-SNAPSHOT_BASE_HEIGHT="15091"
-CHAIN_BUNDLE_ARCHIVE="rng-mainnet-15244-datadir.tar.gz"
+SNAPSHOT_BASE_HASH="4287ff94a9fc6197b66efa47fc8493e5d64cfab78f910a24952446e76bce742b"
+SNAPSHOT_BASE_HEIGHT="29944"
+CHAIN_BUNDLE_ARCHIVE="rng-mainnet-29944-datadir.tar.gz"
+SNAPSHOT_ARCHIVE="rng-mainnet-29944.utxo"
 SNAPSHOT_PATH=""
 CHAIN_BUNDLE_PATH=""
 RNG_DAEMON="${RNG_DAEMON:-rngd}"
@@ -37,6 +38,10 @@ Environment:
   RNG_CONF     Optional config path to pass to both commands
   RNG_RELEASE_TAG  Optional release tag to fetch bootstrap assets from
   RNG_BOOTSTRAP_HEADER_WAIT_SECONDS  Max wait for snapshot base header (default: 900)
+
+Bootstrap defaults:
+  Chain bundle: rng-mainnet-29944-datadir.tar.gz (height 29944)
+  UTXO snapshot: rng-mainnet-29944.utxo (height 29944)
 EOF
 }
 
@@ -320,9 +325,9 @@ main() {
     fi
 
     if [ -z "$SNAPSHOT_PATH" ]; then
-        SNAPSHOT_PATH="$(detect_bootstrap_asset "rng-mainnet-15091.utxo" || true)"
+        SNAPSHOT_PATH="$(detect_bootstrap_asset "$SNAPSHOT_ARCHIVE" || true)"
         if [ -z "$SNAPSHOT_PATH" ]; then
-            SNAPSHOT_PATH="$(ensure_release_asset "rng-mainnet-15091.utxo" || true)"
+            SNAPSHOT_PATH="$(ensure_release_asset "$SNAPSHOT_ARCHIVE" || true)"
         fi
     fi
 
