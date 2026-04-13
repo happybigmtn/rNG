@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `POOL-01R` — Revised `specs/sharepool.md` after the POOL-03 no-go. The failed 10-second / 720-share candidate is now documented as a rejected baseline, not the likely consensus set; the spec defines 1-second and 2-second shorter-spacing candidates, their `shares_per_block` and `reward_window_work` inputs, and the exact 10% miner / 100-block CV metric POOL-02R must test with seed `42` plus seeds `1` through `20`. Commit: `62d9a70dc54d4f075d3f528b58a9831e2f550876`.
+  Validation: `rg -n "POOL-03 decision|25\\.10|10-second|720" specs/sharepool.md genesis/plans/003-decision-report.md`; `git diff --check`; `python3 -m pytest contrib/sharepool/test_simulate.py`; `cmake --build build -j$(nproc)`.
+
 - `POOL-03` — Completed the simulator decision gate with a no-go result for the current sharepool constants. The checked withholding metric is 0.0% advantage, but the simulator reports 25.10% CV for a 10% miner over 100 blocks, above the 10% threshold. Added `genesis/plans/003-decision-report.md`, left `specs/sharepool.md` constants unconfirmed, and re-entered the POOL-01/POOL-02/POOL-03 revision loop in `IMPLEMENTATION_PLAN.md`. Commit: `a364a86d604d05714a3c9a4d6a1a568e9f5f8087`.
   Validation: `python3 -m pytest contrib/sharepool/test_simulate.py`; `cd contrib/sharepool && python3 simulate.py --scenario baseline --verbose`; `cd contrib/sharepool && python3 simulate.py --trace examples/two_miners_90_10.json --verbose`; `cd contrib/sharepool && python3 simulate.py --scenario baseline > /tmp/rng-pool03-run1.json && python3 simulate.py --scenario baseline > /tmp/rng-pool03-run2.json && diff -u /tmp/rng-pool03-run1.json /tmp/rng-pool03-run2.json`; `cmake --build build -j$(nproc)`.
 

@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-01R` Revise sharepool constants after POOL-03 no-go
-
-  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
-  Why now: POOL-03 rejected the current 10-second / 720-share candidate because the simulator measured 25.10% CV for a 10% miner over 100 blocks, above the 10% decision threshold.
-  Codebase evidence: `genesis/plans/003-decision-report.md` records the no-go decision and a non-authoritative sweep showing shorter share spacing may reduce variance.
-  Owns: `specs/sharepool.md` constant candidates and any spec text needed to define the authoritative variance metric.
-  Integration touchpoints: `contrib/sharepool/simulate.py`, `contrib/sharepool/README.md`, later POOL-02R simulator sweep.
-  Scope boundary: Spec revision only. Do not add consensus code. Do not mark constants confirmed.
-  Acceptance criteria: `specs/sharepool.md` no longer presents the failed 10-second / 720-share candidate as the likely consensus set; it defines the revised candidate family and the exact variance metric POOL-02R must test.
-  Verification: `rg -n "POOL-03 decision|25.10|10-second|720" specs/sharepool.md genesis/plans/003-decision-report.md`
-  Required tests: None (spec revision).
-  Dependencies: `POOL-03` no-go decision, recorded in `genesis/plans/003-decision-report.md`.
-  Estimated scope: S
-  Completion signal: Revised constants and variance metric are documented as proposed inputs for POOL-02R.
-
 - [ ] `POOL-02R` Re-run simulator for revised sharepool constants
 
   Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
