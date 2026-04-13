@@ -33,6 +33,7 @@
 #include <node/blockstorage.h>
 #include <node/connection_types.h>
 #include <node/protocol_version.h>
+#include <node/sharechain.h>
 #include <node/timeoffsets.h>
 #include <node/txdownloadman.h>
 #include <node/txorphanage.h>
@@ -727,6 +728,9 @@ private:
     /** Send `addr` messages on a regular schedule. */
     void MaybeSendAddr(CNode& node, Peer& peer, std::chrono::microseconds current_time) EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
 
+    bool SharepoolRelayActive() const EXCLUSIVE_LOCKS_REQUIRED(!cs_main);
+    void RelayShareInv(NodeId originator, const std::vector<uint256>& share_ids);
+
     /** Send a single `sendheaders` message, after we have completed headers sync with a peer. */
     void MaybeSendSendHeaders(CNode& node, Peer& peer) EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
 
@@ -753,6 +757,7 @@ private:
     BanMan* const m_banman;
     ChainstateManager& m_chainman;
     CTxMemPool& m_mempool;
+    std::unique_ptr<node::SharechainStore> m_sharechain;
 
     /** Synchronizes tx download including TxRequestTracker, rejection filters, and TxOrphanage.
      * Lock invariants:
@@ -1897,6 +1902,18 @@ PeerManagerImpl::PeerManagerImpl(CConnman& connman, AddrMan& addrman,
       m_warnings{warnings},
       m_opts{opts}
 {
+    if (opts.sharechain_db_path) {
+        m_sharechain = std::make_unique<node::SharechainStore>(DBParams{
+            .path = *opts.sharechain_db_path,
+            .cache_bytes = 8 << 20,
+            .memory_only = false,
+            .wipe_data = opts.wipe_sharechain,
+            .obfuscate = false,
+        });
+    } else {
+        m_sharechain = std::make_unique<node::SharechainStore>();
+    }
+
     // While Erlay support is incomplete, it must be enabled explicitly via -txreconciliation.
     // This argument can go away after Erlay support is complete.
     if (opts.reconcile_txs) {
@@ -2139,6 +2156,23 @@ void PeerManagerImpl::RelayTransaction(const Txid& txid, const Wtxid& wtxid)
             tx_relay->m_tx_inventory_to_send.insert(wtxid);
         }
     }
+}
+
+bool PeerManagerImpl::SharepoolRelayActive() const
+{
+    LOCK(cs_main);
+    const CBlockIndex* tip{m_chainman.ActiveChain().Tip()};
+    return tip != nullptr && DeploymentActiveAt(*tip, m_chainman, Consensus::DEPLOYMENT_SHAREPOOL);
+}
+
+void PeerManagerImpl::RelayShareInv(NodeId originator, const std::vector<uint256>& share_ids)
+{
+    if (share_ids.empty()) return;
+
+    m_connman.ForEachNode([this, originator, &share_ids](CNode* pnode) {
+        if (pnode->GetId() == originator || pnode->fDisconnect || !pnode->fSuccessfullyConnected) return;
+        MakeAndPushMessage(*pnode, NetMsgType::SHAREINV, share_ids);
+    });
 }
 
 void PeerManagerImpl::RelayAddress(NodeId originator,
@@ -3925,6 +3959,85 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
             LogDebug(BCLog::NET, "addrfetch connection completed, %s\n", pfrom.DisconnectMsg(fLogIPs));
             pfrom.fDisconnect = true;
         }
+        return;
+    }
+
+    if (msg_type == NetMsgType::SHAREINV) {
+        std::vector<uint256> share_ids;
+        vRecv >> share_ids;
+        if (share_ids.size() > node::MAX_SHARE_INV_SZ) {
+            Misbehaving(*peer, strprintf("shareinv message size = %u", share_ids.size()));
+            return;
+        }
+
+        if (!SharepoolRelayActive()) return;
+
+        std::vector<uint256> wanted;
+        wanted.reserve(share_ids.size());
+        for (const uint256& share_id : share_ids) {
+            if (!m_sharechain->Contains(share_id)) {
+                wanted.push_back(share_id);
+            }
+        }
+
+        if (!wanted.empty()) {
+            MakeAndPushMessage(pfrom, NetMsgType::GETSHARE, wanted);
+        }
+        return;
+    }
+
+    if (msg_type == NetMsgType::GETSHARE) {
+        std::vector<uint256> share_ids;
+        vRecv >> share_ids;
+        if (share_ids.size() > node::MAX_SHARE_INV_SZ) {
+            Misbehaving(*peer, strprintf("getshare message size = %u", share_ids.size()));
+            return;
+        }
+
+        if (!SharepoolRelayActive()) return;
+
+        std::vector<node::ShareRecord> shares;
+        shares.reserve(std::min(share_ids.size(), node::MAX_SHARE_BATCH_SZ));
+        for (const uint256& share_id : share_ids) {
+            if (const auto share{m_sharechain->GetShare(share_id)}) {
+                shares.push_back(*share);
+                if (shares.size() == node::MAX_SHARE_BATCH_SZ) {
+                    MakeAndPushMessage(pfrom, NetMsgType::SHARE, shares);
+                    shares.clear();
+                }
+            }
+        }
+
+        if (!shares.empty()) {
+            MakeAndPushMessage(pfrom, NetMsgType::SHARE, shares);
+        }
+        return;
+    }
+
+    if (msg_type == NetMsgType::SHARE) {
+        std::vector<node::ShareRecord> shares;
+        vRecv >> shares;
+        if (shares.size() > node::MAX_SHARE_BATCH_SZ) {
+            Misbehaving(*peer, strprintf("share message size = %u", shares.size()));
+            return;
+        }
+
+        if (!SharepoolRelayActive()) return;
+
+        std::vector<uint256> relay_ids;
+        for (const node::ShareRecord& share : shares) {
+            const auto result{m_sharechain->AddShare(share, m_chainparams.GetConsensus())};
+            if (result.status == node::ShareStoreStatus::INVALID) {
+                Misbehaving(*peer, strprintf("invalid share %s: %s", result.share_id.ToString(), result.reject_reason));
+                return;
+            }
+            if (result.status == node::ShareStoreStatus::ORPHAN && result.missing_parent) {
+                MakeAndPushMessage(pfrom, NetMsgType::GETSHARE, std::vector<uint256>{*result.missing_parent});
+            }
+            relay_ids.insert(relay_ids.end(), result.accepted_ids.begin(), result.accepted_ids.end());
+        }
+
+        RelayShareInv(pfrom.GetId(), relay_ids);
         return;
     }
 

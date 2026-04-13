@@ -237,6 +237,7 @@ add_library(bitcoin_node STATIC EXCLUDE_FROM_ALL
   node/psbt.cpp
   node/qsb_pool.cpp
   node/qsb_validation.cpp
+  node/sharechain.cpp
   node/timeoffsets.cpp
   node/transaction.cpp
   node/txdownloadman_impl.cpp

@@ -1817,6 +1817,8 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
     auto& kernel_notifications{*Assert(node.notifications)};
 
     assert(!node.peerman);
+    peerman_opts.sharechain_db_path = args.GetDataDirNet() / "sharechain";
+    peerman_opts.wipe_sharechain = do_reindex;
     node.peerman = PeerManager::make(*node.connman, *node.addrman,
                                      node.banman.get(), chainman,
                                      *node.mempool, *node.warnings,

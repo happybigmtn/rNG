@@ -11,6 +11,7 @@
 #include <node/txorphanage.h>
 #include <protocol.h>
 #include <threadsafety.h>
+#include <util/fs.h>
 #include <validationinterface.h>
 
 #include <atomic>
@@ -87,6 +88,11 @@ public:
         //! Number of headers sent in one getheaders message result (this is
         //! a test-only option).
         uint32_t max_headers_result{MAX_HEADERS_RESULTS};
+        //! Optional on-disk sharechain database path. Tests may leave this
+        //! unset to use an in-memory sharechain store.
+        std::optional<fs::path> sharechain_db_path;
+        //! Wipe the sharechain database before opening it.
+        bool wipe_sharechain{false};
     };
 
     static std::unique_ptr<PeerManager> make(CConnman& connman, AddrMan& addrman,

@@ -84,9 +84,9 @@ TX_MIN_STANDARD_VERSION = 1
 TX_MAX_STANDARD_VERSION = 3
 
 MAGIC_BYTES = {
-    "mainnet": b"\xf9\xbe\xb4\xd9",
-    "testnet4": b"\x1c\x16\x3f\x28",
-    "regtest": b"\xfa\xbf\xb5\xda",
+    "mainnet": b"\xb0\x7c\x01\x0e",
+    "testnet4": b"\xb0\x7c\x74\x34",
+    "regtest": b"\xb0\x7c\x00\x00",
     "signet": b"\x0a\x03\xcf\x40",
 }
 
@@ -1274,6 +1274,102 @@ class msg_getdata:
 
     def __repr__(self):
         return "msg_getdata(inv=%s)" % (repr(self.inv))
+
+
+class CShareRecord:
+    __slots__ = ("candidate_header", "parent_share", "payout_script",
+                 "prev_block_hash", "share_nBits", "version")
+
+    def __init__(self):
+        self.version = 1
+        self.parent_share = 0
+        self.prev_block_hash = 0
+        self.candidate_header = CBlockHeader()
+        self.share_nBits = 0
+        self.payout_script = b""
+
+    def deserialize(self, f):
+        self.version = int.from_bytes(f.read(4), "little")
+        self.parent_share = deser_uint256(f)
+        self.prev_block_hash = deser_uint256(f)
+        self.candidate_header = CBlockHeader()
+        self.candidate_header.deserialize(f)
+        self.share_nBits = int.from_bytes(f.read(4), "little")
+        self.payout_script = deser_string(f)
+
+    def serialize(self):
+        r = b""
+        r += self.version.to_bytes(4, "little")
+        r += ser_uint256(self.parent_share)
+        r += ser_uint256(self.prev_block_hash)
+        r += self.candidate_header.serialize()
+        r += self.share_nBits.to_bytes(4, "little")
+        r += ser_string(self.payout_script)
+        return r
+
+    @property
+    def share_id(self):
+        return uint256_from_str(hash256(self.serialize()))
+
+    def __repr__(self):
+        return "CShareRecord(version=%i share_id=%064x parent_share=%064x prev_block_hash=%064x share_nBits=%08x)" % (
+            self.version,
+            self.share_id,
+            self.parent_share,
+            self.prev_block_hash,
+            self.share_nBits,
+        )
+
+
+class msg_shareinv:
+    __slots__ = ("share_ids",)
+    msgtype = b"shareinv"
+
+    def __init__(self, share_ids=None):
+        self.share_ids = share_ids if share_ids is not None else []
+
+    def deserialize(self, f):
+        self.share_ids = deser_uint256_vector(f)
+
+    def serialize(self):
+        return ser_uint256_vector(self.share_ids)
+
+    def __repr__(self):
+        return "msg_shareinv(share_ids=%s)" % ([f"{share_id:064x}" for share_id in self.share_ids])
+
+
+class msg_getshare:
+    __slots__ = ("share_ids",)
+    msgtype = b"getshare"
+
+    def __init__(self, share_ids=None):
+        self.share_ids = share_ids if share_ids is not None else []
+
+    def deserialize(self, f):
+        self.share_ids = deser_uint256_vector(f)
+
+    def serialize(self):
+        return ser_uint256_vector(self.share_ids)
+
+    def __repr__(self):
+        return "msg_getshare(share_ids=%s)" % ([f"{share_id:064x}" for share_id in self.share_ids])
+
+
+class msg_share:
+    __slots__ = ("shares",)
+    msgtype = b"share"
+
+    def __init__(self, shares=None):
+        self.shares = shares if shares is not None else []
+
+    def deserialize(self, f):
+        self.shares = deser_vector(f, CShareRecord)
+
+    def serialize(self):
+        return ser_vector(self.shares)
+
+    def __repr__(self):
+        return "msg_share(shares=%s)" % (repr(self.shares))
 
 
 class msg_getblocks:

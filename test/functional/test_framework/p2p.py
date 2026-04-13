@@ -53,6 +53,7 @@ from test_framework.messages import (
     msg_getcfilters,
     msg_getdata,
     msg_getheaders,
+    msg_getshare,
     msg_headers,
     msg_inv,
     msg_mempool,
@@ -64,6 +65,8 @@ from test_framework.messages import (
     msg_sendcmpct,
     msg_sendheaders,
     msg_sendtxrcncl,
+    msg_share,
+    msg_shareinv,
     msg_tx,
     MSG_TX,
     MSG_TYPE_MASK,
@@ -131,6 +134,7 @@ MESSAGEMAP = {
     b"getcfilters": msg_getcfilters,
     b"getdata": msg_getdata,
     b"getheaders": msg_getheaders,
+    b"getshare": msg_getshare,
     b"headers": msg_headers,
     b"inv": msg_inv,
     b"mempool": msg_mempool,
@@ -142,6 +146,8 @@ MESSAGEMAP = {
     b"sendcmpct": msg_sendcmpct,
     b"sendheaders": msg_sendheaders,
     b"sendtxrcncl": msg_sendtxrcncl,
+    b"share": msg_share,
+    b"shareinv": msg_shareinv,
     b"tx": msg_tx,
     b"verack": msg_verack,
     b"version": msg_version,
@@ -556,6 +562,9 @@ class P2PInterface(P2PConnection):
     def on_sendcmpct(self, message): pass
     def on_sendheaders(self, message): pass
     def on_sendtxrcncl(self, message): pass
+    def on_getshare(self, message): pass
+    def on_share(self, message): pass
+    def on_shareinv(self, message): pass
     def on_tx(self, message): pass
     def on_wtxidrelay(self, message): pass
 

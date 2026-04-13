@@ -264,6 +264,18 @@ inline constexpr const char* WTXIDRELAY{"wtxidrelay"};
  * txreconciliation, as described by BIP 330.
  */
 inline constexpr const char* SENDTXRCNCL{"sendtxrcncl"};
+/**
+ * Announces protocol-native sharepool share ids.
+ */
+inline constexpr const char* SHAREINV{"shareinv"};
+/**
+ * Requests protocol-native sharepool shares by id.
+ */
+inline constexpr const char* GETSHARE{"getshare"};
+/**
+ * Delivers serialized protocol-native sharepool shares.
+ */
+inline constexpr const char* SHARE{"share"};
 }; // namespace NetMsgType
 
 /** All known message types (see above). Keep this in the same order as the list of messages above. */
@@ -303,6 +315,9 @@ inline const std::array ALL_NET_MESSAGE_TYPES{std::to_array<std::string>({
     NetMsgType::CFCHECKPT,
     NetMsgType::WTXIDRELAY,
     NetMsgType::SENDTXRCNCL,
+    NetMsgType::SHAREINV,
+    NetMsgType::GETSHARE,
+    NetMsgType::SHARE,
 })};
 
 /** nServices flags */

@@ -10,21 +10,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 3: Sharepool Core Implementation
 
-- [ ] `POOL-05` Implement sharechain data model, storage, and P2P relay
-
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: Corpus Plan 005. The sharechain is the core data structure — shares must be stored, linked, and relayed before reward windows or payout commitments can be computed. This is the largest single implementation unit.
-  Codebase evidence: No share-related code exists in `src/`. `src/node/internal_miner.h` (the miner that will produce shares) is 240 lines. `src/protocol.h` defines existing P2P message types — new `shareinv`/`getshare`/`share` messages follow the same pattern.
-  Owns: New files: `src/node/sharechain.{h,cpp}` (ShareRecord struct, sharechain store, tip selection, orphan buffer), `src/net_processing.cpp` additions (3 new message handlers), `src/protocol.h` additions (3 new message type constants).
-  Integration touchpoints: `src/node/internal_miner.cpp` (future share production in POOL-07), `src/validation.cpp` (future commitment validation in POOL-06), LevelDB storage layer.
-  Scope boundary: Data model + storage + relay. No payout computation. No commitment generation. No miner integration. Orphan buffer max 64 shares (per spec). Storage in LevelDB under `sharechain/` prefix.
-  Acceptance criteria: (1) `ShareRecord` serializes/deserializes deterministically. (2) Sharechain maintains ordered chain linked by parent refs. (3) Orphans buffered up to 64, resolved when parent arrives. (4) `shareinv`/`getshare`/`share` messages relay between connected regtest nodes. (5) Invalid shares (bad PoW) rejected at relay. (6) Shares gated behind `DeploymentActiveAt(DEPLOYMENT_SHAREPOOL)`.
-  Verification: `cmake --build build -j$(nproc) && build/bin/test_bitcoin --run_test=sharechain_tests && python3 test/functional/feature_sharepool_relay.py`
-  Required tests: C++ unit tests for serialization, chain insertion, orphan handling, tip selection. Functional test for P2P relay between 2 regtest nodes.
-  Dependencies: `POOL-04` (activation boundary must exist for gating).
-  Estimated scope: L
-  Completion signal: All sharechain unit and functional tests pass; relay measurable between regtest nodes.
-
 - [ ] `POOL-06-GATE` Decision gate: share relay viability
 
   Spec: `specs/120426-sharepool-protocol.md`
