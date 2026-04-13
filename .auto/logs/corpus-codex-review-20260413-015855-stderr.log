@@ -1,0 +1,8 @@
+
+===== 20260413-021422 =====
+Reading prompt from stdin...
+2026-04-13T01:58:59.318720Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip (symlink): No such file or directory (os error 2)
+2026-04-13T01:58:59.318735Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-agent (symlink): No such file or directory (os error 2)
+2026-04-13T01:58:59.318740Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-plugin (symlink): No such file or directory (os error 2)
+2026-04-13T01:58:59.318745Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/para-memory-files (symlink): No such file or directory (os error 2)
+

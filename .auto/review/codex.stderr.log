@@ -1,0 +1,16 @@
+
+===== 20260413-122148 =====
+Reading prompt from stdin...
+2026-04-13T12:08:48.536991Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip (symlink): No such file or directory (os error 2)
+2026-04-13T12:08:48.537003Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-agent (symlink): No such file or directory (os error 2)
+2026-04-13T12:08:48.537006Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-plugin (symlink): No such file or directory (os error 2)
+2026-04-13T12:08:48.537009Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/para-memory-files (symlink): No such file or directory (os error 2)
+
+
+===== 20260413-122253 =====
+Reading prompt from stdin...
+2026-04-13T12:21:59.057534Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip (symlink): No such file or directory (os error 2)
+2026-04-13T12:21:59.057554Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-agent (symlink): No such file or directory (os error 2)
+2026-04-13T12:21:59.057558Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/paperclip-create-plugin (symlink): No such file or directory (os error 2)
+2026-04-13T12:21:59.057562Z ERROR codex_core_skills::loader: failed to stat skills entry /home/r/.codex/skills/para-memory-files (symlink): No such file or directory (os error 2)
+

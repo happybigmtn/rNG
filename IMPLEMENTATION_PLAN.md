@@ -8,29 +8,230 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ## Priority Work
 
+### Tier 2.5: Sharepool Settlement Design
+
+- [x] `POOL-07A` Lock the settlement state machine specification
+
+  Spec: `specs/sharepool-settlement.md`, with `specs/sharepool.md` updated to
+  reference it as the authoritative claim-accounting model.
+  Why now: `POOL-07` is blocked on the unresolved UTXO accounting problem for a
+  compact pooled-reward output. Before writing consensus code, RNG needs one
+  precise settlement model that defines how many miners claim from one output
+  without operator coordination or hidden mutable state.
+  Codebase evidence: `specs/sharepool.md` previously left the accounting model
+  open, and `src/script/interpreter.cpp` still treats witness version 2 as an
+  upgrade placeholder rather than a sharepool settlement program.
+  Owns: The settlement state machine: immutable payout root, mutable
+  claim-status root, successor settlement output rules, claim transaction shape,
+  and exact value-conservation rules.
+  Integration touchpoints: `specs/sharepool.md`, future `src/consensus/sharepool.{h,cpp}`,
+  future `src/script/interpreter.cpp`, future `src/validation.cpp`,
+  future wallet auto-claim logic in `src/wallet/`.
+  Scope boundary: Specification only. No C++ code. No RPCs. No claim helper
+  incentives. No batched claims in v1.
+  Acceptance criteria: `specs/sharepool-settlement.md` fully defines the
+  settlement output, claim-status tree, witness stack, successor-output rule,
+  and exact settlement-input conservation rule. `specs/sharepool.md` no longer
+  carries the core accounting model as an open question.
+  Verification: `test -f specs/sharepool-settlement.md && rg -n "claim-status root|successor settlement output|value conservation" specs/sharepool-settlement.md`
+  Required tests: None (specification only).
+  Dependencies: None.
+  Estimated scope: S
+  Completion signal: The compact-commitment multi-claim model is written down
+  precisely enough that two implementers would build the same consensus state
+  machine.
+
+- [x] `POOL-07B` Build a reference settlement transition model and test vectors
+
+  Spec: `specs/sharepool-settlement.md`
+  Why now: A written covenant/state-machine spec is still too easy to misread.
+  Before consensus code, RNG needs an executable reference model that proves the
+  transition rules actually work for initial claim, intermediate claim, final
+  claim, duplicate-claim rejection, and extra-input fee funding.
+  Codebase evidence: The existing simulator in `contrib/sharepool/simulate.py`
+  covers reward windows and payout roots, but it does not model settlement-state
+  transitions or multi-claim accounting.
+  Owns: A deterministic reference model and test vectors under
+  `contrib/sharepool/` for:
+  - initial settlement state construction
+  - one valid claim transition
+  - final claim transition
+  - duplicate-claim rejection
+  - settlement-value conservation with extra non-settlement fee inputs
+  Integration touchpoints: `contrib/sharepool/simulate.py`,
+  future `src/test/sharepool_commitment_tests.cpp`,
+  future `test/functional/feature_sharepool_commitment.py`.
+  Scope boundary: Reference model only. No consensus wiring. No node RPC.
+  Acceptance criteria: The reference model can reproduce deterministic state
+  hashes and next-state hashes for the five required scenarios above, and the
+  vectors are checked into the repo for C++ parity tests later.
+  Verification: `python3 contrib/sharepool/settlement_model.py --self-test`
+  Required tests: Self-test or `pytest` coverage for all five scenarios.
+  Dependencies: `POOL-07A`.
+  Estimated scope: M
+  Completion signal: Checked-in deterministic vectors exist for every mandatory
+  settlement transition class that `POOL-07` will later enforce in consensus.
+
+- [x] `POOL-07C` Run the pre-consensus settlement design checkpoint
+
+  Spec: `specs/sharepool-settlement.md`
+  Why now: The state machine is consensus-critical and easy to get subtly
+  wrong. Before landing C++ code, RNG needs one explicit design gate that checks
+  script-interpreter responsibilities, `ConnectBlock` responsibilities, mempool
+  standardness, wallet auto-claim implications, and soft-fork behavior for
+  witness-v2 reservation.
+  Codebase evidence: `POOL-07` touches `src/node/miner.cpp`,
+  `src/script/interpreter.cpp`, `src/validation.cpp`, and later the wallet.
+  The split between witness-program validation and transaction-level
+  conservation rules is part of the protocol, not just an implementation detail.
+  Owns: One review artifact that states:
+  - what the witness-v2 interpreter validates
+  - what `CheckTxInputs`/`ConnectBlock` validates
+  - how fees are funded without draining the settlement pool
+  - how pre-activation and post-activation witness-v2 behavior differ
+  - what v1 intentionally does not support
+  Integration touchpoints: future `src/script/interpreter.cpp`,
+  future `src/policy/policy.cpp`, future `src/validation.cpp`,
+  future `src/wallet/`.
+  Scope boundary: Review and checkpoint only. No implementation.
+  Acceptance criteria: A checked-in checkpoint note records the invariant split
+  and either declares the settlement model implementation-ready or feeds
+  specific corrections back into `POOL-07A`/`POOL-07B`.
+  Verification: `test -f genesis/plans/chkpt-03a-settlement-design-review.md || test -f docs/chkpt-03a-settlement-design-review.md`
+  Required tests: None (review checkpoint).
+  Dependencies: `POOL-07A`, `POOL-07B`.
+  Estimated scope: S
+  Completion signal: The payout/claim contract is no longer blocked on an
+  undefined accounting model.
+
 ### Tier 3: Sharepool Core Implementation
 
-- [!] `POOL-07` Implement payout commitment and claim program
+- [x] `POOL-07D` Land deterministic consensus sharepool helpers and parity tests
 
-  Spec: `specs/sharepool.md` (authoritative), with `specs/120426-sharepool-protocol.md` retained as historical context only.
+  Spec: `specs/sharepool-settlement.md`
+  Why now: Before wiring witness-v2 verification or coinbase commitments into
+  the node, RNG needs one low-level C++ surface that reproduces the committed
+  POOL-07B hashes, Merkle branches, and remaining-value calculations exactly.
+  Codebase evidence: `POOL-07B` produced deterministic vectors, but until this
+  slice there was still no C++ consensus helper library to consume them.
+  Owns: `src/consensus/sharepool.{h,cpp}` for settlement leaf hashing,
+  descriptor hashing, payout-root construction, claim-status roots/branches,
+  state hashing, and remaining-value calculation, plus
+  `src/test/sharepool_commitment_tests.cpp` for vector-backed parity coverage.
+  Integration touchpoints: `src/CMakeLists.txt`, `src/test/CMakeLists.txt`,
+  future `src/node/miner.cpp`, future `src/script/interpreter.cpp`,
+  future `src/validation.cpp`.
+  Scope boundary: Pure deterministic helpers only. No witness program
+  enforcement. No coinbase insertion. No `ConnectBlock` logic.
+  Acceptance criteria: `src/consensus/sharepool.{h,cpp}` exists, the committed
+  POOL-07B vectors are reproduced in `sharepool_commitment_tests`, and the
+  reference Python settlement model still passes unchanged.
+  Verification: `build/bin/test_bitcoin --run_test=sharepool_commitment_tests --catch_system_error=no --log_level=test_suite && python3 contrib/sharepool/settlement_model.py --self-test`
+  Required tests: `sharepool_commitment_tests`.
+  Dependencies: `POOL-07A`, `POOL-07B`, `POOL-07C`.
+  Estimated scope: M
+  Completion signal: C++ settlement primitives match the checked-in model and
+  are ready to be called from miner, interpreter, and validation code.
+
+- [x] `POOL-07E` Wire activated solo-settlement coinbase construction into the miner
+
+  Spec: `specs/sharepool.md` and `specs/sharepool-settlement.md`
+  Why now: After `POOL-07D`, the next smallest real integration step is block
+  assembly. RNG needs to prove it can cross the sharepool versionbits boundary
+  and build an activated coinbase with a spendable settlement output instead of
+  only helper hashes in isolation.
+  Codebase evidence: `src/node/miner.cpp` owned coinbase construction, but
+  before this slice it always paid the full reward directly to
+  `coinbase_output_script` and never emitted a witness-v2 sharepool settlement
+  output.
+  Owns: `src/node/miner.cpp` activation-gated coinbase wiring for the
+  single-contributor case, plus helper extensions in
+  `src/consensus/sharepool.{h,cpp}` for initial settlement state construction
+  and deterministic solo-leaf derivation.
+  Integration touchpoints: `src/test/miner_tests.cpp`,
+  `src/consensus/sharepool.{h,cpp}`.
+  Scope boundary: Solo settlement output construction only. No reward-window
+  walk, no multi-leaf commitments, no witness-v2 claim verification, no
+  `ConnectBlock` enforcement.
+  Acceptance criteria: (1) pre-activation templates keep the legacy direct
+  reward output, (2) post-activation templates preserve a zero-value
+  compatibility miner output and add a full-value witness-v2 settlement output,
+  and (3) `RegenerateCommitments()` preserves that settlement output while
+  refreshing the SegWit commitment.
+  Verification: `build/bin/test_bitcoin --run_test=miner_tests/CreateNewBlock_sharepool_inactive_keeps_legacy_coinbase_reward* --catch_system_error=no --log_level=test_suite && build/bin/test_bitcoin --run_test=miner_tests/CreateNewBlock_sharepool_active_inserts_settlement_output* --catch_system_error=no --log_level=test_suite`
+  Required tests: Focused `miner_tests` coverage for pre-activation and
+  activated coinbase layout.
+  Dependencies: `POOL-07D`.
+  Estimated scope: M
+  Completion signal: Block templates on an activated regtest chain include the
+  expected witness-v2 settlement output for the single-contributor case.
+
+- [ ] `POOL-07` Implement payout commitment and claim program
+
+  Spec: `specs/sharepool.md` and `specs/sharepool-settlement.md`
+  (authoritative), with `specs/120426-sharepool-protocol.md` retained as
+  historical context only.
   Why now: Corpus Plan 007. The payout commitment (Merkle root in coinbase) and claim program (witness v2 spend path) are the consensus-enforcing layer. Without them, shares have no economic meaning.
-  Blocker: The current specs and live code do not yet define a safe multi-claim accounting model for pooled rewards. A single shared reward UTXO can normally be spent only once; the historical simple witness-v2 leaf proof model would make the first valid claimant consume the whole reward output unless the design adds either a residual-output covenant model or explicit per-leaf claim-state accounting. `src/script/interpreter.cpp` still treats unknown witness v2 programs as anyone-can-spend for soft-fork compatibility, and `genesis/plans/007-payout-commitment-and-claim-program.md` only sketches a single-claim witness path. Consensus implementation must wait for that accounting design to be specified.
+  Blocker closed: the settlement-design track is now complete.
+  `POOL-07A` locked the covenant/state-machine spec in
+  `specs/sharepool-settlement.md`, `POOL-07B` produced deterministic transition
+  vectors in `contrib/sharepool/reports/pool-07b-settlement-vectors.json`,
+  `POOL-07C` recorded the interpreter-vs-validation split in
+  `genesis/plans/chkpt-03a-settlement-design-review.md`, and `POOL-07D`
+  landed deterministic C++ helpers in `src/consensus/sharepool.{h,cpp}` plus
+  vector-backed parity tests. `POOL-07E` then wired the activated
+  single-contributor settlement output into `CreateNewBlock()` and covered the
+  pre-activation/post-activation coinbase layout in `miner_tests`. The
+  remaining work is the rest of node integration:
+  `src/script/interpreter.cpp` still treats unknown witness v2 programs as
+  anyone-can-spend for soft-fork compatibility, `src/node/miner.cpp` still uses
+  the one-leaf solo fallback instead of a reward-window-derived multi-leaf
+  commitment, and `src/validation.cpp` does not yet enforce sharepool
+  commitments or claim-conservation rules.
   Codebase evidence: `src/node/miner.cpp` (`CreateNewBlock()`) is where commitment would be inserted into coinbase. `src/script/interpreter.cpp` handles witness version dispatch — v2 is currently an anyone-can-spend pass-through.
-  Owns: New files: `src/consensus/sharepool.{h,cpp}` (reward window computation, Merkle commitment construction), modifications to `src/node/miner.cpp` (insert commitment in coinbase when active), modifications to `src/script/interpreter.cpp` (witness v2 claim verification), modifications to `src/validation.cpp` (verify commitment in `ConnectBlock` when active).
+  Owns: New files: `src/consensus/sharepool.{h,cpp}` (reward window
+  computation, Merkle commitment construction, settlement-state helpers),
+  modifications to `src/node/miner.cpp` (insert commitment in coinbase when
+  active), modifications to `src/script/interpreter.cpp` (witness v2 settlement
+  verification), modifications to `src/validation.cpp` (verify commitment in
+  `ConnectBlock`, enforce settlement-input conservation when active).
   Integration touchpoints: `src/consensus/params.h` (references constants from spec), `src/wallet/` (future claim scanning in POOL-08).
-  Scope boundary: Commitment generation and claim verification. Does not extend the internal miner to produce shares (that's POOL-08). Does not add wallet scanning (that's POOL-08). All new rules gated behind `DeploymentActiveAt(DEPLOYMENT_SHAREPOOL)`.
-  Acceptance criteria: (1) `CreateNewBlock()` includes correct Merkle commitment root when sharepool active. (2) Blocks without valid commitment rejected when sharepool active. (3) Claim transactions with valid Merkle proof + signature accepted after 100-block maturity. (4) Invalid claims rejected. (5) Solo miner (only contributor) produces single-leaf commitment. (6) Pre-activation nodes treat witness v2 outputs as valid (soft-fork compatible).
+  Scope boundary: Commitment generation and settlement/claim verification. Does
+  not extend the internal miner to produce shares (that's POOL-08). Does not
+  add wallet scanning (that's POOL-08). All new rules gated behind
+  `DeploymentActiveAt(DEPLOYMENT_SHAREPOOL)`.
+  Acceptance criteria: (1) `CreateNewBlock()` includes the correct settlement
+  output when sharepool active. (2) Blocks without a valid commitment rejected
+  when sharepool active. (3) Claim transactions with valid payout proof,
+  unclaimed-status proof, and correct successor settlement output accepted after
+  100-block maturity. (4) Duplicate claims and settlement-value-draining claims
+  rejected. (5) Solo miner (only contributor) produces a one-leaf settlement.
+  (6) Pre-activation nodes treat witness v2 outputs as valid (soft-fork
+  compatible).
   Verification: `build/bin/test_bitcoin --run_test=sharepool_commitment_tests && python3 test/functional/feature_sharepool_commitment.py`
-  Required tests: Unit tests for Merkle construction, commitment validation, claim verification. Functional test for end-to-end: activate on regtest, mine block with commitment, claim after maturity.
-  Dependencies: `POOL-05` (sharechain provides shares for reward window), `POOL-06-GATE` (relay must be viable).
+  Required tests: Unit tests for Merkle construction, settlement-state
+  transitions, commitment validation, and claim verification. Functional test
+  for end-to-end: activate on regtest, mine block with settlement commitment,
+  claim after maturity.
+  Dependencies: `POOL-05` (sharechain provides shares for reward window),
+  `POOL-06-GATE` (relay must be viable), `POOL-07A`, `POOL-07B`, `POOL-07C`.
   Estimated scope: L
-  Completion signal: Commitment and claim tests pass; solo mining with commitment works on regtest.
+  Completion signal: Commitment and settlement-claim tests pass; solo mining
+  with settlement commitment works on regtest.
 
 - [!] `POOL-08` Extend internal miner and wallet for sharepool integration
 
   Spec: `specs/120426-internal-miner.md`, `specs/120426-wallet-rpc-surface.md`
   Why now: Corpus Plan 008. The miner must produce shares alongside block attempts, and the wallet must track pooled rewards. This is the user-facing integration layer.
-  Blocker: The task's explicit dependency `POOL-07` is still blocked. Live code now contains the sharepool deployment boundary and sharechain/P2P relay from POOL-04/POOL-05/POOL-06 (`src/consensus/params.h`, `src/node/sharechain.{h,cpp}`, `src/net_processing.cpp`), but there is still no `src/consensus/sharepool.{h,cpp}` payout commitment implementation and no witness-v2 claim accounting model. Wallet auto-claim behavior and reward commitment RPCs cannot be truthfully implemented until the consensus payout/claim contract is specified and landed.
+  Blocker: The task's explicit dependency `POOL-07` is still blocked. Live code
+  now contains the sharepool deployment boundary and sharechain/P2P relay from
+  POOL-04/POOL-05/POOL-06 (`src/consensus/params.h`,
+  `src/node/sharechain.{h,cpp}`, `src/net_processing.cpp`), and the settlement
+  accounting model is now specified in `specs/sharepool-settlement.md`, but
+  there is still no `src/consensus/sharepool.{h,cpp}` payout commitment
+  implementation and no live witness-v2 settlement verifier. Wallet auto-claim
+  behavior and reward commitment RPCs cannot be truthfully implemented until
+  the consensus payout/claim contract is landed in code.
   Codebase evidence: `src/node/internal_miner.h:230-234` defines constants including `HASH_BATCH_SIZE = 10000` and `STALENESS_CHECK_INTERVAL = 1000`. Workers check one target (block difficulty) per hash. Extension adds second target (share difficulty). `src/rpc/mining.cpp:519` defines `getinternalmininginfo`. `src/wallet/rpc/coins.cpp` defines `getbalances`.
   Owns: Modifications to `src/node/internal_miner.{h,cpp}` (dual-target: share + block), new `m_shares_found` counter, share construction and relay on share-meeting hash. Modifications to `src/wallet/` (scan coinbase for v2 commitment, record `PooledRewardEntry`, auto-claim on maturity). New/extended RPCs: `submitshare`, `getsharechaininfo`, `getrewardcommitment`. Extended `getmininginfo` with sharepool fields. Extended `getbalances` with `pooled.pending/claimable`.
   Integration touchpoints: `src/node/sharechain.{h,cpp}` (from POOL-05), `src/consensus/sharepool.{h,cpp}` (from POOL-07), `src/rpc/mining.cpp`, `src/wallet/rpc/coins.cpp`.
@@ -46,7 +247,16 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
   Spec: `specs/120426-sharepool-protocol.md`
   Why now: Corpus Plans 009/010. Before any devnet or mainnet work, prove the full sharepool lifecycle works on regtest: activation, share production, relay, commitment, mining, claim.
-  Blocker: The task's explicit dependency `POOL-08` remains blocked by `POOL-07`. Live code has the sharepool activation boundary and share relay (`src/consensus/params.h`, `src/node/sharechain.{h,cpp}`, `src/net_processing.cpp`), but it still has no consensus payout commitment/claim implementation, no dual-target share-producing miner, no wallet pooled-balance/auto-claim surface, no `submitshare`/`getsharechaininfo`/`getrewardcommitment` RPCs, and no `test/functional/feature_sharepool_e2e.py`. A regtest end-to-end proof cannot be truthfully implemented until `POOL-07` and `POOL-08` are unblocked and landed.
+  Blocker: The task's explicit dependency `POOL-08` remains blocked by
+  `POOL-07`. Live code has the sharepool activation boundary and share relay
+  (`src/consensus/params.h`, `src/node/sharechain.{h,cpp}`,
+  `src/net_processing.cpp`), and the settlement model is now specified, but it
+  still has no consensus payout commitment/claim implementation, no dual-target
+  share-producing miner, no wallet pooled-balance/auto-claim surface, no
+  `submitshare`/`getsharechaininfo`/`getrewardcommitment` RPCs, and no
+  `test/functional/feature_sharepool_e2e.py`. A regtest end-to-end proof cannot
+  be truthfully implemented until `POOL-07` and `POOL-08` are unblocked and
+  landed.
   Codebase evidence: All preceding POOL tasks.
   Owns: End-to-end regtest proof script and review document.
   Integration touchpoints: All sharepool code.

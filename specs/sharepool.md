@@ -2,13 +2,14 @@
 
 ## Status
 
-This document is the active protocol specification for RNG's planned
+This document is the active top-level protocol specification for RNG's planned
 protocol-native pooled mining work. It is a specification artifact for the
 remaining consensus, miner, wallet, and RPC work. The live tree already contains
 the dormant BIP9 deployment boundary, sharechain storage, activation-gated P2P
 share relay, and offline simulator, but it does not yet contain payout
 commitment, claim verification, share-producing miner, wallet accounting, or
-sharepool RPCs.
+sharepool RPCs. The settlement and multi-claim accounting model is specified in
+`specs/sharepool-settlement.md`.
 
 POOL-03 decision (2026-04-13): no-go on the original candidate constants. The
 simulator reported 25.10% CV for a 10% miner over 100 blocks, above the 10%
@@ -251,39 +252,27 @@ and claim surface, while an OP_RETURN marker is optional metadata.
 
 ## Claim Program
 
-The proposed claim surface uses witness version 2 with a 32-byte program equal
-to the payout commitment root.
+The authoritative claim-accounting model is defined in
+`specs/sharepool-settlement.md`.
 
-Claim output:
+Summary:
 
-- Script form: `OP_2 <32-byte payout_commitment_root>`.
-- Output value: the total reward committed for that block.
-- Maturity: claim spends are invalid until the coinbase output is mature under
-  the existing 100-block coinbase maturity rule.
+- The spendable pooled-reward output is a witness-v2 settlement output whose
+  32-byte program commits to both the immutable payout root and the current
+  claim-status root.
+- Each claim transaction spends the current settlement output, pays exactly one
+  committed leaf to that leaf's payout script, and recreates a successor
+  settlement output for the remaining unclaimed balance unless this is the final
+  claim.
+- The claim-status root changes by flipping one leaf from unclaimed to claimed,
+  preventing double claims without any operator-managed ledger.
+- Fees must be paid by non-settlement inputs; the settlement output itself is
+  conserved exactly across the mandatory payout and successor outputs.
 
-Claim witness stack:
-
-1. `merkle_branch`: concatenated 32-byte sibling hashes.
-2. `leaf_index`: CScriptNum-encoded leaf index.
-3. `leaf_data`: serialized reward leaf.
-4. `signature`: signature proving control of `leaf_data.payout_script`.
-
-Verifier responsibilities:
-
-- Deserialize `leaf_data`.
-- Hash the leaf and reconstruct the Merkle root from `merkle_branch` and
-  `leaf_index`.
-- Require the reconstructed root to equal the witness program.
-- Require the claimed output amount to match `leaf_data.amount_roshi`.
-- Verify the signature against the payout script.
-
-Open implementation constraint:
-
-- A single shared reward UTXO can normally be spent only once. POOL-07 must
-  prove the final claim accounting model before consensus code lands. Acceptable
-  answers may include a carefully specified residual-output covenant model or
-  explicit per-leaf claim-state accounting. This document intentionally does not
-  pretend that an OP_RETURN alone can fund trustless claims.
+This document keeps the sharepool-wide constants, reward-window rules, payout
+leaf structure, and relay rules. `specs/sharepool-settlement.md` defines the
+state machine that lets one compact settlement output support many trustless
+claims under ordinary UTXO semantics.
 
 ## Activation Semantics
 
@@ -417,8 +406,6 @@ confirmed for implementation planning.
 
 ## Open Questions
 
-- Does the claim accounting model for one compact commitment survive UTXO
-  semantics without operator coordination?
 - Should the first version include a finder bonus or publication incentive?
 - Should 60-second test networks keep the same target share spacing as the
   revised mainnet family or the same target ratio as mainnet?

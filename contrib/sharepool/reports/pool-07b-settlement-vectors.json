@@ -1,0 +1,157 @@
+{
+  "metadata": {
+    "leaf_count": 3,
+    "model": "rng-sharepool-settlement-v1",
+    "status_tree_size": 4,
+    "total_reward_roshi": 5000000000
+  },
+  "vectors": [
+    {
+      "claim_status_root": "3c22c8b75e16709a0a2bca57491dd6506340cf53cf2357e1cd6747b5cef270f1",
+      "claimed_flags": [
+        0,
+        0,
+        0
+      ],
+      "descriptor": {
+        "descriptor_hash": "7cc132cf6cefcb6d633007af5d00123d093d977cd3225ebbd89c7ec212af8407",
+        "leaf_count": 3,
+        "payout_root": "70bb1722d4d8f8360e0ca181bdac434ed8c55dfcdff6e44c7f2fdb2b6a9d9114",
+        "version": 1
+      },
+      "leaves": [
+        {
+          "amount_roshi": 1500000000,
+          "first_share_id": "share-000006",
+          "last_share_id": "share-000008",
+          "payout_script_hex": "001468dbf5ee2c8fb383a7ade4bc76fd2aca2d3c14db"
+        },
+        {
+          "amount_roshi": 1000000000,
+          "first_share_id": "share-000009",
+          "last_share_id": "share-000010",
+          "payout_script_hex": "0014141a96f057329ba02e528b1a9301268015c091af"
+        },
+        {
+          "amount_roshi": 2500000000,
+          "first_share_id": "share-000001",
+          "last_share_id": "share-000005",
+          "payout_script_hex": "00140d2dcfa4c5b456eb0b16040e55bf9fe6e5ece6f0"
+        }
+      ],
+      "remaining_value_roshi": 5000000000,
+      "scenario": "initial_state",
+      "state_hash": "a71046653edbe76bd4c38d1895b32067ebebd1cc83488efc89783c3cd4d370cf"
+    },
+    {
+      "leaf": {
+        "amount_roshi": 1000000000,
+        "first_share_id": "share-000009",
+        "last_share_id": "share-000010",
+        "payout_script_hex": "0014141a96f057329ba02e528b1a9301268015c091af"
+      },
+      "leaf_index": 1,
+      "new_claim_status_root": "125acedd16f5f5c07dcdb19e2f58420636e622aac50c23876cc70886f5bc4d4b",
+      "new_claimed_flags": [
+        0,
+        1,
+        0
+      ],
+      "new_state_hash": "2e46aaeff1ad13855c681eb0cf528244fe30837ecc4f2c5cfd44ecc7d56963e9",
+      "old_claim_status_root": "3c22c8b75e16709a0a2bca57491dd6506340cf53cf2357e1cd6747b5cef270f1",
+      "old_state_hash": "a71046653edbe76bd4c38d1895b32067ebebd1cc83488efc89783c3cd4d370cf",
+      "payout_branch": [
+        "c23a98079c9de1acc71d86dc9ada1d18f1b5eaf6ef6125319af94b85a5ab02b2",
+        "53e4dcc16cfaa0d57bf1f8cde95bb505a3e7cee6fe6d891208362fdadb342702"
+      ],
+      "scenario": "one_valid_claim_transition",
+      "status_branch": [
+        "c5d416792573dbae307ebef933d3a44445c1957b86d087d8821b87466824a022",
+        "676f24fb0796454d3461ce1275a07511091d73a336cb0947e3e94896935f1206"
+      ],
+      "template": {
+        "extra_input_value": 0,
+        "extra_output_value": 0,
+        "fee_roshi": 0,
+        "payout_output_script_hex": "0014141a96f057329ba02e528b1a9301268015c091af",
+        "payout_output_value": 1000000000,
+        "successor_output_value": 4000000000,
+        "successor_state_hash": "2e46aaeff1ad13855c681eb0cf528244fe30837ecc4f2c5cfd44ecc7d56963e9"
+      }
+    },
+    {
+      "leaf": {
+        "amount_roshi": 2500000000,
+        "first_share_id": "share-000001",
+        "last_share_id": "share-000005",
+        "payout_script_hex": "00140d2dcfa4c5b456eb0b16040e55bf9fe6e5ece6f0"
+      },
+      "leaf_index": 2,
+      "new_claim_status_root": null,
+      "new_claimed_flags": null,
+      "new_state_hash": null,
+      "old_claim_status_root": "e97ed770c2b1e96d3bfd552d0ae1a3c03b4a0c3fbb5ebad743f68221733b22ea",
+      "old_state_hash": "834fa6d90e571c68767d82dcf4fda1e58513bdc7cab74554e152dc3466de77d2",
+      "payout_branch": [
+        "7b6670e645fb5794e61431699213e0ce96f6b4353fd00af1d21ea14fcc2e033e",
+        "4f0374d6334b99177e859faf9a58ee66121192418f2c2ddc700049264cde4cb2"
+      ],
+      "scenario": "final_claim_transition",
+      "status_branch": [
+        "57151b52163c3ae1190eece120e63f04b3cbafbf23929c72b710b5725a5b4bbe",
+        "5a90b84e857673a5bd43cca4ec7f25ea44617811451b110d91df2c851602a890"
+      ],
+      "template": {
+        "extra_input_value": 0,
+        "extra_output_value": 0,
+        "fee_roshi": 0,
+        "payout_output_script_hex": "00140d2dcfa4c5b456eb0b16040e55bf9fe6e5ece6f0",
+        "payout_output_value": 2500000000,
+        "successor_output_value": null,
+        "successor_state_hash": null
+      }
+    },
+    {
+      "expected_error": "leaf 1 is already claimed",
+      "leaf_index": 1,
+      "old_state_hash": "2e46aaeff1ad13855c681eb0cf528244fe30837ecc4f2c5cfd44ecc7d56963e9",
+      "scenario": "duplicate_claim_rejection"
+    },
+    {
+      "leaf": {
+        "amount_roshi": 1500000000,
+        "first_share_id": "share-000006",
+        "last_share_id": "share-000008",
+        "payout_script_hex": "001468dbf5ee2c8fb383a7ade4bc76fd2aca2d3c14db"
+      },
+      "leaf_index": 0,
+      "new_claim_status_root": "cfb76ae9a5ce4c9b7cdd8dc590ab056c5efa873037f270d08143f01090d4aaad",
+      "new_claimed_flags": [
+        1,
+        0,
+        0
+      ],
+      "new_state_hash": "dcbc74b1db8e166be8ded0ba59b5ccb40bb734250c97b0e0d034291e71f92418",
+      "old_claim_status_root": "3c22c8b75e16709a0a2bca57491dd6506340cf53cf2357e1cd6747b5cef270f1",
+      "old_state_hash": "a71046653edbe76bd4c38d1895b32067ebebd1cc83488efc89783c3cd4d370cf",
+      "payout_branch": [
+        "324e573c0543bb8fa6d168a4b4e86908edd6e777b221edf4f3f5b43ab9664c20",
+        "53e4dcc16cfaa0d57bf1f8cde95bb505a3e7cee6fe6d891208362fdadb342702"
+      ],
+      "scenario": "non_settlement_fee_funding",
+      "status_branch": [
+        "287e6b01f3cba9220daffa48427b5f301cd8ec1c2c55df2bad3b79e39dd8ac42",
+        "676f24fb0796454d3461ce1275a07511091d73a336cb0947e3e94896935f1206"
+      ],
+      "template": {
+        "extra_input_value": 50000,
+        "extra_output_value": 40000,
+        "fee_roshi": 10000,
+        "payout_output_script_hex": "001468dbf5ee2c8fb383a7ade4bc76fd2aca2d3c14db",
+        "payout_output_value": 1500000000,
+        "successor_output_value": 3500000000,
+        "successor_state_hash": "dcbc74b1db8e166be8ded0ba59b5ccb40bb734250c97b0e0d034291e71f92418"
+      }
+    }
+  ]
+}

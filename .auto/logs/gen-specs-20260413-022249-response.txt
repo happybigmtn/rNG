@@ -1,0 +1,17 @@
+All specs pass the output contract. Here's a summary of the generated spec snapshot:
+
+**9 specs written to `/home/r/Coding/RNG/gen-20260413-022249/specs/`** covering all major system surfaces:
+
+| Spec | Scope | Status |
+|------|-------|--------|
+| `consensus-chain-rules` | Block time, rewards, difficulty, maturity, weight limits, genesis | Live — all facts code-verified |
+| `randomx-pow` | PoW algorithm, seed policy, JIT, modes | Live — surfaces stale spec (rotation claim vs fixed-seed reality) |
+| `internal-miner` | Coordinator/worker architecture, flags, stats | Live — fully code-grounded |
+| `network-identity` | Magic bytes, ports, address prefixes, protocol, seeds | Live — all constants from chainparams |
+| `operator-onboarding` | Install, bootstrap, health check, systemd, public node/miner | Live — exact commands and paths from scripts |
+| `wallet-rpc-surface` | Wallet, RPC endpoints, mining RPCs, planned extensions | Mixed — current RPCs verified, pooled-mining RPCs under recommendations |
+| `release-distribution` | CMake build, tarball packaging, checksums, container, bootstrap | Live — build flags and artifact list verified |
+| `sharepool-protocol` | Planned pooled mining: sharechain, commitments, claims, activation | Future — clearly labeled as planned, no code exists |
+| `qsb-operator-support` | QSB transactions, fleet rollout, live canary proof | Mixed — EXECPLAN-documented, source not in inspected checkout |
+
+Key conflicts surfaced: `specs/randomx.md` claims seed rotation every 2048 blocks but code uses a fixed seed; `specs/agent-integration.md` documents unimplemented features as complete; the "1 billion RNG" supply claim is unbounded due to tail emission.

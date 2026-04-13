@@ -1,0 +1,43 @@
+`★ Insight ─────────────────────────────────────`
+**What made this corpus pass credible:**
+- Every claim about "what exists" was verified against actual source files (`git show`, `grep`, `Read`), not just docs
+- The Zend reference repo was inspected directly — its sharechain is application-layer JSON archives, not P2P consensus. This distinction is critical for RNG's design.
+- The `fPowAllowMinDifficultyBlocks=true` on mainnet finding came from reading `chainparams.cpp` line 115, not from any existing documentation. That's the kind of thing only code review surfaces.
+`─────────────────────────────────────────────────`
+
+## Genesis Corpus Complete
+
+**18 files written to `genesis/`** — 6,402 total lines across 371 KB:
+
+### Top-Level Documents
+| File | Lines | Purpose |
+|------|-------|---------|
+| `FOCUS.md` | 109 | Normalized focus brief with 8 themes and priority reordering |
+| `ASSESSMENT.md` | 322 | Full repo assessment: code review of 35+ source files, implementation status table, security risks, tech debt, DX assessment |
+| `SPEC.md` | 92 | Product specification grounded in current code behaviors |
+| `DESIGN.md` | 175 | Design decisions for mining UX, wallet surfaces, and terminology |
+| `PLANS.md` | 66 | Plan index with dependency graph and sequencing rationale |
+| `GENESIS-REPORT.md` | 192 | Executive summary with 7 major findings, direction recommendation, Not Doing list, and decision audit trail |
+
+### Numbered ExecPlans (all 15 required sections verified)
+| Plan | Title | Lines | Phase |
+|------|-------|-------|-------|
+| 001 | Master Plan | 922 | Overview |
+| 002 | Spec + Economic Simulator | 420 | Research |
+| 003 | Decision Gate: Simulator | 343 | Checkpoint |
+| 004 | Deployment Skeleton | 331 | Infrastructure |
+| 005 | Sharechain + P2P Relay | 499 | Core Implementation |
+| 006 | Decision Gate: Relay | 266 | Checkpoint |
+| 007 | Payout Commitment + Claims | 463 | Core Implementation |
+| 008 | Miner + Wallet Integration | 551 | Integration |
+| 009 | Regtest E2E Proof | 426 | Validation |
+| 010 | Decision Gate: Regtest | 372 | Checkpoint |
+| 011 | Devnet + Adversarial Testing | 470 | Validation |
+| 012 | Mainnet Activation Prep | 383 | Deployment |
+
+### Key Findings
+1. **Zero sharechain code exists** — the gap between the design document and implementation is total
+2. **The codebase is well-positioned** — version-bits, witness programs, block assembly hooks all ready
+3. **Biggest risk is economic, not technical** — share withholding and reward variance need simulation before code
+4. **Zend is tooling, not consensus** — its patterns inform observability but must not become a dependency
+5. **`fPowAllowMinDifficultyBlocks=true` on mainnet** — unusual setting that warrants investigation

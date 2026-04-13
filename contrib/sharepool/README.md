@@ -2,7 +2,9 @@
 
 This directory contains the POOL-02 offline economic simulator for the planned
 RNG sharepool protocol. It implements the reward-window, payout-leaf, remainder
-allocation, and commitment-root formulas from `specs/sharepool.md`.
+allocation, and commitment-root formulas from `specs/sharepool.md`. It also
+contains the POOL-07B settlement-state reference model for many-claim pooled
+reward accounting from `specs/sharepool-settlement.md`.
 
 Run the required proportional split smoke test:
 
@@ -14,7 +16,7 @@ python3 simulate.py --trace examples/two_miners_90_10.json --verbose
 Run the unit tests:
 
 ```bash
-python3 -m pytest contrib/sharepool/test_simulate.py
+python3 -m pytest contrib/sharepool/test_simulate.py contrib/sharepool/test_settlement_model.py
 ```
 
 Run the POOL-02R revised candidate sweep and compare it with the committed
@@ -24,6 +26,20 @@ artifact:
 cd contrib/sharepool
 python3 simulate.py --sweep revised-candidates > /tmp/pool-02r-revised-sweep.json
 diff -u reports/pool-02r-revised-sweep.json /tmp/pool-02r-revised-sweep.json
+```
+
+Run the settlement-state self-test and compare it with the committed vectors:
+
+```bash
+cd contrib/sharepool
+python3 settlement_model.py --self-test
+```
+
+Rewrite the committed settlement vectors:
+
+```bash
+cd contrib/sharepool
+python3 settlement_model.py --write-report reports/pool-07b-settlement-vectors.json
 ```
 
 Trace files can be JSON or CSV. JSON traces may provide explicit `shares` or

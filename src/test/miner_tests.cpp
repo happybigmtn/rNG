@@ -7,7 +7,9 @@
 #include <common/system.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
+#include <consensus/sharepool.h>
 #include <consensus/tx_verify.h>
+#include <deploymentstatus.h>
 #include <interfaces/mining.h>
 #include <node/miner.h>
 #include <policy/policy.h>
@@ -65,6 +67,30 @@ struct MinerTestingSetup : public TestingSetup {
     std::unique_ptr<Mining> MakeMining()
     {
         return interfaces::MakeMining(m_node);
+    }
+};
+
+struct SharepoolActivationSetup : public TestChain100Setup {
+    SharepoolActivationSetup()
+        : TestChain100Setup{
+              ChainType::REGTEST,
+              {.extra_args = {"-vbparams=sharepool:0:9999999999:0", "-testactivationheight=csv@999999"}}}
+    {
+    }
+
+    void ActivateSharepool()
+    {
+        constexpr int SHAREPOOL_REGTEST_ACTIVATION_HEIGHT{432};
+        const int blocks_needed{SHAREPOOL_REGTEST_ACTIVATION_HEIGHT - Assert(m_node.chainman)->ActiveChain().Height()};
+        BOOST_REQUIRE_GT(blocks_needed, 0);
+        mineBlocks(blocks_needed);
+
+        LOCK(::cs_main);
+        BOOST_REQUIRE(DeploymentActiveAfter(
+            Assert(m_node.chainman)->ActiveChain().Tip(),
+            Assert(m_node.chainman)->GetConsensus(),
+            Consensus::DEPLOYMENT_SHAREPOOL,
+            Assert(m_node.chainman)->m_versionbitscache));
     }
 };
 } // namespace miner_tests
@@ -683,6 +709,70 @@ void MinerTestingSetup::TestPrioritisedMining(const CScript& scriptPubKey, const
         // De-prioritised transaction should not be included.
         BOOST_CHECK(block.vtx[i]->GetHash() != hashMediumFeeTx);
     }
+}
+
+BOOST_AUTO_TEST_CASE(CreateNewBlock_sharepool_inactive_keeps_legacy_coinbase_reward)
+{
+    auto mining{MakeMining()};
+    BOOST_REQUIRE(mining);
+
+    const CScript script_pub_key{CScript() << OP_0 << std::vector<unsigned char>(20, 0x42)};
+    BlockAssembler::Options options;
+    options.coinbase_output_script = script_pub_key;
+
+    std::unique_ptr<BlockTemplate> block_template = mining->createNewBlock(options);
+    BOOST_REQUIRE(block_template);
+    const CBlock block{block_template->getBlock()};
+    const CTransaction& coinbase{*block.vtx.at(0)};
+    const CAmount expected_reward{GetBlockSubsidy(mining->getTip()->height + 1, Assert(m_node.chainman)->GetConsensus())};
+
+    BOOST_REQUIRE_EQUAL(coinbase.vout.size(), 2U);
+    BOOST_CHECK(coinbase.vout[0].scriptPubKey == script_pub_key);
+    BOOST_CHECK_EQUAL(coinbase.vout[0].nValue, expected_reward);
+    BOOST_CHECK_EQUAL(GetWitnessCommitmentIndex(block), 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(CreateNewBlock_sharepool_active_inserts_settlement_output, SharepoolActivationSetup)
+{
+    ActivateSharepool();
+
+    auto mining{interfaces::MakeMining(m_node)};
+    BOOST_REQUIRE(mining);
+
+    const CScript script_pub_key{CScript() << OP_0 << std::vector<unsigned char>(20, 0x24)};
+    BlockAssembler::Options options;
+    options.coinbase_output_script = script_pub_key;
+
+    std::unique_ptr<BlockTemplate> block_template = mining->createNewBlock(options);
+    BOOST_REQUIRE(block_template);
+    CBlock block{block_template->getBlock()};
+    const CTransaction& coinbase{*block.vtx.at(0)};
+    const auto tip{mining->getTip()};
+    BOOST_REQUIRE(tip.has_value());
+    const CAmount expected_reward{GetBlockSubsidy(tip->height + 1, Assert(m_node.chainman)->GetConsensus())};
+    std::vector<consensus::sharepool::SettlementLeaf> leaves;
+    leaves.push_back(consensus::sharepool::MakeSoloSettlementLeaf(
+        tip->hash,
+        tip->height + 1,
+        script_pub_key,
+        expected_reward));
+    const auto ordered_leaves{consensus::sharepool::SortSettlementLeaves(std::move(leaves))};
+    const CScript expected_settlement_script =
+        consensus::sharepool::BuildSettlementScriptPubKey(
+            consensus::sharepool::ComputeInitialSettlementStateHash(ordered_leaves));
+
+    BOOST_REQUIRE_EQUAL(coinbase.vout.size(), 3U);
+    BOOST_CHECK(coinbase.vout[0].scriptPubKey == script_pub_key);
+    BOOST_CHECK_EQUAL(coinbase.vout[0].nValue, 0);
+    BOOST_CHECK(coinbase.vout[1].scriptPubKey == expected_settlement_script);
+    BOOST_CHECK_EQUAL(coinbase.vout[1].nValue, expected_reward);
+    BOOST_CHECK_EQUAL(GetWitnessCommitmentIndex(block), 2);
+
+    node::RegenerateCommitments(block, *Assert(m_node.chainman));
+    BOOST_REQUIRE_EQUAL(block.vtx.at(0)->vout.size(), 3U);
+    BOOST_CHECK(block.vtx.at(0)->vout[1].scriptPubKey == expected_settlement_script);
+    BOOST_CHECK_EQUAL(block.vtx.at(0)->vout[1].nValue, expected_reward);
+    BOOST_CHECK_EQUAL(GetWitnessCommitmentIndex(block), 2);
 }
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!

@@ -12,6 +12,7 @@
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
+#include <consensus/sharepool.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <deploymentstatus.h>
@@ -76,6 +77,15 @@ void RegenerateCommitments(CBlock& block, ChainstateManager& chainman)
     chainman.GenerateCoinbaseCommitment(block, prev_block);
 
     block.hashMerkleRoot = BlockMerkleRoot(block);
+}
+
+static bool SharepoolDeploymentActiveAfter(const CBlockIndex* pindexPrev, ChainstateManager& chainman)
+{
+    return DeploymentActiveAfter(
+        pindexPrev,
+        chainman.GetConsensus(),
+        Consensus::DEPLOYMENT_SHAREPOOL,
+        chainman.m_versionbitscache);
 }
 
 static BlockAssembler::Options ClampOptions(BlockAssembler::Options options)
@@ -169,9 +179,26 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock()
     coinbaseTx.vin.resize(1);
     coinbaseTx.vin[0].prevout.SetNull();
     coinbaseTx.vin[0].nSequence = CTxIn::MAX_SEQUENCE_NONFINAL; // Make sure timelock is enforced.
-    coinbaseTx.vout.resize(1);
-    coinbaseTx.vout[0].scriptPubKey = m_options.coinbase_output_script;
-    coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    const CAmount block_reward{nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus())};
+    const bool sharepool_active{SharepoolDeploymentActiveAfter(pindexPrev, m_chainstate.m_chainman)};
+    coinbaseTx.vout.clear();
+    if (sharepool_active) {
+        coinbaseTx.vout.emplace_back(/*nValue=*/0, m_options.coinbase_output_script);
+
+        const auto ordered_leaves{consensus::sharepool::SortSettlementLeaves({
+            consensus::sharepool::MakeSoloSettlementLeaf(
+                pindexPrev->GetBlockHash(),
+                nHeight,
+                m_options.coinbase_output_script,
+                block_reward),
+        })};
+        const uint256 settlement_state_hash{consensus::sharepool::ComputeInitialSettlementStateHash(ordered_leaves)};
+        coinbaseTx.vout.emplace_back(
+            block_reward,
+            consensus::sharepool::BuildSettlementScriptPubKey(settlement_state_hash));
+    } else {
+        coinbaseTx.vout.emplace_back(block_reward, m_options.coinbase_output_script);
+    }
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     Assert(nHeight > 0);
     coinbaseTx.nLockTime = static_cast<uint32_t>(nHeight - 1);

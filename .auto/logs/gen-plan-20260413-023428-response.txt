@@ -1,0 +1,18 @@
+`★ Insight ─────────────────────────────────────`
+**Plan structure reflects the codebase reality, not the spec ambitions.** The 9 specs describe a mixture of already-built features (RandomX, internal miner, wallet, operator tooling, release pipeline, QSB) and pure future-design (sharepool, agent integration, swaps). The plan separates these cleanly: 8 items in "Completed" represent verified working code, while Priority Work focuses on the three real gaps — branch sync, documentation truthfulness, and the sharepool simulator-first gate.
+
+**The sharepool sequence has 3 hard decision gates.** Plans 003, 006, and 010 from the corpus are explicit go/no-go checkpoints. The implementation plan preserves these as `POOL-03`, `POOL-06-GATE`, and `CHKPT-03` — each one a stop-and-assess before committing to more code. This prevents the classic mistake of building consensus machinery on unvalidated economic assumptions.
+
+**`fPowAllowMinDifficultyBlocks = true` on mainnet is a notable deviation.** Bitcoin only sets this on testnets. RNG enables it on mainnet (chainparams.cpp:115), likely to accommodate the small early network where difficulty could strand miners. This is documented in TRUTH-03 as needing explicit rationale or flagged as an open design question.
+`─────────────────────────────────────────────────`
+
+Plan written to `/home/r/Coding/RNG/gen-20260413-022249/IMPLEMENTATION_PLAN.md`.
+
+**Summary of the queue:**
+- **Tier 0 (2 tasks, XS-S):** Merge main to land QSB; verify fleet health
+- **Tier 1 (4 tasks, XS-S):** Fix 3 known spec lies; checkpoint audit
+- **Tier 2 (4 tasks, S-M):** Sharepool spec, simulator, decision gate, pre-consensus checkpoint
+- **Tier 3 (5 tasks, S-L):** BIP9 activation boundary, sharechain data model, relay gate, payout/claim, miner/wallet integration, regtest proof
+- **Tier 4-5 (3 tasks, XS-S):** Bootstrap refresh, Dockerfile security, reproducible build verification
+- **Follow-on (6 tasks):** Devnet, mainnet activation, DNS seeds, agent wallet, Windows release, atomic swaps
+- **Completed (8 items):** All core infrastructure already verified against live code
