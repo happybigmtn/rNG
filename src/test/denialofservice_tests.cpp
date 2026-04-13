@@ -21,6 +21,7 @@
 #include <validation.h>
 
 #include <array>
+#include <algorithm>
 #include <cstdint>
 
 #include <boost/test/unit_test.hpp>
@@ -151,7 +152,9 @@ BOOST_FIXTURE_TEST_CASE(stale_tip_peer_management, OutboundTest)
 
     const auto time_init{GetTime<std::chrono::seconds>()};
     SetMockTime(time_init);
-    const auto time_later{time_init + 3 * std::chrono::seconds{m_node.chainman->GetConsensus().nPowTargetSpacing} + 1s};
+    const auto stale_tip_age{3 * std::chrono::seconds{m_node.chainman->GetConsensus().nPowTargetSpacing} + 1s};
+    const auto stale_check_age{std::chrono::minutes{10} + 1s};
+    const auto time_later{time_init + std::max(stale_tip_age, stale_check_age)};
     connman->Init(options);
     std::vector<CNode *> vNodes;
 
