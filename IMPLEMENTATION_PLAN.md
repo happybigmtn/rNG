@@ -10,25 +10,10 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 ### Tier 2: Sharepool Simulator and Protocol Spec (Decision Gate)
 
-- [ ] `POOL-03R` Decision gate: revised simulator results review
-
-  Spec: `specs/sharepool.md`, `genesis/plans/003-decision-report.md`
-  Why now: POOL-03 produced a no-go. After POOL-01R and POOL-02R revise the constants and simulator evidence, the decision gate must be re-run before any consensus implementation starts.
-  Codebase evidence: Current decision report says "NO-GO" and leaves all constants unconfirmed.
-  Owns: A superseding decision report with go/no-go on revised constants, withholding metric, variance metric, any remaining revisions, and the claim witness program version.
-  Integration touchpoints: `specs/sharepool.md`, `contrib/sharepool/`, CHKPT-02.
-  Scope boundary: Review and decide. No consensus code changes.
-  Acceptance criteria: If go: constants in `specs/sharepool.md` are promoted from `[PROPOSED]` to `[CONFIRMED]`. If no-go: specific revision needed is documented and POOL-01R/POOL-02R are re-entered again.
-  Verification: `grep "CONFIRMED" specs/sharepool.md | wc -l` returns >=4 OR a documented revision plan exists.
-  Required tests: None (decision gate).
-  Dependencies: `POOL-02R`.
-  Estimated scope: S
-  Completion signal: Superseding decision document committed; constants either confirmed or another revision loop initiated.
-
 - [ ] `CHKPT-02` Checkpoint: Pre-consensus implementation review
 
-  Spec: `specs/120426-sharepool-protocol.md`
-  Why now: After the simulator decision gate passes, pause to verify that (a) all spec constants are confirmed, (b) the claim witness version doesn't conflict with existing witness versions, (c) the BIP9 deployment slot doesn't conflict with existing deployments, and (d) the internal miner extension path is clear.
+  Spec: `specs/sharepool.md` (authoritative), `specs/120426-sharepool-protocol.md` (historical context)
+  Why now: After the POOL-03R simulator decision gate passed, pause to verify that (a) all spec constants are confirmed, (b) the claim witness version doesn't conflict with existing witness versions, (c) the BIP9 deployment slot doesn't conflict with existing deployments, and (d) the internal miner extension path is clear.
   Codebase evidence: `src/consensus/params.h` lines 35-36 show only `DEPLOYMENT_TESTDUMMY` and `DEPLOYMENT_TAPROOT` in the BIP9 enum. Witness v0 (SegWit) and v1 (Taproot) are active; v2-v16 are reserved.
   Owns: Checklist verification before consensus code begins.
   Integration touchpoints: `src/consensus/params.h`, `src/node/internal_miner.h`, `specs/sharepool.md`.

@@ -8,12 +8,10 @@ sharepool consensus, P2P, miner, wallet, or RPC code exists in the live tree
 yet. The offline simulator exists in `contrib/sharepool/` and is the current
 economic proof surface for this protocol.
 
-POOL-03 decision (2026-04-13): no-go on the current candidate constants. The
-simulator reports 25.10% CV for a 10% miner over 100 blocks, above the 10%
+POOL-03 decision (2026-04-13): no-go on the original candidate constants. The
+simulator reported 25.10% CV for a 10% miner over 100 blocks, above the 10%
 decision threshold. The failed 10-second target share spacing with 720
-target-spacing shares is now a rejected baseline, not the likely consensus set.
-Keep the revised constants below as unconfirmed inputs only until POOL-02R
-tests them and POOL-03R is re-run.
+target-spacing shares is a rejected baseline, not the consensus set.
 
 POOL-02R simulator sweep (2026-04-13): committed evidence in
 `contrib/sharepool/reports/pool-02r-revised-sweep.json` shows the 1-second
@@ -21,8 +19,17 @@ primary candidate passes the required 10% miner / 100-block variance threshold
 for seed `42` and seeds `1..20` (max CV 8.06%), while the 2-second secondary
 candidate fails the stress check (max CV 10.33%) and the 10-second baseline
 remains rejected (seed `42` CV 25.10%). The withholding metric remains 0.00%
-advantage, below the 5% threshold. These are simulator results only; POOL-03R
-must still decide whether to promote any constant to confirmed status.
+advantage, below the 5% threshold.
+
+POOL-03R decision (2026-04-13): go on the revised simulator evidence. The
+1-second mainnet candidate is confirmed for the next implementation gates:
+target share spacing 1 second, share target ratio 120 at 120-second mainnet
+block spacing, reward-window work 7200 target-spacing shares, max orphan shares
+64, claim witness version 2, optional commitment tag `RNGS`, BIP9 period 2016,
+and BIP9 threshold 1916 for 95%. This confirmation authorizes the pre-consensus
+checkpoint and deployment-boundary implementation. Relay cost and orphan
+behavior remain explicit POOL-06-GATE measurements before payout and claim code
+can proceed.
 
 Current live-code facts:
 
@@ -39,9 +46,9 @@ Current live-code facts:
 - `contrib/sharepool/simulate.py` implements the offline reward-window,
   payout-leaf, commitment-root, withholding, and 10% miner variance metrics.
 
-The constants in this document are starting candidates for the POOL-02R
-simulator and POOL-03R decision gate. They are not confirmed consensus
-parameters.
+The constants in this document are confirmed protocol inputs for subsequent
+sharepool implementation tasks. They are not live consensus behavior until
+future code lands and the deployment activates.
 
 ## Goals
 
@@ -63,23 +70,23 @@ The protocol goals are:
   maturity.
 - Pre-activation behavior remains classical RNG mining.
 
-## Proposed Constants
+## Confirmed Constants
 
-All constants in this section are `[PROPOSED — PENDING SIMULATOR VALIDATION]`.
-The share-spacing and reward-window candidates are revised after the POOL-03
-no-go. The old 10-second / 720-share candidate remains only as a rejected
-baseline that POOL-02R may re-run for comparison.
+Constants in this section are `[CONFIRMED]` by the POOL-03R decision gate unless
+they are explicitly marked as rejected historical candidates. The old 10-second
+/ 720-share candidate and the measured 2-second / 3600-share candidate remain
+only as rejected baselines.
 
 | Name | Candidate value | Notes |
 |------|-----------------|-------|
-| Target share spacing | `[PROPOSED — PENDING POOL-03R CONFIRMATION]` candidate family: 1 second primary, 2 seconds measured secondary, 10 seconds rejected baseline only | Mainnet has 120-second blocks. POOL-02R found that 1-second shares pass the required variance sweep, 2-second shares fail the required stress seeds, and 10-second shares remain rejected. A 60-second test chain may use a different ratio, but it must be reported separately. |
-| Share target ratio | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `share_target = min(powLimit, block_target * (block_spacing / share_spacing))` | RNG accepts hashes `<= target`, so an easier share target must be larger than the block target. The older sketch saying `block_target / 12` is reversed for Bitcoin-style target arithmetic. For 120-second mainnet blocks, the revised family implies ratios of 120 for 1-second shares and 60 for 2-second shares. |
-| Reward window work | `[PROPOSED — PENDING POOL-03R CONFIRMATION]` candidate family: 7200 target-spacing shares at 1-second spacing, 3600 target-spacing shares at 2-second spacing, 720 only as rejected 10-second baseline | The window is work-based, not count-based. POOL-02R found that 7200 at 1-second spacing is the only listed candidate that passes every required variance seed. These revised candidates keep roughly the same 60-block smoothing horizon as the rejected 10-second / 720-share baseline; at 120-second mainnet blocks that horizon is about two hours, not one hour. |
-| Max orphan shares | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 64 | In-memory relay buffer for shares whose parents are not yet known. |
-| Claim witness version | `[PROPOSED — PENDING SIMULATOR VALIDATION]` witness version 2 | The next unassigned witness version after Taproot. |
-| Commitment tag | `[PROPOSED — PENDING SIMULATOR VALIDATION]` `RNGS` | Used only if an auxiliary OP_RETURN discovery marker is kept. |
-| BIP9 period | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 2016 blocks | Follows the current version-bits deployment shape. |
-| BIP9 threshold | `[PROPOSED — PENDING SIMULATOR VALIDATION]` 1916 of 2016 for a 95% threshold | Live chainparams comments use 1815 of 2016 as 90%. Do not copy the older `1815 (95%)` text. |
+| Target share spacing | `[CONFIRMED]` 1 second | Mainnet has 120-second blocks. POOL-02R found that 1-second shares pass the required variance sweep. The 2-second candidate fails required stress seeds and the 10-second candidate remains rejected. A 60-second test chain may use a different ratio, but it must be reported separately. |
+| Share target ratio | `[CONFIRMED]` `share_target = min(powLimit, block_target * (block_spacing / share_spacing))` | RNG accepts hashes `<= target`, so an easier share target must be larger than the block target. With 1-second shares and 120-second mainnet blocks, the confirmed mainnet ratio is 120. The older sketch saying `block_target / 12` is reversed for Bitcoin-style target arithmetic. |
+| Reward window work | `[CONFIRMED]` 7200 target-spacing shares at 1-second spacing | The window is work-based, not count-based. POOL-02R found that 7200 at 1-second spacing is the only listed candidate that passes every required variance seed. This keeps roughly the same 60-block smoothing horizon as the rejected 10-second / 720-share baseline; at 120-second mainnet blocks that horizon is about two hours, not one hour. |
+| Max orphan shares | `[CONFIRMED]` 64 | In-memory relay buffer for shares whose parents are not yet known. POOL-06-GATE still measures live orphan rate before payout/claim work proceeds. |
+| Claim witness version | `[CONFIRMED]` witness version 2 | The next unassigned witness version after Taproot. |
+| Commitment tag | `[CONFIRMED OPTIONAL]` `RNGS` | Used only if an auxiliary OP_RETURN discovery marker is kept. |
+| BIP9 period | `[CONFIRMED]` 2016 blocks | Follows the current version-bits deployment shape. |
+| BIP9 threshold | `[CONFIRMED]` 1916 of 2016 for a 95% threshold | Live chainparams comments use 1815 of 2016 as 90%. Do not copy the older `1815 (95%)` text. |
 
 ## Share Object
 
@@ -140,8 +147,7 @@ Tip selection:
 Orphan handling:
 
 - A share whose parent is unknown is an orphan.
-- Nodes buffer up to `[PROPOSED — PENDING SIMULATOR VALIDATION]` 64 orphan
-  shares.
+- Nodes buffer up to `[CONFIRMED]` 64 orphan shares.
 - When the buffer is full, evict the oldest orphan by arrival time.
 - Receiving a missing parent should trigger orphan resolution before tip
   selection is recomputed.
@@ -168,11 +174,10 @@ Window construction:
    threshold or the sharechain segment is exhausted.
 5. Return shares ordered oldest to newest for deterministic replay.
 
-The revised candidate threshold is `[PROPOSED — PENDING SIMULATOR VALIDATION]`
-enough work for about 7200 target-spacing shares at 1-second spacing or 3600
-target-spacing shares at 2-second spacing. Both are proposed inputs for
-POOL-02R, not confirmed values. The rejected 10-second baseline used 720
-target-spacing shares and failed the POOL-03 variance gate.
+The confirmed threshold is `[CONFIRMED]` enough work for 7200 target-spacing
+shares at 1-second spacing. The measured 2-second / 3600-share candidate and
+the 10-second / 720-share baseline are rejected for consensus constants because
+they fail the POOL-03R or POOL-03 variance gates.
 
 Reward calculation:
 
@@ -230,8 +235,7 @@ Coinbase encoding:
 - The existing SegWit witness commitment OP_RETURN output remains separate and
   unchanged.
 - An auxiliary zero-value `OP_RETURN <"RNGS"> <root>` marker is optional
-  `[PROPOSED — PENDING SIMULATOR VALIDATION]` discovery metadata only. It is not
-  a funding source.
+  `[CONFIRMED OPTIONAL]` discovery metadata only. It is not a funding source.
 
 Truthfulness note: older planning text described a "witness v2 OP_RETURN"
 commitment. An output cannot be both an OP_RETURN output and a spendable witness
@@ -302,8 +306,8 @@ Network parameters:
   `-vbparams=sharepool:0:9999999999:0` after `DEPLOYMENT_SHAREPOOL` exists in
   code.
 - Any mainnet activation threshold must use mathematically correct BIP9
-  parameters. If the target is 95% over 2016 blocks, the candidate threshold is
-  `[PROPOSED — PENDING SIMULATOR VALIDATION]` 1916, not 1815.
+  parameters. If the target is 95% over 2016 blocks, the confirmed threshold is
+  `[CONFIRMED]` 1916, not 1815.
 
 ## P2P Relay
 
@@ -354,8 +358,8 @@ Existing mining and wallet surfaces should be extended rather than replaced:
 
 ## Simulator Gate
 
-POOL-02R must test the revised candidate family against this spec before any
-consensus code is written.
+POOL-02R tested the revised candidate family against this spec. POOL-03R
+confirmed the 1-second candidate before any consensus code was written.
 
 The simulator must prove or reject:
 
@@ -388,7 +392,7 @@ Authoritative POOL-02R variance metric:
 - Passing requires `coefficient_of_variation_percent < 10.00` for seed `42`
   and for every seed in the required stress check.
 
-POOL-02R must report at least:
+POOL-02R reported at least:
 
 | Candidate | `shares_per_block` | `reward_window_work` | Required status |
 |-----------|--------------------|----------------------|-----------------|
@@ -401,8 +405,8 @@ the 2-second candidate passed seed `42` but had one seed above 10%, while the
 1-second candidate stayed below 10% across seeds 1 through 20. POOL-02R replaced
 that exploratory evidence with committed deterministic sweep output and did not
 cherry-pick a seed that hides variance. Relay cost from shorter share spacing
-remains a POOL-06-GATE input and cannot be ignored when constants are later
-promoted.
+remains a POOL-06-GATE input and cannot be ignored now that constants are
+confirmed for implementation planning.
 
 ## Open Questions
 
@@ -420,8 +424,8 @@ promoted.
 Specification-only verification:
 
 ```bash
-test -f specs/sharepool.md && grep "PROPOSED" specs/sharepool.md | wc -l
+grep "CONFIRMED" specs/sharepool.md | wc -l
 ```
 
-The count must be at least 4 and must include the proposed share spacing,
+The count must be at least 4 and must include the confirmed share spacing,
 reward window, share target ratio, and max orphan constants.

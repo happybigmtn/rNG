@@ -1,5 +1,8 @@
 # Decision Gate 003: Evaluation Report
 
+Superseded: `genesis/plans/003r-decision-report.md` re-ran this gate after
+POOL-01R and POOL-02R and promoted the revised 1-second candidate to GO.
+
 Date: 2026-04-13
 Evaluator: Codex
 Overall recommendation: NO-GO
