@@ -45,21 +45,6 @@ every checkpoint/gate. The intended critical path is:
 
 ### Cluster 2: ConnectBlock Enforcement
 
-- [ ] `POOL-07G` Coinbase settlement output enforcement in ConnectBlock
-
-  Spec: `specs/130426-settlement-consensus-enforcement.md`
-  Why now: Without ConnectBlock enforcement, any coinbase shape is valid post-activation. This is the first half of making settlement outputs consensus-mandatory.
-  Codebase evidence: `src/validation.cpp` (6607 lines) has zero references to "sharepool", "settlement", or "DEPLOYMENT_SHAREPOOL". `src/node/miner.cpp` already produces solo settlement outputs when activated (line ~185-198: MakeSoloSettlementLeaf + ComputeInitialSettlementStateHash + BuildSettlementScriptPubKey) and checks activation via SharepoolDeploymentActiveAfter() at line ~82. The flag SCRIPT_VERIFY_SHAREPOOL exists after POOL-07F but is not yet included in GetBlockScriptFlags().
-  Owns: `src/validation.cpp` (add coinbase check in ConnectBlock, add SCRIPT_VERIFY_SHAREPOOL to GetBlockScriptFlags for activated blocks)
-  Integration touchpoints: `src/consensus/params.h` DEPLOYMENT_SHAREPOOL enum; `src/script/interpreter.h` SCRIPT_VERIFY_SHAREPOOL flag; `src/node/miner.cpp` settlement output construction (must match what enforcement validates); `src/kernel/chainparams.cpp` activation parameters
-  Scope boundary: Implements the coinbase-check portion of Unit B only. Post-activation blocks must contain exactly one OP_2 settlement output with nValue == block_reward. Adds SCRIPT_VERIFY_SHAREPOOL to script flags for activated blocks (enabling witness-v2 verification from POOL-07F). Does NOT implement claim transaction conservation checks (that is POOL-07H). Does NOT modify the miner or wallet.
-  Acceptance criteria: (1) Post-activation block with missing settlement output is rejected by ConnectBlock. (2) Post-activation block with settlement output of wrong value is rejected. (3) Post-activation block with two settlement outputs is rejected. (4) Pre-activation block without settlement output is accepted. (5) Post-activation block with correct solo settlement output is accepted. (6) SCRIPT_VERIFY_SHAREPOOL is set for post-activation blocks, enabling witness-v2 enforcement.
-  Verification: `cmake --build build -j$(nproc) && ctest --test-dir build -R miner_tests` (existing miner tests should still pass). New unit tests for enforcement. `test/functional/test_runner.py feature_sharepool_relay` for regression.
-  Required tests: `src/test/sharepool_enforcement_tests.cpp` — minimum 6 scenarios: (1) valid post-activation block accepted, (2) missing settlement output rejected, (3) wrong value rejected, (4) duplicate settlement outputs rejected, (5) pre-activation block without settlement accepted, (6) SCRIPT_VERIFY_SHAREPOOL flag present in GetBlockScriptFlags for activated blocks.
-  Dependencies: `POOL-07F` (SCRIPT_VERIFY_SHAREPOOL flag definition)
-  Estimated scope: S
-  Completion signal: All 6 enforcement tests pass. Existing miner_tests and sharepool_commitment_tests pass.
-
 - [ ] `POOL-07H` Claim transaction conservation enforcement in ConnectBlock
 
   Spec: `specs/130426-settlement-consensus-enforcement.md`

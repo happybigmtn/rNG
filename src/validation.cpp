@@ -2401,7 +2401,49 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex& block_index, const Ch
         flags |= SCRIPT_VERIFY_NULLDUMMY;
     }
 
+    if (DeploymentActiveAt(block_index, chainman, Consensus::DEPLOYMENT_SHAREPOOL)) {
+        flags |= SCRIPT_VERIFY_SHAREPOOL;
+    }
+
     return flags;
+}
+
+static bool IsSharepoolSettlementScript(const CScript& script)
+{
+    opcodetype opcode;
+    std::vector<unsigned char> program;
+    CScript::const_iterator pc{script.begin()};
+
+    if (!script.GetOp(pc, opcode, program) || opcode != OP_2) return false;
+    if (!script.GetOp(pc, opcode, program) || program.size() != uint256::size()) return false;
+    return pc == script.end();
+}
+
+static bool CheckSharepoolCoinbaseSettlement(const CTransaction& coinbase, CAmount block_reward, BlockValidationState& state)
+{
+    int settlement_outputs{0};
+    CAmount settlement_value{0};
+    for (const CTxOut& txout : coinbase.vout) {
+        if (!IsSharepoolSettlementScript(txout.scriptPubKey)) continue;
+        ++settlement_outputs;
+        settlement_value = txout.nValue;
+    }
+
+    if (settlement_outputs != 1) {
+        return state.Invalid(
+            BlockValidationResult::BLOCK_CONSENSUS,
+            "bad-cb-settlement-count",
+            strprintf("coinbase has %d sharepool settlement outputs", settlement_outputs));
+    }
+
+    if (settlement_value != block_reward) {
+        return state.Invalid(
+            BlockValidationResult::BLOCK_CONSENSUS,
+            "bad-cb-settlement-value",
+            strprintf("coinbase settlement value mismatch (actual=%d vs required=%d)", settlement_value, block_reward));
+    }
+
+    return true;
 }
 
 
@@ -2707,6 +2749,9 @@ bool Chainstate::ConnectBlock(const CBlock& block, BlockValidationState& state, 
              Ticks<MillisecondsDouble>(m_chainman.time_connect) / m_chainman.num_blocks_total);
 
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, params.GetConsensus());
+    if (DeploymentActiveAt(*pindex, m_chainman, Consensus::DEPLOYMENT_SHAREPOOL) && state.IsValid()) {
+        CheckSharepoolCoinbaseSettlement(*block.vtx[0], blockReward, state);
+    }
     if (block.vtx[0]->GetValueOut() > blockReward && state.IsValid()) {
         state.Invalid(BlockValidationResult::BLOCK_CONSENSUS, "bad-cb-amount",
                       strprintf("coinbase pays too much (actual=%d vs limit=%d)", block.vtx[0]->GetValueOut(), blockReward));
