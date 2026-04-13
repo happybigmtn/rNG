@@ -1,0 +1,5495 @@
+{
+  "bandwidth_by_node": [
+    {
+      "all_node_peer_bytes_received": 60660,
+      "all_node_peer_bytes_sent": 60660,
+      "all_node_peer_kb_s": 0.06582,
+      "node": 0,
+      "node_peer_count": 3,
+      "share_relay_bytes_received": 57780,
+      "share_relay_bytes_sent": 57780,
+      "share_relay_bytes_total": 115560,
+      "share_relay_kb_s": 0.062695
+    },
+    {
+      "all_node_peer_bytes_received": 60660,
+      "all_node_peer_bytes_sent": 60660,
+      "all_node_peer_kb_s": 0.06582,
+      "node": 1,
+      "node_peer_count": 3,
+      "share_relay_bytes_received": 57780,
+      "share_relay_bytes_sent": 57780,
+      "share_relay_bytes_total": 115560,
+      "share_relay_kb_s": 0.062695
+    },
+    {
+      "all_node_peer_bytes_received": 60660,
+      "all_node_peer_bytes_sent": 60660,
+      "all_node_peer_kb_s": 0.06582,
+      "node": 2,
+      "node_peer_count": 3,
+      "share_relay_bytes_received": 57780,
+      "share_relay_bytes_sent": 57780,
+      "share_relay_bytes_total": 115560,
+      "share_relay_kb_s": 0.062695
+    },
+    {
+      "all_node_peer_bytes_received": 60660,
+      "all_node_peer_bytes_sent": 60660,
+      "all_node_peer_kb_s": 0.06582,
+      "node": 3,
+      "node_peer_count": 3,
+      "share_relay_bytes_received": 57780,
+      "share_relay_bytes_sent": 57780,
+      "share_relay_bytes_total": 115560,
+      "share_relay_kb_s": 0.062695
+    }
+  ],
+  "decision": "GO",
+  "environment": {
+    "cpu_count": 22,
+    "git_head": "e57aa5533c83313680c3867c73b344185a7d2b3a",
+    "platform": "Linux-6.18.13-arch1-1-x86_64-with-glibc2.43",
+    "python": "3.14.3",
+    "transport": "v1"
+  },
+  "limitations": [
+    "No node-native submitshare/getsharechaininfo RPC exists in this slice, so the benchmark injects shares over P2P and observes propagation through test peers.",
+    "The benchmark measures child-before-parent observer arrival order as the externally visible orphan-order proxy; the live node does not expose share orphan counters through RPC yet.",
+    "Observers request each announced share to timestamp full payload receipt. Observer traffic is excluded from the per-node bandwidth calculation by filtering getpeerinfo to node-to-node peers."
+  ],
+  "methodology": {
+    "activation": "-vbparams=sharepool:0:9999999999:0; six 72-block regtest periods mined before measurement",
+    "actual_duration_seconds": 1800.0,
+    "configured_duration_seconds": 1800.0,
+    "node_count": 4,
+    "share_count": 180,
+    "share_generation": "P2P test harness seeded serialized CShareRecord messages because POOL-08 miner/RPC share production does not exist yet. Each record used one PoW-valid mined block header and a distinct parent/payout script so the relay path handled unique linked shares.",
+    "share_interval_seconds": 10.0,
+    "topology": "full mesh"
+  },
+  "metrics": {
+    "latency_to_all_max_ms": 88.845,
+    "latency_to_all_p50_ms": 58.636,
+    "latency_to_all_p99_ms": 79.203,
+    "max_share_relay_bandwidth_kb_s_per_node": 0.062695,
+    "missing_receipts": 0,
+    "origin_getshare_requests": 0,
+    "orphan_order_events": 0,
+    "orphan_order_rate_percent": 0.0,
+    "parent_observations": 716,
+    "propagation_completeness_percent": 100.0
+  },
+  "receipts": [
+    {
+      "latency_ms": 32.726,
+      "missing": false,
+      "node": 0,
+      "share_id": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12"
+    },
+    {
+      "latency_ms": 69.464,
+      "missing": false,
+      "node": 1,
+      "share_id": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12"
+    },
+    {
+      "latency_ms": 69.311,
+      "missing": false,
+      "node": 2,
+      "share_id": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12"
+    },
+    {
+      "latency_ms": 70.116,
+      "missing": false,
+      "node": 3,
+      "share_id": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12"
+    },
+    {
+      "latency_ms": 70.772,
+      "missing": false,
+      "node": 0,
+      "share_id": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740"
+    },
+    {
+      "latency_ms": 35.412,
+      "missing": false,
+      "node": 1,
+      "share_id": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740"
+    },
+    {
+      "latency_ms": 70.414,
+      "missing": false,
+      "node": 2,
+      "share_id": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740"
+    },
+    {
+      "latency_ms": 69.752,
+      "missing": false,
+      "node": 3,
+      "share_id": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740"
+    },
+    {
+      "latency_ms": 65.545,
+      "missing": false,
+      "node": 0,
+      "share_id": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c"
+    },
+    {
+      "latency_ms": 65.918,
+      "missing": false,
+      "node": 1,
+      "share_id": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c"
+    },
+    {
+      "latency_ms": 29.307,
+      "missing": false,
+      "node": 2,
+      "share_id": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c"
+    },
+    {
+      "latency_ms": 66.028,
+      "missing": false,
+      "node": 3,
+      "share_id": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c"
+    },
+    {
+      "latency_ms": 59.392,
+      "missing": false,
+      "node": 0,
+      "share_id": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35"
+    },
+    {
+      "latency_ms": 59.845,
+      "missing": false,
+      "node": 1,
+      "share_id": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35"
+    },
+    {
+      "latency_ms": 59.964,
+      "missing": false,
+      "node": 2,
+      "share_id": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35"
+    },
+    {
+      "latency_ms": 27.56,
+      "missing": false,
+      "node": 3,
+      "share_id": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35"
+    },
+    {
+      "latency_ms": 37.627,
+      "missing": false,
+      "node": 0,
+      "share_id": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8"
+    },
+    {
+      "latency_ms": 72.299,
+      "missing": false,
+      "node": 1,
+      "share_id": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8"
+    },
+    {
+      "latency_ms": 71.932,
+      "missing": false,
+      "node": 2,
+      "share_id": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8"
+    },
+    {
+      "latency_ms": 71.843,
+      "missing": false,
+      "node": 3,
+      "share_id": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8"
+    },
+    {
+      "latency_ms": 88.146,
+      "missing": false,
+      "node": 0,
+      "share_id": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736"
+    },
+    {
+      "latency_ms": 43.807,
+      "missing": false,
+      "node": 1,
+      "share_id": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736"
+    },
+    {
+      "latency_ms": 88.736,
+      "missing": false,
+      "node": 2,
+      "share_id": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736"
+    },
+    {
+      "latency_ms": 88.845,
+      "missing": false,
+      "node": 3,
+      "share_id": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736"
+    },
+    {
+      "latency_ms": 75.842,
+      "missing": false,
+      "node": 0,
+      "share_id": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3"
+    },
+    {
+      "latency_ms": 78.184,
+      "missing": false,
+      "node": 1,
+      "share_id": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3"
+    },
+    {
+      "latency_ms": 45.639,
+      "missing": false,
+      "node": 2,
+      "share_id": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3"
+    },
+    {
+      "latency_ms": 77.195,
+      "missing": false,
+      "node": 3,
+      "share_id": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3"
+    },
+    {
+      "latency_ms": 68.245,
+      "missing": false,
+      "node": 0,
+      "share_id": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d"
+    },
+    {
+      "latency_ms": 68.629,
+      "missing": false,
+      "node": 1,
+      "share_id": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d"
+    },
+    {
+      "latency_ms": 68.769,
+      "missing": false,
+      "node": 2,
+      "share_id": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d"
+    },
+    {
+      "latency_ms": 35.115,
+      "missing": false,
+      "node": 3,
+      "share_id": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d"
+    },
+    {
+      "latency_ms": 25.428,
+      "missing": false,
+      "node": 0,
+      "share_id": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96"
+    },
+    {
+      "latency_ms": 52.638,
+      "missing": false,
+      "node": 1,
+      "share_id": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96"
+    },
+    {
+      "latency_ms": 52.556,
+      "missing": false,
+      "node": 2,
+      "share_id": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96"
+    },
+    {
+      "latency_ms": 49.845,
+      "missing": false,
+      "node": 3,
+      "share_id": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96"
+    },
+    {
+      "latency_ms": 50.243,
+      "missing": false,
+      "node": 0,
+      "share_id": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998"
+    },
+    {
+      "latency_ms": 26.036,
+      "missing": false,
+      "node": 1,
+      "share_id": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998"
+    },
+    {
+      "latency_ms": 52.727,
+      "missing": false,
+      "node": 2,
+      "share_id": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998"
+    },
+    {
+      "latency_ms": 50.855,
+      "missing": false,
+      "node": 3,
+      "share_id": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998"
+    },
+    {
+      "latency_ms": 55.46,
+      "missing": false,
+      "node": 0,
+      "share_id": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f"
+    },
+    {
+      "latency_ms": 57.241,
+      "missing": false,
+      "node": 1,
+      "share_id": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f"
+    },
+    {
+      "latency_ms": 26.063,
+      "missing": false,
+      "node": 2,
+      "share_id": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f"
+    },
+    {
+      "latency_ms": 57.142,
+      "missing": false,
+      "node": 3,
+      "share_id": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f"
+    },
+    {
+      "latency_ms": 53.404,
+      "missing": false,
+      "node": 0,
+      "share_id": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2"
+    },
+    {
+      "latency_ms": 54.799,
+      "missing": false,
+      "node": 1,
+      "share_id": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2"
+    },
+    {
+      "latency_ms": 55.005,
+      "missing": false,
+      "node": 2,
+      "share_id": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2"
+    },
+    {
+      "latency_ms": 27.689,
+      "missing": false,
+      "node": 3,
+      "share_id": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2"
+    },
+    {
+      "latency_ms": 25.283,
+      "missing": false,
+      "node": 0,
+      "share_id": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260"
+    },
+    {
+      "latency_ms": 58.726,
+      "missing": false,
+      "node": 1,
+      "share_id": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260"
+    },
+    {
+      "latency_ms": 58.839,
+      "missing": false,
+      "node": 2,
+      "share_id": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260"
+    },
+    {
+      "latency_ms": 59.285,
+      "missing": false,
+      "node": 3,
+      "share_id": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260"
+    },
+    {
+      "latency_ms": 54.584,
+      "missing": false,
+      "node": 0,
+      "share_id": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0"
+    },
+    {
+      "latency_ms": 27.167,
+      "missing": false,
+      "node": 1,
+      "share_id": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0"
+    },
+    {
+      "latency_ms": 54.304,
+      "missing": false,
+      "node": 2,
+      "share_id": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0"
+    },
+    {
+      "latency_ms": 54.656,
+      "missing": false,
+      "node": 3,
+      "share_id": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0"
+    },
+    {
+      "latency_ms": 57.897,
+      "missing": false,
+      "node": 0,
+      "share_id": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069"
+    },
+    {
+      "latency_ms": 60.112,
+      "missing": false,
+      "node": 1,
+      "share_id": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069"
+    },
+    {
+      "latency_ms": 31.247,
+      "missing": false,
+      "node": 2,
+      "share_id": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069"
+    },
+    {
+      "latency_ms": 58.033,
+      "missing": false,
+      "node": 3,
+      "share_id": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069"
+    },
+    {
+      "latency_ms": 57.698,
+      "missing": false,
+      "node": 0,
+      "share_id": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20"
+    },
+    {
+      "latency_ms": 59.84,
+      "missing": false,
+      "node": 1,
+      "share_id": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20"
+    },
+    {
+      "latency_ms": 59.723,
+      "missing": false,
+      "node": 2,
+      "share_id": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20"
+    },
+    {
+      "latency_ms": 28.819,
+      "missing": false,
+      "node": 3,
+      "share_id": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20"
+    },
+    {
+      "latency_ms": 26.207,
+      "missing": false,
+      "node": 0,
+      "share_id": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38"
+    },
+    {
+      "latency_ms": 56.383,
+      "missing": false,
+      "node": 1,
+      "share_id": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38"
+    },
+    {
+      "latency_ms": 56.221,
+      "missing": false,
+      "node": 2,
+      "share_id": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38"
+    },
+    {
+      "latency_ms": 54.907,
+      "missing": false,
+      "node": 3,
+      "share_id": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38"
+    },
+    {
+      "latency_ms": 70.4,
+      "missing": false,
+      "node": 0,
+      "share_id": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb"
+    },
+    {
+      "latency_ms": 46.417,
+      "missing": false,
+      "node": 1,
+      "share_id": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb"
+    },
+    {
+      "latency_ms": 70.824,
+      "missing": false,
+      "node": 2,
+      "share_id": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb"
+    },
+    {
+      "latency_ms": 70.743,
+      "missing": false,
+      "node": 3,
+      "share_id": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb"
+    },
+    {
+      "latency_ms": 60.247,
+      "missing": false,
+      "node": 0,
+      "share_id": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb"
+    },
+    {
+      "latency_ms": 60.478,
+      "missing": false,
+      "node": 1,
+      "share_id": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb"
+    },
+    {
+      "latency_ms": 28.173,
+      "missing": false,
+      "node": 2,
+      "share_id": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb"
+    },
+    {
+      "latency_ms": 55.957,
+      "missing": false,
+      "node": 3,
+      "share_id": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb"
+    },
+    {
+      "latency_ms": 60.745,
+      "missing": false,
+      "node": 0,
+      "share_id": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d"
+    },
+    {
+      "latency_ms": 61.684,
+      "missing": false,
+      "node": 1,
+      "share_id": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d"
+    },
+    {
+      "latency_ms": 61.771,
+      "missing": false,
+      "node": 2,
+      "share_id": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d"
+    },
+    {
+      "latency_ms": 28.523,
+      "missing": false,
+      "node": 3,
+      "share_id": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d"
+    },
+    {
+      "latency_ms": 28.958,
+      "missing": false,
+      "node": 0,
+      "share_id": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05"
+    },
+    {
+      "latency_ms": 59.019,
+      "missing": false,
+      "node": 1,
+      "share_id": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05"
+    },
+    {
+      "latency_ms": 58.628,
+      "missing": false,
+      "node": 2,
+      "share_id": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05"
+    },
+    {
+      "latency_ms": 55.757,
+      "missing": false,
+      "node": 3,
+      "share_id": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05"
+    },
+    {
+      "latency_ms": 60.847,
+      "missing": false,
+      "node": 0,
+      "share_id": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a"
+    },
+    {
+      "latency_ms": 31.539,
+      "missing": false,
+      "node": 1,
+      "share_id": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a"
+    },
+    {
+      "latency_ms": 61.946,
+      "missing": false,
+      "node": 2,
+      "share_id": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a"
+    },
+    {
+      "latency_ms": 60.767,
+      "missing": false,
+      "node": 3,
+      "share_id": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a"
+    },
+    {
+      "latency_ms": 75.042,
+      "missing": false,
+      "node": 0,
+      "share_id": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f"
+    },
+    {
+      "latency_ms": 77.82,
+      "missing": false,
+      "node": 1,
+      "share_id": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f"
+    },
+    {
+      "latency_ms": 45.139,
+      "missing": false,
+      "node": 2,
+      "share_id": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f"
+    },
+    {
+      "latency_ms": 77.472,
+      "missing": false,
+      "node": 3,
+      "share_id": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f"
+    },
+    {
+      "latency_ms": 61.044,
+      "missing": false,
+      "node": 0,
+      "share_id": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd"
+    },
+    {
+      "latency_ms": 62.724,
+      "missing": false,
+      "node": 1,
+      "share_id": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd"
+    },
+    {
+      "latency_ms": 62.84,
+      "missing": false,
+      "node": 2,
+      "share_id": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd"
+    },
+    {
+      "latency_ms": 33.554,
+      "missing": false,
+      "node": 3,
+      "share_id": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd"
+    },
+    {
+      "latency_ms": 27.732,
+      "missing": false,
+      "node": 0,
+      "share_id": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6"
+    },
+    {
+      "latency_ms": 55.003,
+      "missing": false,
+      "node": 1,
+      "share_id": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6"
+    },
+    {
+      "latency_ms": 57.366,
+      "missing": false,
+      "node": 2,
+      "share_id": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6"
+    },
+    {
+      "latency_ms": 57.441,
+      "missing": false,
+      "node": 3,
+      "share_id": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6"
+    },
+    {
+      "latency_ms": 59.73,
+      "missing": false,
+      "node": 0,
+      "share_id": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31"
+    },
+    {
+      "latency_ms": 29.66,
+      "missing": false,
+      "node": 1,
+      "share_id": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31"
+    },
+    {
+      "latency_ms": 59.293,
+      "missing": false,
+      "node": 2,
+      "share_id": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31"
+    },
+    {
+      "latency_ms": 58.157,
+      "missing": false,
+      "node": 3,
+      "share_id": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31"
+    },
+    {
+      "latency_ms": 56.471,
+      "missing": false,
+      "node": 0,
+      "share_id": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7"
+    },
+    {
+      "latency_ms": 56.778,
+      "missing": false,
+      "node": 1,
+      "share_id": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7"
+    },
+    {
+      "latency_ms": 28.36,
+      "missing": false,
+      "node": 2,
+      "share_id": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7"
+    },
+    {
+      "latency_ms": 54.855,
+      "missing": false,
+      "node": 3,
+      "share_id": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7"
+    },
+    {
+      "latency_ms": 47.293,
+      "missing": false,
+      "node": 0,
+      "share_id": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c"
+    },
+    {
+      "latency_ms": 50.255,
+      "missing": false,
+      "node": 1,
+      "share_id": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c"
+    },
+    {
+      "latency_ms": 50.168,
+      "missing": false,
+      "node": 2,
+      "share_id": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c"
+    },
+    {
+      "latency_ms": 24.911,
+      "missing": false,
+      "node": 3,
+      "share_id": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c"
+    },
+    {
+      "latency_ms": 27.883,
+      "missing": false,
+      "node": 0,
+      "share_id": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a"
+    },
+    {
+      "latency_ms": 57.815,
+      "missing": false,
+      "node": 1,
+      "share_id": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a"
+    },
+    {
+      "latency_ms": 57.411,
+      "missing": false,
+      "node": 2,
+      "share_id": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a"
+    },
+    {
+      "latency_ms": 57.729,
+      "missing": false,
+      "node": 3,
+      "share_id": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a"
+    },
+    {
+      "latency_ms": 60.476,
+      "missing": false,
+      "node": 0,
+      "share_id": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda"
+    },
+    {
+      "latency_ms": 33.238,
+      "missing": false,
+      "node": 1,
+      "share_id": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda"
+    },
+    {
+      "latency_ms": 61.455,
+      "missing": false,
+      "node": 2,
+      "share_id": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda"
+    },
+    {
+      "latency_ms": 60.697,
+      "missing": false,
+      "node": 3,
+      "share_id": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda"
+    },
+    {
+      "latency_ms": 49.753,
+      "missing": false,
+      "node": 0,
+      "share_id": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9"
+    },
+    {
+      "latency_ms": 49.833,
+      "missing": false,
+      "node": 1,
+      "share_id": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9"
+    },
+    {
+      "latency_ms": 24.722,
+      "missing": false,
+      "node": 2,
+      "share_id": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9"
+    },
+    {
+      "latency_ms": 51.803,
+      "missing": false,
+      "node": 3,
+      "share_id": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9"
+    },
+    {
+      "latency_ms": 71.087,
+      "missing": false,
+      "node": 0,
+      "share_id": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c"
+    },
+    {
+      "latency_ms": 68.374,
+      "missing": false,
+      "node": 1,
+      "share_id": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c"
+    },
+    {
+      "latency_ms": 71.585,
+      "missing": false,
+      "node": 2,
+      "share_id": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c"
+    },
+    {
+      "latency_ms": 43.031,
+      "missing": false,
+      "node": 3,
+      "share_id": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c"
+    },
+    {
+      "latency_ms": 28.231,
+      "missing": false,
+      "node": 0,
+      "share_id": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f"
+    },
+    {
+      "latency_ms": 54.645,
+      "missing": false,
+      "node": 1,
+      "share_id": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f"
+    },
+    {
+      "latency_ms": 55.09,
+      "missing": false,
+      "node": 2,
+      "share_id": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f"
+    },
+    {
+      "latency_ms": 57.035,
+      "missing": false,
+      "node": 3,
+      "share_id": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f"
+    },
+    {
+      "latency_ms": 55.717,
+      "missing": false,
+      "node": 0,
+      "share_id": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539"
+    },
+    {
+      "latency_ms": 31.483,
+      "missing": false,
+      "node": 1,
+      "share_id": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539"
+    },
+    {
+      "latency_ms": 55.769,
+      "missing": false,
+      "node": 2,
+      "share_id": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539"
+    },
+    {
+      "latency_ms": 55.653,
+      "missing": false,
+      "node": 3,
+      "share_id": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539"
+    },
+    {
+      "latency_ms": 54.7,
+      "missing": false,
+      "node": 0,
+      "share_id": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49"
+    },
+    {
+      "latency_ms": 53.817,
+      "missing": false,
+      "node": 1,
+      "share_id": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49"
+    },
+    {
+      "latency_ms": 29.041,
+      "missing": false,
+      "node": 2,
+      "share_id": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49"
+    },
+    {
+      "latency_ms": 56.242,
+      "missing": false,
+      "node": 3,
+      "share_id": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49"
+    },
+    {
+      "latency_ms": 66.809,
+      "missing": false,
+      "node": 0,
+      "share_id": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc"
+    },
+    {
+      "latency_ms": 66.244,
+      "missing": false,
+      "node": 1,
+      "share_id": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc"
+    },
+    {
+      "latency_ms": 66.564,
+      "missing": false,
+      "node": 2,
+      "share_id": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc"
+    },
+    {
+      "latency_ms": 43.765,
+      "missing": false,
+      "node": 3,
+      "share_id": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc"
+    },
+    {
+      "latency_ms": 27.088,
+      "missing": false,
+      "node": 0,
+      "share_id": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2"
+    },
+    {
+      "latency_ms": 52.137,
+      "missing": false,
+      "node": 1,
+      "share_id": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2"
+    },
+    {
+      "latency_ms": 52.401,
+      "missing": false,
+      "node": 2,
+      "share_id": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2"
+    },
+    {
+      "latency_ms": 55.787,
+      "missing": false,
+      "node": 3,
+      "share_id": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2"
+    },
+    {
+      "latency_ms": 51.103,
+      "missing": false,
+      "node": 0,
+      "share_id": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d"
+    },
+    {
+      "latency_ms": 25.977,
+      "missing": false,
+      "node": 1,
+      "share_id": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d"
+    },
+    {
+      "latency_ms": 49.746,
+      "missing": false,
+      "node": 2,
+      "share_id": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d"
+    },
+    {
+      "latency_ms": 52.794,
+      "missing": false,
+      "node": 3,
+      "share_id": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d"
+    },
+    {
+      "latency_ms": 50.756,
+      "missing": false,
+      "node": 0,
+      "share_id": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058"
+    },
+    {
+      "latency_ms": 52.844,
+      "missing": false,
+      "node": 1,
+      "share_id": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058"
+    },
+    {
+      "latency_ms": 27.8,
+      "missing": false,
+      "node": 2,
+      "share_id": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058"
+    },
+    {
+      "latency_ms": 52.943,
+      "missing": false,
+      "node": 3,
+      "share_id": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058"
+    },
+    {
+      "latency_ms": 47.937,
+      "missing": false,
+      "node": 0,
+      "share_id": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c"
+    },
+    {
+      "latency_ms": 49.264,
+      "missing": false,
+      "node": 1,
+      "share_id": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c"
+    },
+    {
+      "latency_ms": 48.062,
+      "missing": false,
+      "node": 2,
+      "share_id": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c"
+    },
+    {
+      "latency_ms": 24.629,
+      "missing": false,
+      "node": 3,
+      "share_id": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c"
+    },
+    {
+      "latency_ms": 25.624,
+      "missing": false,
+      "node": 0,
+      "share_id": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05"
+    },
+    {
+      "latency_ms": 50.443,
+      "missing": false,
+      "node": 1,
+      "share_id": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05"
+    },
+    {
+      "latency_ms": 50.857,
+      "missing": false,
+      "node": 2,
+      "share_id": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05"
+    },
+    {
+      "latency_ms": 50.791,
+      "missing": false,
+      "node": 3,
+      "share_id": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05"
+    },
+    {
+      "latency_ms": 52.502,
+      "missing": false,
+      "node": 0,
+      "share_id": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506"
+    },
+    {
+      "latency_ms": 27.774,
+      "missing": false,
+      "node": 1,
+      "share_id": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506"
+    },
+    {
+      "latency_ms": 50.74,
+      "missing": false,
+      "node": 2,
+      "share_id": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506"
+    },
+    {
+      "latency_ms": 55.605,
+      "missing": false,
+      "node": 3,
+      "share_id": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506"
+    },
+    {
+      "latency_ms": 50.769,
+      "missing": false,
+      "node": 0,
+      "share_id": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2"
+    },
+    {
+      "latency_ms": 51.083,
+      "missing": false,
+      "node": 1,
+      "share_id": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2"
+    },
+    {
+      "latency_ms": 25.202,
+      "missing": false,
+      "node": 2,
+      "share_id": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2"
+    },
+    {
+      "latency_ms": 53.154,
+      "missing": false,
+      "node": 3,
+      "share_id": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2"
+    },
+    {
+      "latency_ms": 58.86,
+      "missing": false,
+      "node": 0,
+      "share_id": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24"
+    },
+    {
+      "latency_ms": 58.4,
+      "missing": false,
+      "node": 1,
+      "share_id": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24"
+    },
+    {
+      "latency_ms": 58.11,
+      "missing": false,
+      "node": 2,
+      "share_id": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24"
+    },
+    {
+      "latency_ms": 35.22,
+      "missing": false,
+      "node": 3,
+      "share_id": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24"
+    },
+    {
+      "latency_ms": 27.575,
+      "missing": false,
+      "node": 0,
+      "share_id": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65"
+    },
+    {
+      "latency_ms": 58.332,
+      "missing": false,
+      "node": 1,
+      "share_id": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65"
+    },
+    {
+      "latency_ms": 56.335,
+      "missing": false,
+      "node": 2,
+      "share_id": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65"
+    },
+    {
+      "latency_ms": 58.197,
+      "missing": false,
+      "node": 3,
+      "share_id": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65"
+    },
+    {
+      "latency_ms": 53.093,
+      "missing": false,
+      "node": 0,
+      "share_id": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651"
+    },
+    {
+      "latency_ms": 24.815,
+      "missing": false,
+      "node": 1,
+      "share_id": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651"
+    },
+    {
+      "latency_ms": 55.271,
+      "missing": false,
+      "node": 2,
+      "share_id": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651"
+    },
+    {
+      "latency_ms": 55.105,
+      "missing": false,
+      "node": 3,
+      "share_id": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651"
+    },
+    {
+      "latency_ms": 73.022,
+      "missing": false,
+      "node": 0,
+      "share_id": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74"
+    },
+    {
+      "latency_ms": 73.458,
+      "missing": false,
+      "node": 1,
+      "share_id": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74"
+    },
+    {
+      "latency_ms": 46.392,
+      "missing": false,
+      "node": 2,
+      "share_id": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74"
+    },
+    {
+      "latency_ms": 74.405,
+      "missing": false,
+      "node": 3,
+      "share_id": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74"
+    },
+    {
+      "latency_ms": 72.983,
+      "missing": false,
+      "node": 0,
+      "share_id": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb"
+    },
+    {
+      "latency_ms": 74.136,
+      "missing": false,
+      "node": 1,
+      "share_id": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb"
+    },
+    {
+      "latency_ms": 74.069,
+      "missing": false,
+      "node": 2,
+      "share_id": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb"
+    },
+    {
+      "latency_ms": 44.547,
+      "missing": false,
+      "node": 3,
+      "share_id": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb"
+    },
+    {
+      "latency_ms": 25.828,
+      "missing": false,
+      "node": 0,
+      "share_id": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5"
+    },
+    {
+      "latency_ms": 56.807,
+      "missing": false,
+      "node": 1,
+      "share_id": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5"
+    },
+    {
+      "latency_ms": 53.31,
+      "missing": false,
+      "node": 2,
+      "share_id": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5"
+    },
+    {
+      "latency_ms": 56.489,
+      "missing": false,
+      "node": 3,
+      "share_id": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5"
+    },
+    {
+      "latency_ms": 54.016,
+      "missing": false,
+      "node": 0,
+      "share_id": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa"
+    },
+    {
+      "latency_ms": 28.753,
+      "missing": false,
+      "node": 1,
+      "share_id": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa"
+    },
+    {
+      "latency_ms": 54.286,
+      "missing": false,
+      "node": 2,
+      "share_id": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa"
+    },
+    {
+      "latency_ms": 55.997,
+      "missing": false,
+      "node": 3,
+      "share_id": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa"
+    },
+    {
+      "latency_ms": 52.529,
+      "missing": false,
+      "node": 0,
+      "share_id": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3"
+    },
+    {
+      "latency_ms": 53.043,
+      "missing": false,
+      "node": 1,
+      "share_id": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3"
+    },
+    {
+      "latency_ms": 27.491,
+      "missing": false,
+      "node": 2,
+      "share_id": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3"
+    },
+    {
+      "latency_ms": 54.681,
+      "missing": false,
+      "node": 3,
+      "share_id": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3"
+    },
+    {
+      "latency_ms": 50.784,
+      "missing": false,
+      "node": 0,
+      "share_id": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e"
+    },
+    {
+      "latency_ms": 50.93,
+      "missing": false,
+      "node": 1,
+      "share_id": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e"
+    },
+    {
+      "latency_ms": 52.82,
+      "missing": false,
+      "node": 2,
+      "share_id": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e"
+    },
+    {
+      "latency_ms": 26.494,
+      "missing": false,
+      "node": 3,
+      "share_id": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e"
+    },
+    {
+      "latency_ms": 23.58,
+      "missing": false,
+      "node": 0,
+      "share_id": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379"
+    },
+    {
+      "latency_ms": 48.173,
+      "missing": false,
+      "node": 1,
+      "share_id": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379"
+    },
+    {
+      "latency_ms": 50.057,
+      "missing": false,
+      "node": 2,
+      "share_id": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379"
+    },
+    {
+      "latency_ms": 50.223,
+      "missing": false,
+      "node": 3,
+      "share_id": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379"
+    },
+    {
+      "latency_ms": 63.942,
+      "missing": false,
+      "node": 0,
+      "share_id": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1"
+    },
+    {
+      "latency_ms": 31.134,
+      "missing": false,
+      "node": 1,
+      "share_id": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1"
+    },
+    {
+      "latency_ms": 63.693,
+      "missing": false,
+      "node": 2,
+      "share_id": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1"
+    },
+    {
+      "latency_ms": 63.576,
+      "missing": false,
+      "node": 3,
+      "share_id": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1"
+    },
+    {
+      "latency_ms": 65.334,
+      "missing": false,
+      "node": 0,
+      "share_id": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5"
+    },
+    {
+      "latency_ms": 65.239,
+      "missing": false,
+      "node": 1,
+      "share_id": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5"
+    },
+    {
+      "latency_ms": 33.873,
+      "missing": false,
+      "node": 2,
+      "share_id": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5"
+    },
+    {
+      "latency_ms": 62.284,
+      "missing": false,
+      "node": 3,
+      "share_id": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5"
+    },
+    {
+      "latency_ms": 64.914,
+      "missing": false,
+      "node": 0,
+      "share_id": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712"
+    },
+    {
+      "latency_ms": 65.852,
+      "missing": false,
+      "node": 1,
+      "share_id": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712"
+    },
+    {
+      "latency_ms": 65.947,
+      "missing": false,
+      "node": 2,
+      "share_id": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712"
+    },
+    {
+      "latency_ms": 24.07,
+      "missing": false,
+      "node": 3,
+      "share_id": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712"
+    },
+    {
+      "latency_ms": 36.344,
+      "missing": false,
+      "node": 0,
+      "share_id": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04"
+    },
+    {
+      "latency_ms": 66.384,
+      "missing": false,
+      "node": 1,
+      "share_id": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04"
+    },
+    {
+      "latency_ms": 66.481,
+      "missing": false,
+      "node": 2,
+      "share_id": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04"
+    },
+    {
+      "latency_ms": 65.086,
+      "missing": false,
+      "node": 3,
+      "share_id": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04"
+    },
+    {
+      "latency_ms": 61.505,
+      "missing": false,
+      "node": 0,
+      "share_id": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900"
+    },
+    {
+      "latency_ms": 34.082,
+      "missing": false,
+      "node": 1,
+      "share_id": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900"
+    },
+    {
+      "latency_ms": 61.998,
+      "missing": false,
+      "node": 2,
+      "share_id": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900"
+    },
+    {
+      "latency_ms": 61.805,
+      "missing": false,
+      "node": 3,
+      "share_id": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900"
+    },
+    {
+      "latency_ms": 57.523,
+      "missing": false,
+      "node": 0,
+      "share_id": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f"
+    },
+    {
+      "latency_ms": 60.595,
+      "missing": false,
+      "node": 1,
+      "share_id": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f"
+    },
+    {
+      "latency_ms": 32.934,
+      "missing": false,
+      "node": 2,
+      "share_id": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f"
+    },
+    {
+      "latency_ms": 56.793,
+      "missing": false,
+      "node": 3,
+      "share_id": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f"
+    },
+    {
+      "latency_ms": 58.662,
+      "missing": false,
+      "node": 0,
+      "share_id": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a"
+    },
+    {
+      "latency_ms": 56.49,
+      "missing": false,
+      "node": 1,
+      "share_id": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a"
+    },
+    {
+      "latency_ms": 56.567,
+      "missing": false,
+      "node": 2,
+      "share_id": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a"
+    },
+    {
+      "latency_ms": 29.025,
+      "missing": false,
+      "node": 3,
+      "share_id": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a"
+    },
+    {
+      "latency_ms": 26.298,
+      "missing": false,
+      "node": 0,
+      "share_id": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea"
+    },
+    {
+      "latency_ms": 58.094,
+      "missing": false,
+      "node": 1,
+      "share_id": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea"
+    },
+    {
+      "latency_ms": 58.636,
+      "missing": false,
+      "node": 2,
+      "share_id": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea"
+    },
+    {
+      "latency_ms": 57.878,
+      "missing": false,
+      "node": 3,
+      "share_id": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea"
+    },
+    {
+      "latency_ms": 46.698,
+      "missing": false,
+      "node": 0,
+      "share_id": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1"
+    },
+    {
+      "latency_ms": 23.739,
+      "missing": false,
+      "node": 1,
+      "share_id": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1"
+    },
+    {
+      "latency_ms": 50.288,
+      "missing": false,
+      "node": 2,
+      "share_id": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1"
+    },
+    {
+      "latency_ms": 46.394,
+      "missing": false,
+      "node": 3,
+      "share_id": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1"
+    },
+    {
+      "latency_ms": 49.997,
+      "missing": false,
+      "node": 0,
+      "share_id": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5"
+    },
+    {
+      "latency_ms": 50.099,
+      "missing": false,
+      "node": 1,
+      "share_id": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5"
+    },
+    {
+      "latency_ms": 25.827,
+      "missing": false,
+      "node": 2,
+      "share_id": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5"
+    },
+    {
+      "latency_ms": 50.175,
+      "missing": false,
+      "node": 3,
+      "share_id": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5"
+    },
+    {
+      "latency_ms": 65.833,
+      "missing": false,
+      "node": 0,
+      "share_id": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a"
+    },
+    {
+      "latency_ms": 65.747,
+      "missing": false,
+      "node": 1,
+      "share_id": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a"
+    },
+    {
+      "latency_ms": 65.617,
+      "missing": false,
+      "node": 2,
+      "share_id": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a"
+    },
+    {
+      "latency_ms": 25.565,
+      "missing": false,
+      "node": 3,
+      "share_id": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a"
+    },
+    {
+      "latency_ms": 32.872,
+      "missing": false,
+      "node": 0,
+      "share_id": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9"
+    },
+    {
+      "latency_ms": 57.709,
+      "missing": false,
+      "node": 1,
+      "share_id": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9"
+    },
+    {
+      "latency_ms": 61.022,
+      "missing": false,
+      "node": 2,
+      "share_id": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9"
+    },
+    {
+      "latency_ms": 57.614,
+      "missing": false,
+      "node": 3,
+      "share_id": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9"
+    },
+    {
+      "latency_ms": 52.459,
+      "missing": false,
+      "node": 0,
+      "share_id": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35"
+    },
+    {
+      "latency_ms": 25.805,
+      "missing": false,
+      "node": 1,
+      "share_id": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35"
+    },
+    {
+      "latency_ms": 51.544,
+      "missing": false,
+      "node": 2,
+      "share_id": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35"
+    },
+    {
+      "latency_ms": 51.442,
+      "missing": false,
+      "node": 3,
+      "share_id": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35"
+    },
+    {
+      "latency_ms": 49.349,
+      "missing": false,
+      "node": 0,
+      "share_id": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1"
+    },
+    {
+      "latency_ms": 53.182,
+      "missing": false,
+      "node": 1,
+      "share_id": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1"
+    },
+    {
+      "latency_ms": 25.55,
+      "missing": false,
+      "node": 2,
+      "share_id": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1"
+    },
+    {
+      "latency_ms": 50.905,
+      "missing": false,
+      "node": 3,
+      "share_id": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1"
+    },
+    {
+      "latency_ms": 74.075,
+      "missing": false,
+      "node": 0,
+      "share_id": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236"
+    },
+    {
+      "latency_ms": 75.528,
+      "missing": false,
+      "node": 1,
+      "share_id": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236"
+    },
+    {
+      "latency_ms": 75.919,
+      "missing": false,
+      "node": 2,
+      "share_id": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236"
+    },
+    {
+      "latency_ms": 32.584,
+      "missing": false,
+      "node": 3,
+      "share_id": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236"
+    },
+    {
+      "latency_ms": 42.359,
+      "missing": false,
+      "node": 0,
+      "share_id": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7"
+    },
+    {
+      "latency_ms": 72.001,
+      "missing": false,
+      "node": 1,
+      "share_id": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7"
+    },
+    {
+      "latency_ms": 71.159,
+      "missing": false,
+      "node": 2,
+      "share_id": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7"
+    },
+    {
+      "latency_ms": 71.054,
+      "missing": false,
+      "node": 3,
+      "share_id": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7"
+    },
+    {
+      "latency_ms": 57.589,
+      "missing": false,
+      "node": 0,
+      "share_id": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9"
+    },
+    {
+      "latency_ms": 33.442,
+      "missing": false,
+      "node": 1,
+      "share_id": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9"
+    },
+    {
+      "latency_ms": 58.955,
+      "missing": false,
+      "node": 2,
+      "share_id": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9"
+    },
+    {
+      "latency_ms": 57.641,
+      "missing": false,
+      "node": 3,
+      "share_id": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9"
+    },
+    {
+      "latency_ms": 58.769,
+      "missing": false,
+      "node": 0,
+      "share_id": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e"
+    },
+    {
+      "latency_ms": 59.899,
+      "missing": false,
+      "node": 1,
+      "share_id": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e"
+    },
+    {
+      "latency_ms": 31.926,
+      "missing": false,
+      "node": 2,
+      "share_id": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e"
+    },
+    {
+      "latency_ms": 57.857,
+      "missing": false,
+      "node": 3,
+      "share_id": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e"
+    },
+    {
+      "latency_ms": 64.777,
+      "missing": false,
+      "node": 0,
+      "share_id": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428"
+    },
+    {
+      "latency_ms": 64.865,
+      "missing": false,
+      "node": 1,
+      "share_id": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428"
+    },
+    {
+      "latency_ms": 64.681,
+      "missing": false,
+      "node": 2,
+      "share_id": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428"
+    },
+    {
+      "latency_ms": 32.172,
+      "missing": false,
+      "node": 3,
+      "share_id": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428"
+    },
+    {
+      "latency_ms": 26.66,
+      "missing": false,
+      "node": 0,
+      "share_id": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0"
+    },
+    {
+      "latency_ms": 58.961,
+      "missing": false,
+      "node": 1,
+      "share_id": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0"
+    },
+    {
+      "latency_ms": 59.057,
+      "missing": false,
+      "node": 2,
+      "share_id": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0"
+    },
+    {
+      "latency_ms": 58.256,
+      "missing": false,
+      "node": 3,
+      "share_id": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0"
+    },
+    {
+      "latency_ms": 49.704,
+      "missing": false,
+      "node": 0,
+      "share_id": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4"
+    },
+    {
+      "latency_ms": 25.388,
+      "missing": false,
+      "node": 1,
+      "share_id": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4"
+    },
+    {
+      "latency_ms": 53.223,
+      "missing": false,
+      "node": 2,
+      "share_id": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4"
+    },
+    {
+      "latency_ms": 50.618,
+      "missing": false,
+      "node": 3,
+      "share_id": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4"
+    },
+    {
+      "latency_ms": 58.092,
+      "missing": false,
+      "node": 0,
+      "share_id": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde"
+    },
+    {
+      "latency_ms": 60.425,
+      "missing": false,
+      "node": 1,
+      "share_id": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde"
+    },
+    {
+      "latency_ms": 33.544,
+      "missing": false,
+      "node": 2,
+      "share_id": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde"
+    },
+    {
+      "latency_ms": 58.395,
+      "missing": false,
+      "node": 3,
+      "share_id": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde"
+    },
+    {
+      "latency_ms": 53.274,
+      "missing": false,
+      "node": 0,
+      "share_id": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b"
+    },
+    {
+      "latency_ms": 54.764,
+      "missing": false,
+      "node": 1,
+      "share_id": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b"
+    },
+    {
+      "latency_ms": 54.93,
+      "missing": false,
+      "node": 2,
+      "share_id": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b"
+    },
+    {
+      "latency_ms": 25.04,
+      "missing": false,
+      "node": 3,
+      "share_id": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b"
+    },
+    {
+      "latency_ms": 30.025,
+      "missing": false,
+      "node": 0,
+      "share_id": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0"
+    },
+    {
+      "latency_ms": 59.981,
+      "missing": false,
+      "node": 1,
+      "share_id": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0"
+    },
+    {
+      "latency_ms": 59.87,
+      "missing": false,
+      "node": 2,
+      "share_id": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0"
+    },
+    {
+      "latency_ms": 58.075,
+      "missing": false,
+      "node": 3,
+      "share_id": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0"
+    },
+    {
+      "latency_ms": 72.439,
+      "missing": false,
+      "node": 0,
+      "share_id": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b"
+    },
+    {
+      "latency_ms": 45.427,
+      "missing": false,
+      "node": 1,
+      "share_id": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b"
+    },
+    {
+      "latency_ms": 70.803,
+      "missing": false,
+      "node": 2,
+      "share_id": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b"
+    },
+    {
+      "latency_ms": 71.504,
+      "missing": false,
+      "node": 3,
+      "share_id": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b"
+    },
+    {
+      "latency_ms": 76.101,
+      "missing": false,
+      "node": 0,
+      "share_id": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477"
+    },
+    {
+      "latency_ms": 76.192,
+      "missing": false,
+      "node": 1,
+      "share_id": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477"
+    },
+    {
+      "latency_ms": 45.961,
+      "missing": false,
+      "node": 2,
+      "share_id": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477"
+    },
+    {
+      "latency_ms": 74.559,
+      "missing": false,
+      "node": 3,
+      "share_id": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477"
+    },
+    {
+      "latency_ms": 57.789,
+      "missing": false,
+      "node": 0,
+      "share_id": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56"
+    },
+    {
+      "latency_ms": 58.581,
+      "missing": false,
+      "node": 1,
+      "share_id": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56"
+    },
+    {
+      "latency_ms": 58.53,
+      "missing": false,
+      "node": 2,
+      "share_id": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56"
+    },
+    {
+      "latency_ms": 25.344,
+      "missing": false,
+      "node": 3,
+      "share_id": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56"
+    },
+    {
+      "latency_ms": 29.644,
+      "missing": false,
+      "node": 0,
+      "share_id": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441"
+    },
+    {
+      "latency_ms": 55.6,
+      "missing": false,
+      "node": 1,
+      "share_id": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441"
+    },
+    {
+      "latency_ms": 55.217,
+      "missing": false,
+      "node": 2,
+      "share_id": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441"
+    },
+    {
+      "latency_ms": 56.819,
+      "missing": false,
+      "node": 3,
+      "share_id": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441"
+    },
+    {
+      "latency_ms": 50.446,
+      "missing": false,
+      "node": 0,
+      "share_id": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395"
+    },
+    {
+      "latency_ms": 26.675,
+      "missing": false,
+      "node": 1,
+      "share_id": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395"
+    },
+    {
+      "latency_ms": 51.192,
+      "missing": false,
+      "node": 2,
+      "share_id": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395"
+    },
+    {
+      "latency_ms": 50.902,
+      "missing": false,
+      "node": 3,
+      "share_id": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395"
+    },
+    {
+      "latency_ms": 50.076,
+      "missing": false,
+      "node": 0,
+      "share_id": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11"
+    },
+    {
+      "latency_ms": 50.256,
+      "missing": false,
+      "node": 1,
+      "share_id": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11"
+    },
+    {
+      "latency_ms": 26.822,
+      "missing": false,
+      "node": 2,
+      "share_id": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11"
+    },
+    {
+      "latency_ms": 50.454,
+      "missing": false,
+      "node": 3,
+      "share_id": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11"
+    },
+    {
+      "latency_ms": 60.782,
+      "missing": false,
+      "node": 0,
+      "share_id": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce"
+    },
+    {
+      "latency_ms": 60.666,
+      "missing": false,
+      "node": 1,
+      "share_id": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce"
+    },
+    {
+      "latency_ms": 60.885,
+      "missing": false,
+      "node": 2,
+      "share_id": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce"
+    },
+    {
+      "latency_ms": 24.412,
+      "missing": false,
+      "node": 3,
+      "share_id": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce"
+    },
+    {
+      "latency_ms": 34.443,
+      "missing": false,
+      "node": 0,
+      "share_id": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb"
+    },
+    {
+      "latency_ms": 63.548,
+      "missing": false,
+      "node": 1,
+      "share_id": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb"
+    },
+    {
+      "latency_ms": 64.197,
+      "missing": false,
+      "node": 2,
+      "share_id": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb"
+    },
+    {
+      "latency_ms": 61.481,
+      "missing": false,
+      "node": 3,
+      "share_id": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb"
+    },
+    {
+      "latency_ms": 55.15,
+      "missing": false,
+      "node": 0,
+      "share_id": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d"
+    },
+    {
+      "latency_ms": 26.821,
+      "missing": false,
+      "node": 1,
+      "share_id": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d"
+    },
+    {
+      "latency_ms": 56.468,
+      "missing": false,
+      "node": 2,
+      "share_id": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d"
+    },
+    {
+      "latency_ms": 55.095,
+      "missing": false,
+      "node": 3,
+      "share_id": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d"
+    },
+    {
+      "latency_ms": 62.044,
+      "missing": false,
+      "node": 0,
+      "share_id": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450"
+    },
+    {
+      "latency_ms": 61.546,
+      "missing": false,
+      "node": 1,
+      "share_id": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450"
+    },
+    {
+      "latency_ms": 32.82,
+      "missing": false,
+      "node": 2,
+      "share_id": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450"
+    },
+    {
+      "latency_ms": 60.907,
+      "missing": false,
+      "node": 3,
+      "share_id": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450"
+    },
+    {
+      "latency_ms": 49.907,
+      "missing": false,
+      "node": 0,
+      "share_id": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f"
+    },
+    {
+      "latency_ms": 52.843,
+      "missing": false,
+      "node": 1,
+      "share_id": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f"
+    },
+    {
+      "latency_ms": 52.725,
+      "missing": false,
+      "node": 2,
+      "share_id": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f"
+    },
+    {
+      "latency_ms": 26.02,
+      "missing": false,
+      "node": 3,
+      "share_id": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f"
+    },
+    {
+      "latency_ms": 27.359,
+      "missing": false,
+      "node": 0,
+      "share_id": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4"
+    },
+    {
+      "latency_ms": 53.599,
+      "missing": false,
+      "node": 1,
+      "share_id": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4"
+    },
+    {
+      "latency_ms": 55.603,
+      "missing": false,
+      "node": 2,
+      "share_id": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4"
+    },
+    {
+      "latency_ms": 55.751,
+      "missing": false,
+      "node": 3,
+      "share_id": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4"
+    },
+    {
+      "latency_ms": 52.091,
+      "missing": false,
+      "node": 0,
+      "share_id": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104"
+    },
+    {
+      "latency_ms": 27.87,
+      "missing": false,
+      "node": 1,
+      "share_id": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104"
+    },
+    {
+      "latency_ms": 51.567,
+      "missing": false,
+      "node": 2,
+      "share_id": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104"
+    },
+    {
+      "latency_ms": 51.03,
+      "missing": false,
+      "node": 3,
+      "share_id": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104"
+    },
+    {
+      "latency_ms": 63.638,
+      "missing": false,
+      "node": 0,
+      "share_id": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8"
+    },
+    {
+      "latency_ms": 63.567,
+      "missing": false,
+      "node": 1,
+      "share_id": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8"
+    },
+    {
+      "latency_ms": 27.574,
+      "missing": false,
+      "node": 2,
+      "share_id": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8"
+    },
+    {
+      "latency_ms": 63.481,
+      "missing": false,
+      "node": 3,
+      "share_id": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8"
+    },
+    {
+      "latency_ms": 59.872,
+      "missing": false,
+      "node": 0,
+      "share_id": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4"
+    },
+    {
+      "latency_ms": 60.992,
+      "missing": false,
+      "node": 1,
+      "share_id": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4"
+    },
+    {
+      "latency_ms": 61.083,
+      "missing": false,
+      "node": 2,
+      "share_id": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4"
+    },
+    {
+      "latency_ms": 26.635,
+      "missing": false,
+      "node": 3,
+      "share_id": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4"
+    },
+    {
+      "latency_ms": 28.478,
+      "missing": false,
+      "node": 0,
+      "share_id": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3"
+    },
+    {
+      "latency_ms": 59.148,
+      "missing": false,
+      "node": 1,
+      "share_id": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3"
+    },
+    {
+      "latency_ms": 59.398,
+      "missing": false,
+      "node": 2,
+      "share_id": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3"
+    },
+    {
+      "latency_ms": 56.218,
+      "missing": false,
+      "node": 3,
+      "share_id": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3"
+    },
+    {
+      "latency_ms": 61.027,
+      "missing": false,
+      "node": 0,
+      "share_id": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2"
+    },
+    {
+      "latency_ms": 34.114,
+      "missing": false,
+      "node": 1,
+      "share_id": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2"
+    },
+    {
+      "latency_ms": 62.669,
+      "missing": false,
+      "node": 2,
+      "share_id": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2"
+    },
+    {
+      "latency_ms": 62.831,
+      "missing": false,
+      "node": 3,
+      "share_id": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2"
+    },
+    {
+      "latency_ms": 61.195,
+      "missing": false,
+      "node": 0,
+      "share_id": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b"
+    },
+    {
+      "latency_ms": 63.191,
+      "missing": false,
+      "node": 1,
+      "share_id": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b"
+    },
+    {
+      "latency_ms": 35.941,
+      "missing": false,
+      "node": 2,
+      "share_id": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b"
+    },
+    {
+      "latency_ms": 61.047,
+      "missing": false,
+      "node": 3,
+      "share_id": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b"
+    },
+    {
+      "latency_ms": 52.884,
+      "missing": false,
+      "node": 0,
+      "share_id": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9"
+    },
+    {
+      "latency_ms": 55.313,
+      "missing": false,
+      "node": 1,
+      "share_id": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9"
+    },
+    {
+      "latency_ms": 55.145,
+      "missing": false,
+      "node": 2,
+      "share_id": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9"
+    },
+    {
+      "latency_ms": 27.258,
+      "missing": false,
+      "node": 3,
+      "share_id": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9"
+    },
+    {
+      "latency_ms": 30.336,
+      "missing": false,
+      "node": 0,
+      "share_id": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a"
+    },
+    {
+      "latency_ms": 58.033,
+      "missing": false,
+      "node": 1,
+      "share_id": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a"
+    },
+    {
+      "latency_ms": 62.705,
+      "missing": false,
+      "node": 2,
+      "share_id": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a"
+    },
+    {
+      "latency_ms": 62.822,
+      "missing": false,
+      "node": 3,
+      "share_id": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a"
+    },
+    {
+      "latency_ms": 62.443,
+      "missing": false,
+      "node": 0,
+      "share_id": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37"
+    },
+    {
+      "latency_ms": 29.691,
+      "missing": false,
+      "node": 1,
+      "share_id": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37"
+    },
+    {
+      "latency_ms": 62.892,
+      "missing": false,
+      "node": 2,
+      "share_id": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37"
+    },
+    {
+      "latency_ms": 62.788,
+      "missing": false,
+      "node": 3,
+      "share_id": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37"
+    },
+    {
+      "latency_ms": 52.735,
+      "missing": false,
+      "node": 0,
+      "share_id": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15"
+    },
+    {
+      "latency_ms": 52.21,
+      "missing": false,
+      "node": 1,
+      "share_id": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15"
+    },
+    {
+      "latency_ms": 25.853,
+      "missing": false,
+      "node": 2,
+      "share_id": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15"
+    },
+    {
+      "latency_ms": 51.871,
+      "missing": false,
+      "node": 3,
+      "share_id": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15"
+    },
+    {
+      "latency_ms": 51.103,
+      "missing": false,
+      "node": 0,
+      "share_id": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51"
+    },
+    {
+      "latency_ms": 55.551,
+      "missing": false,
+      "node": 1,
+      "share_id": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51"
+    },
+    {
+      "latency_ms": 52.123,
+      "missing": false,
+      "node": 2,
+      "share_id": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51"
+    },
+    {
+      "latency_ms": 29.258,
+      "missing": false,
+      "node": 3,
+      "share_id": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51"
+    },
+    {
+      "latency_ms": 29.812,
+      "missing": false,
+      "node": 0,
+      "share_id": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7"
+    },
+    {
+      "latency_ms": 65.014,
+      "missing": false,
+      "node": 1,
+      "share_id": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7"
+    },
+    {
+      "latency_ms": 65.098,
+      "missing": false,
+      "node": 2,
+      "share_id": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7"
+    },
+    {
+      "latency_ms": 64.647,
+      "missing": false,
+      "node": 3,
+      "share_id": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7"
+    },
+    {
+      "latency_ms": 59.083,
+      "missing": false,
+      "node": 0,
+      "share_id": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7"
+    },
+    {
+      "latency_ms": 31.461,
+      "missing": false,
+      "node": 1,
+      "share_id": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7"
+    },
+    {
+      "latency_ms": 61.106,
+      "missing": false,
+      "node": 2,
+      "share_id": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7"
+    },
+    {
+      "latency_ms": 61.21,
+      "missing": false,
+      "node": 3,
+      "share_id": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7"
+    },
+    {
+      "latency_ms": 58.05,
+      "missing": false,
+      "node": 0,
+      "share_id": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8"
+    },
+    {
+      "latency_ms": 58.117,
+      "missing": false,
+      "node": 1,
+      "share_id": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8"
+    },
+    {
+      "latency_ms": 33.002,
+      "missing": false,
+      "node": 2,
+      "share_id": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8"
+    },
+    {
+      "latency_ms": 57.6,
+      "missing": false,
+      "node": 3,
+      "share_id": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8"
+    },
+    {
+      "latency_ms": 50.865,
+      "missing": false,
+      "node": 0,
+      "share_id": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71"
+    },
+    {
+      "latency_ms": 51.577,
+      "missing": false,
+      "node": 1,
+      "share_id": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71"
+    },
+    {
+      "latency_ms": 50.584,
+      "missing": false,
+      "node": 2,
+      "share_id": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71"
+    },
+    {
+      "latency_ms": 25.626,
+      "missing": false,
+      "node": 3,
+      "share_id": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71"
+    },
+    {
+      "latency_ms": 29.522,
+      "missing": false,
+      "node": 0,
+      "share_id": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172"
+    },
+    {
+      "latency_ms": 58.121,
+      "missing": false,
+      "node": 1,
+      "share_id": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172"
+    },
+    {
+      "latency_ms": 59.021,
+      "missing": false,
+      "node": 2,
+      "share_id": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172"
+    },
+    {
+      "latency_ms": 58.679,
+      "missing": false,
+      "node": 3,
+      "share_id": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172"
+    },
+    {
+      "latency_ms": 53.844,
+      "missing": false,
+      "node": 0,
+      "share_id": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b"
+    },
+    {
+      "latency_ms": 27.822,
+      "missing": false,
+      "node": 1,
+      "share_id": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b"
+    },
+    {
+      "latency_ms": 53.765,
+      "missing": false,
+      "node": 2,
+      "share_id": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b"
+    },
+    {
+      "latency_ms": 55.583,
+      "missing": false,
+      "node": 3,
+      "share_id": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b"
+    },
+    {
+      "latency_ms": 54.939,
+      "missing": false,
+      "node": 0,
+      "share_id": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070"
+    },
+    {
+      "latency_ms": 53.602,
+      "missing": false,
+      "node": 1,
+      "share_id": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070"
+    },
+    {
+      "latency_ms": 26.169,
+      "missing": false,
+      "node": 2,
+      "share_id": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070"
+    },
+    {
+      "latency_ms": 54.613,
+      "missing": false,
+      "node": 3,
+      "share_id": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070"
+    },
+    {
+      "latency_ms": 55.387,
+      "missing": false,
+      "node": 0,
+      "share_id": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3"
+    },
+    {
+      "latency_ms": 54.696,
+      "missing": false,
+      "node": 1,
+      "share_id": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3"
+    },
+    {
+      "latency_ms": 54.834,
+      "missing": false,
+      "node": 2,
+      "share_id": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3"
+    },
+    {
+      "latency_ms": 28.921,
+      "missing": false,
+      "node": 3,
+      "share_id": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3"
+    },
+    {
+      "latency_ms": 29.225,
+      "missing": false,
+      "node": 0,
+      "share_id": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337"
+    },
+    {
+      "latency_ms": 50.594,
+      "missing": false,
+      "node": 1,
+      "share_id": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337"
+    },
+    {
+      "latency_ms": 54.182,
+      "missing": false,
+      "node": 2,
+      "share_id": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337"
+    },
+    {
+      "latency_ms": 54.559,
+      "missing": false,
+      "node": 3,
+      "share_id": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337"
+    },
+    {
+      "latency_ms": 47.089,
+      "missing": false,
+      "node": 0,
+      "share_id": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32"
+    },
+    {
+      "latency_ms": 24.723,
+      "missing": false,
+      "node": 1,
+      "share_id": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32"
+    },
+    {
+      "latency_ms": 46.985,
+      "missing": false,
+      "node": 2,
+      "share_id": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32"
+    },
+    {
+      "latency_ms": 51.303,
+      "missing": false,
+      "node": 3,
+      "share_id": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32"
+    },
+    {
+      "latency_ms": 51.421,
+      "missing": false,
+      "node": 0,
+      "share_id": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64"
+    },
+    {
+      "latency_ms": 51.678,
+      "missing": false,
+      "node": 1,
+      "share_id": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64"
+    },
+    {
+      "latency_ms": 26.752,
+      "missing": false,
+      "node": 2,
+      "share_id": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64"
+    },
+    {
+      "latency_ms": 54.106,
+      "missing": false,
+      "node": 3,
+      "share_id": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64"
+    },
+    {
+      "latency_ms": 51.627,
+      "missing": false,
+      "node": 0,
+      "share_id": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0"
+    },
+    {
+      "latency_ms": 52.27,
+      "missing": false,
+      "node": 1,
+      "share_id": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0"
+    },
+    {
+      "latency_ms": 51.682,
+      "missing": false,
+      "node": 2,
+      "share_id": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0"
+    },
+    {
+      "latency_ms": 28.264,
+      "missing": false,
+      "node": 3,
+      "share_id": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0"
+    },
+    {
+      "latency_ms": 26.067,
+      "missing": false,
+      "node": 0,
+      "share_id": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462"
+    },
+    {
+      "latency_ms": 49.748,
+      "missing": false,
+      "node": 1,
+      "share_id": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462"
+    },
+    {
+      "latency_ms": 50.456,
+      "missing": false,
+      "node": 2,
+      "share_id": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462"
+    },
+    {
+      "latency_ms": 51.437,
+      "missing": false,
+      "node": 3,
+      "share_id": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462"
+    },
+    {
+      "latency_ms": 63.002,
+      "missing": false,
+      "node": 0,
+      "share_id": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431"
+    },
+    {
+      "latency_ms": 25.511,
+      "missing": false,
+      "node": 1,
+      "share_id": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431"
+    },
+    {
+      "latency_ms": 63.067,
+      "missing": false,
+      "node": 2,
+      "share_id": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431"
+    },
+    {
+      "latency_ms": 62.613,
+      "missing": false,
+      "node": 3,
+      "share_id": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431"
+    },
+    {
+      "latency_ms": 61.964,
+      "missing": false,
+      "node": 0,
+      "share_id": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0"
+    },
+    {
+      "latency_ms": 61.756,
+      "missing": false,
+      "node": 1,
+      "share_id": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0"
+    },
+    {
+      "latency_ms": 36.785,
+      "missing": false,
+      "node": 2,
+      "share_id": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0"
+    },
+    {
+      "latency_ms": 62.512,
+      "missing": false,
+      "node": 3,
+      "share_id": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0"
+    },
+    {
+      "latency_ms": 55.07,
+      "missing": false,
+      "node": 0,
+      "share_id": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c"
+    },
+    {
+      "latency_ms": 52.014,
+      "missing": false,
+      "node": 1,
+      "share_id": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c"
+    },
+    {
+      "latency_ms": 54.411,
+      "missing": false,
+      "node": 2,
+      "share_id": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c"
+    },
+    {
+      "latency_ms": 27.621,
+      "missing": false,
+      "node": 3,
+      "share_id": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c"
+    },
+    {
+      "latency_ms": 45.534,
+      "missing": false,
+      "node": 0,
+      "share_id": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b"
+    },
+    {
+      "latency_ms": 73.409,
+      "missing": false,
+      "node": 1,
+      "share_id": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b"
+    },
+    {
+      "latency_ms": 74.975,
+      "missing": false,
+      "node": 2,
+      "share_id": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b"
+    },
+    {
+      "latency_ms": 75.699,
+      "missing": false,
+      "node": 3,
+      "share_id": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b"
+    },
+    {
+      "latency_ms": 56.437,
+      "missing": false,
+      "node": 0,
+      "share_id": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9"
+    },
+    {
+      "latency_ms": 30.214,
+      "missing": false,
+      "node": 1,
+      "share_id": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9"
+    },
+    {
+      "latency_ms": 58.741,
+      "missing": false,
+      "node": 2,
+      "share_id": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9"
+    },
+    {
+      "latency_ms": 58.909,
+      "missing": false,
+      "node": 3,
+      "share_id": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9"
+    },
+    {
+      "latency_ms": 65.357,
+      "missing": false,
+      "node": 0,
+      "share_id": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e"
+    },
+    {
+      "latency_ms": 65.654,
+      "missing": false,
+      "node": 1,
+      "share_id": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e"
+    },
+    {
+      "latency_ms": 40.203,
+      "missing": false,
+      "node": 2,
+      "share_id": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e"
+    },
+    {
+      "latency_ms": 65.721,
+      "missing": false,
+      "node": 3,
+      "share_id": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e"
+    },
+    {
+      "latency_ms": 59.569,
+      "missing": false,
+      "node": 0,
+      "share_id": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98"
+    },
+    {
+      "latency_ms": 61.417,
+      "missing": false,
+      "node": 1,
+      "share_id": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98"
+    },
+    {
+      "latency_ms": 60.98,
+      "missing": false,
+      "node": 2,
+      "share_id": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98"
+    },
+    {
+      "latency_ms": 30.445,
+      "missing": false,
+      "node": 3,
+      "share_id": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98"
+    },
+    {
+      "latency_ms": 25.9,
+      "missing": false,
+      "node": 0,
+      "share_id": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749"
+    },
+    {
+      "latency_ms": 51.268,
+      "missing": false,
+      "node": 1,
+      "share_id": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749"
+    },
+    {
+      "latency_ms": 51.407,
+      "missing": false,
+      "node": 2,
+      "share_id": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749"
+    },
+    {
+      "latency_ms": 49.786,
+      "missing": false,
+      "node": 3,
+      "share_id": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749"
+    },
+    {
+      "latency_ms": 52.129,
+      "missing": false,
+      "node": 0,
+      "share_id": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a"
+    },
+    {
+      "latency_ms": 28.483,
+      "missing": false,
+      "node": 1,
+      "share_id": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a"
+    },
+    {
+      "latency_ms": 54.221,
+      "missing": false,
+      "node": 2,
+      "share_id": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a"
+    },
+    {
+      "latency_ms": 52.564,
+      "missing": false,
+      "node": 3,
+      "share_id": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a"
+    },
+    {
+      "latency_ms": 51.305,
+      "missing": false,
+      "node": 0,
+      "share_id": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd"
+    },
+    {
+      "latency_ms": 50.884,
+      "missing": false,
+      "node": 1,
+      "share_id": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd"
+    },
+    {
+      "latency_ms": 27.908,
+      "missing": false,
+      "node": 2,
+      "share_id": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd"
+    },
+    {
+      "latency_ms": 51.41,
+      "missing": false,
+      "node": 3,
+      "share_id": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd"
+    },
+    {
+      "latency_ms": 54.58,
+      "missing": false,
+      "node": 0,
+      "share_id": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7"
+    },
+    {
+      "latency_ms": 53.133,
+      "missing": false,
+      "node": 1,
+      "share_id": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7"
+    },
+    {
+      "latency_ms": 55.446,
+      "missing": false,
+      "node": 2,
+      "share_id": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7"
+    },
+    {
+      "latency_ms": 26.523,
+      "missing": false,
+      "node": 3,
+      "share_id": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7"
+    },
+    {
+      "latency_ms": 32.254,
+      "missing": false,
+      "node": 0,
+      "share_id": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c"
+    },
+    {
+      "latency_ms": 56.566,
+      "missing": false,
+      "node": 1,
+      "share_id": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c"
+    },
+    {
+      "latency_ms": 56.269,
+      "missing": false,
+      "node": 2,
+      "share_id": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c"
+    },
+    {
+      "latency_ms": 56.698,
+      "missing": false,
+      "node": 3,
+      "share_id": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c"
+    },
+    {
+      "latency_ms": 53.879,
+      "missing": false,
+      "node": 0,
+      "share_id": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7"
+    },
+    {
+      "latency_ms": 28.447,
+      "missing": false,
+      "node": 1,
+      "share_id": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7"
+    },
+    {
+      "latency_ms": 53.995,
+      "missing": false,
+      "node": 2,
+      "share_id": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7"
+    },
+    {
+      "latency_ms": 51.842,
+      "missing": false,
+      "node": 3,
+      "share_id": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7"
+    },
+    {
+      "latency_ms": 63.784,
+      "missing": false,
+      "node": 0,
+      "share_id": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c"
+    },
+    {
+      "latency_ms": 63.709,
+      "missing": false,
+      "node": 1,
+      "share_id": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c"
+    },
+    {
+      "latency_ms": 36.042,
+      "missing": false,
+      "node": 2,
+      "share_id": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c"
+    },
+    {
+      "latency_ms": 64.177,
+      "missing": false,
+      "node": 3,
+      "share_id": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c"
+    },
+    {
+      "latency_ms": 53.085,
+      "missing": false,
+      "node": 0,
+      "share_id": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1"
+    },
+    {
+      "latency_ms": 53.272,
+      "missing": false,
+      "node": 1,
+      "share_id": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1"
+    },
+    {
+      "latency_ms": 55.331,
+      "missing": false,
+      "node": 2,
+      "share_id": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1"
+    },
+    {
+      "latency_ms": 26.551,
+      "missing": false,
+      "node": 3,
+      "share_id": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1"
+    },
+    {
+      "latency_ms": 30.914,
+      "missing": false,
+      "node": 0,
+      "share_id": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a"
+    },
+    {
+      "latency_ms": 57.903,
+      "missing": false,
+      "node": 1,
+      "share_id": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a"
+    },
+    {
+      "latency_ms": 56.468,
+      "missing": false,
+      "node": 2,
+      "share_id": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a"
+    },
+    {
+      "latency_ms": 56.557,
+      "missing": false,
+      "node": 3,
+      "share_id": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a"
+    },
+    {
+      "latency_ms": 67.388,
+      "missing": false,
+      "node": 0,
+      "share_id": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d"
+    },
+    {
+      "latency_ms": 40.845,
+      "missing": false,
+      "node": 1,
+      "share_id": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d"
+    },
+    {
+      "latency_ms": 65.667,
+      "missing": false,
+      "node": 2,
+      "share_id": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d"
+    },
+    {
+      "latency_ms": 65.931,
+      "missing": false,
+      "node": 3,
+      "share_id": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d"
+    },
+    {
+      "latency_ms": 48.689,
+      "missing": false,
+      "node": 0,
+      "share_id": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074"
+    },
+    {
+      "latency_ms": 50.354,
+      "missing": false,
+      "node": 1,
+      "share_id": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074"
+    },
+    {
+      "latency_ms": 26.704,
+      "missing": false,
+      "node": 2,
+      "share_id": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074"
+    },
+    {
+      "latency_ms": 49.158,
+      "missing": false,
+      "node": 3,
+      "share_id": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074"
+    },
+    {
+      "latency_ms": 51.199,
+      "missing": false,
+      "node": 0,
+      "share_id": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0"
+    },
+    {
+      "latency_ms": 52.445,
+      "missing": false,
+      "node": 1,
+      "share_id": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0"
+    },
+    {
+      "latency_ms": 52.108,
+      "missing": false,
+      "node": 2,
+      "share_id": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0"
+    },
+    {
+      "latency_ms": 26.784,
+      "missing": false,
+      "node": 3,
+      "share_id": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0"
+    },
+    {
+      "latency_ms": 26.959,
+      "missing": false,
+      "node": 0,
+      "share_id": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826"
+    },
+    {
+      "latency_ms": 53.28,
+      "missing": false,
+      "node": 1,
+      "share_id": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826"
+    },
+    {
+      "latency_ms": 54.084,
+      "missing": false,
+      "node": 2,
+      "share_id": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826"
+    },
+    {
+      "latency_ms": 52.255,
+      "missing": false,
+      "node": 3,
+      "share_id": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826"
+    },
+    {
+      "latency_ms": 58.886,
+      "missing": false,
+      "node": 0,
+      "share_id": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5"
+    },
+    {
+      "latency_ms": 34.106,
+      "missing": false,
+      "node": 1,
+      "share_id": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5"
+    },
+    {
+      "latency_ms": 58.984,
+      "missing": false,
+      "node": 2,
+      "share_id": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5"
+    },
+    {
+      "latency_ms": 59.408,
+      "missing": false,
+      "node": 3,
+      "share_id": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5"
+    },
+    {
+      "latency_ms": 52.885,
+      "missing": false,
+      "node": 0,
+      "share_id": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef"
+    },
+    {
+      "latency_ms": 55.222,
+      "missing": false,
+      "node": 1,
+      "share_id": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef"
+    },
+    {
+      "latency_ms": 27.458,
+      "missing": false,
+      "node": 2,
+      "share_id": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef"
+    },
+    {
+      "latency_ms": 52.972,
+      "missing": false,
+      "node": 3,
+      "share_id": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef"
+    },
+    {
+      "latency_ms": 51.798,
+      "missing": false,
+      "node": 0,
+      "share_id": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83"
+    },
+    {
+      "latency_ms": 51.878,
+      "missing": false,
+      "node": 1,
+      "share_id": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83"
+    },
+    {
+      "latency_ms": 52.679,
+      "missing": false,
+      "node": 2,
+      "share_id": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83"
+    },
+    {
+      "latency_ms": 26.896,
+      "missing": false,
+      "node": 3,
+      "share_id": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83"
+    },
+    {
+      "latency_ms": 28.814,
+      "missing": false,
+      "node": 0,
+      "share_id": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69"
+    },
+    {
+      "latency_ms": 61.429,
+      "missing": false,
+      "node": 1,
+      "share_id": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69"
+    },
+    {
+      "latency_ms": 61.258,
+      "missing": false,
+      "node": 2,
+      "share_id": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69"
+    },
+    {
+      "latency_ms": 61.351,
+      "missing": false,
+      "node": 3,
+      "share_id": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69"
+    },
+    {
+      "latency_ms": 51.997,
+      "missing": false,
+      "node": 0,
+      "share_id": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c"
+    },
+    {
+      "latency_ms": 25.549,
+      "missing": false,
+      "node": 1,
+      "share_id": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c"
+    },
+    {
+      "latency_ms": 52.108,
+      "missing": false,
+      "node": 2,
+      "share_id": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c"
+    },
+    {
+      "latency_ms": 52.384,
+      "missing": false,
+      "node": 3,
+      "share_id": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c"
+    },
+    {
+      "latency_ms": 73.151,
+      "missing": false,
+      "node": 0,
+      "share_id": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25"
+    },
+    {
+      "latency_ms": 71.977,
+      "missing": false,
+      "node": 1,
+      "share_id": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25"
+    },
+    {
+      "latency_ms": 43.778,
+      "missing": false,
+      "node": 2,
+      "share_id": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25"
+    },
+    {
+      "latency_ms": 73.255,
+      "missing": false,
+      "node": 3,
+      "share_id": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25"
+    },
+    {
+      "latency_ms": 69.849,
+      "missing": false,
+      "node": 0,
+      "share_id": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30"
+    },
+    {
+      "latency_ms": 69.899,
+      "missing": false,
+      "node": 1,
+      "share_id": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30"
+    },
+    {
+      "latency_ms": 69.793,
+      "missing": false,
+      "node": 2,
+      "share_id": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30"
+    },
+    {
+      "latency_ms": 43.421,
+      "missing": false,
+      "node": 3,
+      "share_id": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30"
+    },
+    {
+      "latency_ms": 27.563,
+      "missing": false,
+      "node": 0,
+      "share_id": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707"
+    },
+    {
+      "latency_ms": 52.936,
+      "missing": false,
+      "node": 1,
+      "share_id": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707"
+    },
+    {
+      "latency_ms": 53.269,
+      "missing": false,
+      "node": 2,
+      "share_id": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707"
+    },
+    {
+      "latency_ms": 54.918,
+      "missing": false,
+      "node": 3,
+      "share_id": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707"
+    },
+    {
+      "latency_ms": 57.692,
+      "missing": false,
+      "node": 0,
+      "share_id": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39"
+    },
+    {
+      "latency_ms": 32.166,
+      "missing": false,
+      "node": 1,
+      "share_id": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39"
+    },
+    {
+      "latency_ms": 56.937,
+      "missing": false,
+      "node": 2,
+      "share_id": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39"
+    },
+    {
+      "latency_ms": 58.847,
+      "missing": false,
+      "node": 3,
+      "share_id": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39"
+    },
+    {
+      "latency_ms": 56.51,
+      "missing": false,
+      "node": 0,
+      "share_id": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9"
+    },
+    {
+      "latency_ms": 56.658,
+      "missing": false,
+      "node": 1,
+      "share_id": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9"
+    },
+    {
+      "latency_ms": 32.511,
+      "missing": false,
+      "node": 2,
+      "share_id": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9"
+    },
+    {
+      "latency_ms": 57.826,
+      "missing": false,
+      "node": 3,
+      "share_id": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9"
+    },
+    {
+      "latency_ms": 68.315,
+      "missing": false,
+      "node": 0,
+      "share_id": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9"
+    },
+    {
+      "latency_ms": 68.86,
+      "missing": false,
+      "node": 1,
+      "share_id": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9"
+    },
+    {
+      "latency_ms": 69.031,
+      "missing": false,
+      "node": 2,
+      "share_id": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9"
+    },
+    {
+      "latency_ms": 38.697,
+      "missing": false,
+      "node": 3,
+      "share_id": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9"
+    },
+    {
+      "latency_ms": 27.995,
+      "missing": false,
+      "node": 0,
+      "share_id": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c"
+    },
+    {
+      "latency_ms": 53.29,
+      "missing": false,
+      "node": 1,
+      "share_id": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c"
+    },
+    {
+      "latency_ms": 53.463,
+      "missing": false,
+      "node": 2,
+      "share_id": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c"
+    },
+    {
+      "latency_ms": 53.383,
+      "missing": false,
+      "node": 3,
+      "share_id": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c"
+    },
+    {
+      "latency_ms": 56.453,
+      "missing": false,
+      "node": 0,
+      "share_id": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886"
+    },
+    {
+      "latency_ms": 30.093,
+      "missing": false,
+      "node": 1,
+      "share_id": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886"
+    },
+    {
+      "latency_ms": 57.169,
+      "missing": false,
+      "node": 2,
+      "share_id": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886"
+    },
+    {
+      "latency_ms": 57.47,
+      "missing": false,
+      "node": 3,
+      "share_id": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886"
+    },
+    {
+      "latency_ms": 51.435,
+      "missing": false,
+      "node": 0,
+      "share_id": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4"
+    },
+    {
+      "latency_ms": 50.887,
+      "missing": false,
+      "node": 1,
+      "share_id": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4"
+    },
+    {
+      "latency_ms": 25.154,
+      "missing": false,
+      "node": 2,
+      "share_id": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4"
+    },
+    {
+      "latency_ms": 51.0,
+      "missing": false,
+      "node": 3,
+      "share_id": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4"
+    },
+    {
+      "latency_ms": 51.683,
+      "missing": false,
+      "node": 0,
+      "share_id": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7"
+    },
+    {
+      "latency_ms": 52.039,
+      "missing": false,
+      "node": 1,
+      "share_id": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7"
+    },
+    {
+      "latency_ms": 52.15,
+      "missing": false,
+      "node": 2,
+      "share_id": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7"
+    },
+    {
+      "latency_ms": 25.154,
+      "missing": false,
+      "node": 3,
+      "share_id": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7"
+    },
+    {
+      "latency_ms": 35.67,
+      "missing": false,
+      "node": 0,
+      "share_id": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa"
+    },
+    {
+      "latency_ms": 77.771,
+      "missing": false,
+      "node": 1,
+      "share_id": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa"
+    },
+    {
+      "latency_ms": 79.203,
+      "missing": false,
+      "node": 2,
+      "share_id": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa"
+    },
+    {
+      "latency_ms": 79.069,
+      "missing": false,
+      "node": 3,
+      "share_id": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa"
+    },
+    {
+      "latency_ms": 75.496,
+      "missing": false,
+      "node": 0,
+      "share_id": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9"
+    },
+    {
+      "latency_ms": 45.869,
+      "missing": false,
+      "node": 1,
+      "share_id": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9"
+    },
+    {
+      "latency_ms": 75.412,
+      "missing": false,
+      "node": 2,
+      "share_id": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9"
+    },
+    {
+      "latency_ms": 73.759,
+      "missing": false,
+      "node": 3,
+      "share_id": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9"
+    },
+    {
+      "latency_ms": 78.884,
+      "missing": false,
+      "node": 0,
+      "share_id": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4"
+    },
+    {
+      "latency_ms": 79.001,
+      "missing": false,
+      "node": 1,
+      "share_id": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4"
+    },
+    {
+      "latency_ms": 35.196,
+      "missing": false,
+      "node": 2,
+      "share_id": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4"
+    },
+    {
+      "latency_ms": 78.479,
+      "missing": false,
+      "node": 3,
+      "share_id": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4"
+    },
+    {
+      "latency_ms": 53.795,
+      "missing": false,
+      "node": 0,
+      "share_id": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f"
+    },
+    {
+      "latency_ms": 58.123,
+      "missing": false,
+      "node": 1,
+      "share_id": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f"
+    },
+    {
+      "latency_ms": 58.253,
+      "missing": false,
+      "node": 2,
+      "share_id": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f"
+    },
+    {
+      "latency_ms": 28.6,
+      "missing": false,
+      "node": 3,
+      "share_id": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f"
+    },
+    {
+      "latency_ms": 32.196,
+      "missing": false,
+      "node": 0,
+      "share_id": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462"
+    },
+    {
+      "latency_ms": 57.877,
+      "missing": false,
+      "node": 1,
+      "share_id": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462"
+    },
+    {
+      "latency_ms": 58.396,
+      "missing": false,
+      "node": 2,
+      "share_id": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462"
+    },
+    {
+      "latency_ms": 57.997,
+      "missing": false,
+      "node": 3,
+      "share_id": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462"
+    },
+    {
+      "latency_ms": 69.563,
+      "missing": false,
+      "node": 0,
+      "share_id": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221"
+    },
+    {
+      "latency_ms": 45.109,
+      "missing": false,
+      "node": 1,
+      "share_id": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221"
+    },
+    {
+      "latency_ms": 71.119,
+      "missing": false,
+      "node": 2,
+      "share_id": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221"
+    },
+    {
+      "latency_ms": 68.853,
+      "missing": false,
+      "node": 3,
+      "share_id": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221"
+    },
+    {
+      "latency_ms": 72.399,
+      "missing": false,
+      "node": 0,
+      "share_id": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7"
+    },
+    {
+      "latency_ms": 72.891,
+      "missing": false,
+      "node": 1,
+      "share_id": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7"
+    },
+    {
+      "latency_ms": 32.617,
+      "missing": false,
+      "node": 2,
+      "share_id": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7"
+    },
+    {
+      "latency_ms": 72.494,
+      "missing": false,
+      "node": 3,
+      "share_id": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7"
+    },
+    {
+      "latency_ms": 71.339,
+      "missing": false,
+      "node": 0,
+      "share_id": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b"
+    },
+    {
+      "latency_ms": 71.796,
+      "missing": false,
+      "node": 1,
+      "share_id": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b"
+    },
+    {
+      "latency_ms": 71.207,
+      "missing": false,
+      "node": 2,
+      "share_id": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b"
+    },
+    {
+      "latency_ms": 41.669,
+      "missing": false,
+      "node": 3,
+      "share_id": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b"
+    },
+    {
+      "latency_ms": 24.033,
+      "missing": false,
+      "node": 0,
+      "share_id": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198"
+    },
+    {
+      "latency_ms": 51.151,
+      "missing": false,
+      "node": 1,
+      "share_id": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198"
+    },
+    {
+      "latency_ms": 48.65,
+      "missing": false,
+      "node": 2,
+      "share_id": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198"
+    },
+    {
+      "latency_ms": 47.695,
+      "missing": false,
+      "node": 3,
+      "share_id": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198"
+    },
+    {
+      "latency_ms": 69.385,
+      "missing": false,
+      "node": 0,
+      "share_id": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06"
+    },
+    {
+      "latency_ms": 45.933,
+      "missing": false,
+      "node": 1,
+      "share_id": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06"
+    },
+    {
+      "latency_ms": 71.9,
+      "missing": false,
+      "node": 2,
+      "share_id": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06"
+    },
+    {
+      "latency_ms": 72.431,
+      "missing": false,
+      "node": 3,
+      "share_id": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06"
+    },
+    {
+      "latency_ms": 58.735,
+      "missing": false,
+      "node": 0,
+      "share_id": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751"
+    },
+    {
+      "latency_ms": 57.275,
+      "missing": false,
+      "node": 1,
+      "share_id": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751"
+    },
+    {
+      "latency_ms": 30.91,
+      "missing": false,
+      "node": 2,
+      "share_id": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751"
+    },
+    {
+      "latency_ms": 57.165,
+      "missing": false,
+      "node": 3,
+      "share_id": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751"
+    },
+    {
+      "latency_ms": 56.379,
+      "missing": false,
+      "node": 0,
+      "share_id": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6"
+    },
+    {
+      "latency_ms": 56.082,
+      "missing": false,
+      "node": 1,
+      "share_id": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6"
+    },
+    {
+      "latency_ms": 54.554,
+      "missing": false,
+      "node": 2,
+      "share_id": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6"
+    },
+    {
+      "latency_ms": 27.39,
+      "missing": false,
+      "node": 3,
+      "share_id": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6"
+    },
+    {
+      "latency_ms": 27.789,
+      "missing": false,
+      "node": 0,
+      "share_id": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa"
+    },
+    {
+      "latency_ms": 52.492,
+      "missing": false,
+      "node": 1,
+      "share_id": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa"
+    },
+    {
+      "latency_ms": 52.956,
+      "missing": false,
+      "node": 2,
+      "share_id": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa"
+    },
+    {
+      "latency_ms": 54.165,
+      "missing": false,
+      "node": 3,
+      "share_id": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa"
+    },
+    {
+      "latency_ms": 55.157,
+      "missing": false,
+      "node": 0,
+      "share_id": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb"
+    },
+    {
+      "latency_ms": 29.898,
+      "missing": false,
+      "node": 1,
+      "share_id": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb"
+    },
+    {
+      "latency_ms": 55.278,
+      "missing": false,
+      "node": 2,
+      "share_id": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb"
+    },
+    {
+      "latency_ms": 56.598,
+      "missing": false,
+      "node": 3,
+      "share_id": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb"
+    },
+    {
+      "latency_ms": 57.807,
+      "missing": false,
+      "node": 0,
+      "share_id": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b"
+    },
+    {
+      "latency_ms": 59.459,
+      "missing": false,
+      "node": 1,
+      "share_id": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b"
+    },
+    {
+      "latency_ms": 30.673,
+      "missing": false,
+      "node": 2,
+      "share_id": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b"
+    },
+    {
+      "latency_ms": 59.398,
+      "missing": false,
+      "node": 3,
+      "share_id": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b"
+    },
+    {
+      "latency_ms": 53.863,
+      "missing": false,
+      "node": 0,
+      "share_id": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057"
+    },
+    {
+      "latency_ms": 57.44,
+      "missing": false,
+      "node": 1,
+      "share_id": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057"
+    },
+    {
+      "latency_ms": 55.01,
+      "missing": false,
+      "node": 2,
+      "share_id": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057"
+    },
+    {
+      "latency_ms": 30.59,
+      "missing": false,
+      "node": 3,
+      "share_id": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057"
+    },
+    {
+      "latency_ms": 27.687,
+      "missing": false,
+      "node": 0,
+      "share_id": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205"
+    },
+    {
+      "latency_ms": 55.127,
+      "missing": false,
+      "node": 1,
+      "share_id": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205"
+    },
+    {
+      "latency_ms": 52.425,
+      "missing": false,
+      "node": 2,
+      "share_id": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205"
+    },
+    {
+      "latency_ms": 51.209,
+      "missing": false,
+      "node": 3,
+      "share_id": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205"
+    },
+    {
+      "latency_ms": 65.822,
+      "missing": false,
+      "node": 0,
+      "share_id": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6"
+    },
+    {
+      "latency_ms": 41.886,
+      "missing": false,
+      "node": 1,
+      "share_id": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6"
+    },
+    {
+      "latency_ms": 65.744,
+      "missing": false,
+      "node": 2,
+      "share_id": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6"
+    },
+    {
+      "latency_ms": 64.467,
+      "missing": false,
+      "node": 3,
+      "share_id": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6"
+    },
+    {
+      "latency_ms": 60.891,
+      "missing": false,
+      "node": 0,
+      "share_id": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960"
+    },
+    {
+      "latency_ms": 59.946,
+      "missing": false,
+      "node": 1,
+      "share_id": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960"
+    },
+    {
+      "latency_ms": 26.379,
+      "missing": false,
+      "node": 2,
+      "share_id": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960"
+    },
+    {
+      "latency_ms": 60.554,
+      "missing": false,
+      "node": 3,
+      "share_id": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960"
+    },
+    {
+      "latency_ms": 57.288,
+      "missing": false,
+      "node": 0,
+      "share_id": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de"
+    },
+    {
+      "latency_ms": 57.724,
+      "missing": false,
+      "node": 1,
+      "share_id": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de"
+    },
+    {
+      "latency_ms": 55.977,
+      "missing": false,
+      "node": 2,
+      "share_id": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de"
+    },
+    {
+      "latency_ms": 26.73,
+      "missing": false,
+      "node": 3,
+      "share_id": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de"
+    },
+    {
+      "latency_ms": 25.923,
+      "missing": false,
+      "node": 0,
+      "share_id": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d"
+    },
+    {
+      "latency_ms": 55.092,
+      "missing": false,
+      "node": 1,
+      "share_id": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d"
+    },
+    {
+      "latency_ms": 50.22,
+      "missing": false,
+      "node": 2,
+      "share_id": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d"
+    },
+    {
+      "latency_ms": 51.486,
+      "missing": false,
+      "node": 3,
+      "share_id": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d"
+    },
+    {
+      "latency_ms": 71.705,
+      "missing": false,
+      "node": 0,
+      "share_id": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8"
+    },
+    {
+      "latency_ms": 46.88,
+      "missing": false,
+      "node": 1,
+      "share_id": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8"
+    },
+    {
+      "latency_ms": 73.057,
+      "missing": false,
+      "node": 2,
+      "share_id": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8"
+    },
+    {
+      "latency_ms": 72.133,
+      "missing": false,
+      "node": 3,
+      "share_id": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8"
+    },
+    {
+      "latency_ms": 62.778,
+      "missing": false,
+      "node": 0,
+      "share_id": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8"
+    },
+    {
+      "latency_ms": 62.674,
+      "missing": false,
+      "node": 1,
+      "share_id": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8"
+    },
+    {
+      "latency_ms": 27.396,
+      "missing": false,
+      "node": 2,
+      "share_id": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8"
+    },
+    {
+      "latency_ms": 62.873,
+      "missing": false,
+      "node": 3,
+      "share_id": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8"
+    },
+    {
+      "latency_ms": 57.107,
+      "missing": false,
+      "node": 0,
+      "share_id": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4"
+    },
+    {
+      "latency_ms": 57.539,
+      "missing": false,
+      "node": 1,
+      "share_id": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4"
+    },
+    {
+      "latency_ms": 55.956,
+      "missing": false,
+      "node": 2,
+      "share_id": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4"
+    },
+    {
+      "latency_ms": 25.893,
+      "missing": false,
+      "node": 3,
+      "share_id": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4"
+    },
+    {
+      "latency_ms": 36.494,
+      "missing": false,
+      "node": 0,
+      "share_id": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f"
+    },
+    {
+      "latency_ms": 63.193,
+      "missing": false,
+      "node": 1,
+      "share_id": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f"
+    },
+    {
+      "latency_ms": 60.69,
+      "missing": false,
+      "node": 2,
+      "share_id": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f"
+    },
+    {
+      "latency_ms": 63.112,
+      "missing": false,
+      "node": 3,
+      "share_id": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f"
+    },
+    {
+      "latency_ms": 73.642,
+      "missing": false,
+      "node": 0,
+      "share_id": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f"
+    },
+    {
+      "latency_ms": 44.751,
+      "missing": false,
+      "node": 1,
+      "share_id": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f"
+    },
+    {
+      "latency_ms": 73.729,
+      "missing": false,
+      "node": 2,
+      "share_id": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f"
+    },
+    {
+      "latency_ms": 74.755,
+      "missing": false,
+      "node": 3,
+      "share_id": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f"
+    },
+    {
+      "latency_ms": 62.732,
+      "missing": false,
+      "node": 0,
+      "share_id": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d"
+    },
+    {
+      "latency_ms": 61.638,
+      "missing": false,
+      "node": 1,
+      "share_id": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d"
+    },
+    {
+      "latency_ms": 27.714,
+      "missing": false,
+      "node": 2,
+      "share_id": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d"
+    },
+    {
+      "latency_ms": 62.538,
+      "missing": false,
+      "node": 3,
+      "share_id": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d"
+    },
+    {
+      "latency_ms": 50.98,
+      "missing": false,
+      "node": 0,
+      "share_id": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c"
+    },
+    {
+      "latency_ms": 49.757,
+      "missing": false,
+      "node": 1,
+      "share_id": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c"
+    },
+    {
+      "latency_ms": 49.977,
+      "missing": false,
+      "node": 2,
+      "share_id": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c"
+    },
+    {
+      "latency_ms": 26.727,
+      "missing": false,
+      "node": 3,
+      "share_id": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c"
+    },
+    {
+      "latency_ms": 34.554,
+      "missing": false,
+      "node": 0,
+      "share_id": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d"
+    },
+    {
+      "latency_ms": 59.672,
+      "missing": false,
+      "node": 1,
+      "share_id": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d"
+    },
+    {
+      "latency_ms": 59.018,
+      "missing": false,
+      "node": 2,
+      "share_id": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d"
+    },
+    {
+      "latency_ms": 58.891,
+      "missing": false,
+      "node": 3,
+      "share_id": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d"
+    },
+    {
+      "latency_ms": 52.665,
+      "missing": false,
+      "node": 0,
+      "share_id": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04"
+    },
+    {
+      "latency_ms": 28.085,
+      "missing": false,
+      "node": 1,
+      "share_id": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04"
+    },
+    {
+      "latency_ms": 52.542,
+      "missing": false,
+      "node": 2,
+      "share_id": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04"
+    },
+    {
+      "latency_ms": 52.957,
+      "missing": false,
+      "node": 3,
+      "share_id": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04"
+    },
+    {
+      "latency_ms": 74.221,
+      "missing": false,
+      "node": 0,
+      "share_id": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844"
+    },
+    {
+      "latency_ms": 76.072,
+      "missing": false,
+      "node": 1,
+      "share_id": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844"
+    },
+    {
+      "latency_ms": 43.631,
+      "missing": false,
+      "node": 2,
+      "share_id": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844"
+    },
+    {
+      "latency_ms": 74.458,
+      "missing": false,
+      "node": 3,
+      "share_id": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844"
+    },
+    {
+      "latency_ms": 56.213,
+      "missing": false,
+      "node": 0,
+      "share_id": "7a75ae003d15a4d30d1b36cfb1f3cca83d71ea14660ae050e0bc56137c0a48af"
+    },
+    {
+      "latency_ms": 59.087,
+      "missing": false,
+      "node": 1,
+      "share_id": "7a75ae003d15a4d30d1b36cfb1f3cca83d71ea14660ae050e0bc56137c0a48af"
+    },
+    {
+      "latency_ms": 58.898,
+      "missing": false,
+      "node": 2,
+      "share_id": "7a75ae003d15a4d30d1b36cfb1f3cca83d71ea14660ae050e0bc56137c0a48af"
+    },
+    {
+      "latency_ms": 27.029,
+      "missing": false,
+      "node": 3,
+      "share_id": "7a75ae003d15a4d30d1b36cfb1f3cca83d71ea14660ae050e0bc56137c0a48af"
+    }
+  ],
+  "shares": [
+    {
+      "origin_node": 0,
+      "parent_share": null,
+      "sequence": 0,
+      "share_id": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "a5842031cee1dde93371d8c79875964605d6906cbeed57dc91012b12a7323f12",
+      "sequence": 1,
+      "share_id": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "9703d463e6be1d65dcf2c0c932a25a9e0485c07de605a85b5340240f43b54740",
+      "sequence": 2,
+      "share_id": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "33725caf55fdc18bd2d7eb6f30e052c5fab77fef5f487c32000b4e2c8d73152c",
+      "sequence": 3,
+      "share_id": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "9afad442eacb05e0a197f3f374d707d34f5aa68fc9f10b47a677914f2f67ae35",
+      "sequence": 4,
+      "share_id": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "3e62a9adb9fe2d24faee04c0b75e4bc068ab7ddc416aa8972c7e05a35eedede8",
+      "sequence": 5,
+      "share_id": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "af5cf04a9c167acf0c812c220ca3b80de63c5688b8ffc62957ad59da69571736",
+      "sequence": 6,
+      "share_id": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "98bcddc35fdfb17ef3f157739d48942b2af19f242abeb59bfbfda323749fdef3",
+      "sequence": 7,
+      "share_id": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "59e69a60fd5294b6fd0cc086ad31b9c8465e0fef60b1f98d07a7bb475f19ae0d",
+      "sequence": 8,
+      "share_id": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "7619f41a377b3020415096e6d3d3c7e396c71ea106974f3ad2321d3bc67efd96",
+      "sequence": 9,
+      "share_id": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "94ae5cb75cd516a5d88822da5a631a1ee524a0ec258835fa0d4945a5f1ff4998",
+      "sequence": 10,
+      "share_id": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "2b05e9e3844d7eee6dff0d5fc967fbab8b9498e3216b8a2cf25ade40715e7a9f",
+      "sequence": 11,
+      "share_id": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "f2fadf032f0286d2ee6c479e3852e7fe824abadacf2345f023ab854f6b75e5d2",
+      "sequence": 12,
+      "share_id": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "70009687764a60e76684aa64bda3c4d22d76ee751ca884e5790ff67e0d755260",
+      "sequence": 13,
+      "share_id": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "504c8955301ac2325a1c27a82ee44c6049b950197930757bb2e39a95453773e0",
+      "sequence": 14,
+      "share_id": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "09c919d14fc0337fd6bfc7027b541d8cae6222a948d359dbcb9f91dfd0f8e069",
+      "sequence": 15,
+      "share_id": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "573bd41f610ecc23999e156761070b9cdf4b361bdadd4d36ffa60a9c81154e20",
+      "sequence": 16,
+      "share_id": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "7058e69ec87c880204caec6aedf4f0fd3476cada4082e1dc1c97c2f8227ecf38",
+      "sequence": 17,
+      "share_id": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "f1abdc9d96a207719908e363b79c535c3458bb459e4840375b8f3a9555e73beb",
+      "sequence": 18,
+      "share_id": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "a45a2056147cf014a9d6137b06e482ca46c6c69289c8fe5d325c8b01d1df6cfb",
+      "sequence": 19,
+      "share_id": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "b68d1f188f881ec2061b3faadf52f5cf728220929e719e8058bc8eacdc237b4d",
+      "sequence": 20,
+      "share_id": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "89c22276efce5dd5ba73477d1a50042c56e17adb104047a5586b5d903ff23e05",
+      "sequence": 21,
+      "share_id": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "a987833ded541a7d63be12f5a45382f0fa928dd23dd1de8b8106992111794a4a",
+      "sequence": 22,
+      "share_id": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "3d8650d2f4171811a18d1ba69cbe122daeaff7fc4c4492651ce1c3413139064f",
+      "sequence": 23,
+      "share_id": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "8d712e8149030c117d33227cbf6c3548af98b724523da8becb2048d9465dd3fd",
+      "sequence": 24,
+      "share_id": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "393fb837020ed642b5aecd94d31b6cce07d46bb177bd4982b25023cbf2a62ca6",
+      "sequence": 25,
+      "share_id": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "815c3c0586bcc8dbabc1ce6f5b4712bd1184fdd8c53cbf461f7f44586669ef31",
+      "sequence": 26,
+      "share_id": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "89242ca49cac98c06894b742b4628cf1a1d8f0b2192ec090f64c395b37ff33f7",
+      "sequence": 27,
+      "share_id": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "6854d55ddd855435ac799e77085d451e57b762df2971f1dd6469e02f572ecb5c",
+      "sequence": 28,
+      "share_id": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "f351023982823360557f6762df9130b430bad570bb15223ff78db5bf75b4c55a",
+      "sequence": 29,
+      "share_id": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "f3e7ea0d00ba21048933afd3c98c8e5ec567a263ce6454f8b8a71e0a888fdfda",
+      "sequence": 30,
+      "share_id": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "d98abf90d59b93e611710cc5c98155a47c97723c2a645fc2ceb0d11e8bcd07a9",
+      "sequence": 31,
+      "share_id": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "27502baa14a3644d80a26c782f9ce8d42fae83b3f1447bc1b7f83009b283c47c",
+      "sequence": 32,
+      "share_id": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "d6e53e9fe9bcb7645c10aacfcbe8bfa03463f9d8dcc7598973b2697acb4b5d8f",
+      "sequence": 33,
+      "share_id": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "0f41b228cbda632736b50810c4a851857ba33ad65dc7048877970efe88700539",
+      "sequence": 34,
+      "share_id": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "94d973aac85aef5791c54b7a6ef58848ead5f2f4e95cec2b45f3461b36882c49",
+      "sequence": 35,
+      "share_id": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "5661d675d7d111ee613e5cb3d8cdfcaea25ccc8140f862abd56d87958e10a4bc",
+      "sequence": 36,
+      "share_id": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "8415309ca3dcfae1903525ff756d5857c86376dfbf8100a987f94aa09779c6f2",
+      "sequence": 37,
+      "share_id": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "238d1be5ede2f5b20ba84bc8de70508e80e066586115db6b34d5941e5f77347d",
+      "sequence": 38,
+      "share_id": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "afb62710c967dc8213853a3c165896c918992995261f4d29aabed7f9ea692058",
+      "sequence": 39,
+      "share_id": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "18ab0487ced60d03f1591fe068e2903b5a5782702e7f0f8908f24d91eb7cef4c",
+      "sequence": 40,
+      "share_id": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "608acd500a2561e7df57e9450d89067a60cb5e379f615b9aa17d1eae0fdf8a05",
+      "sequence": 41,
+      "share_id": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "b8355fd99e3010dafdd45ba81f9b964861982c26aa8bbe9307bcabc502cb7506",
+      "sequence": 42,
+      "share_id": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "f5f21c9d7325b2ccdb1c4d3914c46e427e6079b95bb94d4df2c81341c1c7aac2",
+      "sequence": 43,
+      "share_id": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "9010aa1d8d8709c8077bada0b77ed5105aac687cc08832f99790632fcbae2f24",
+      "sequence": 44,
+      "share_id": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "3e53b0d04b0cbfc10d7336890deb5e91a099485442a77b052188b89bb073fd65",
+      "sequence": 45,
+      "share_id": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "163870452c0c2ce0dfbc1c27a94042c9d0832e6b1cdac43f933afa947d52f651",
+      "sequence": 46,
+      "share_id": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "d139c59a591d2d08ad524924b85429ad3683b24843e85dc824bb2b87b5fd7e74",
+      "sequence": 47,
+      "share_id": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "fbda4ca6e8bd91a63b6b0a39dd270fc7f5121831d2a8b38931909eceb95e2acb",
+      "sequence": 48,
+      "share_id": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "2947a6d814dc297cd60ae07c20ad8b8500421c41e32ab373b121954d2349bef5",
+      "sequence": 49,
+      "share_id": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "af427c08c8ece3c6a475ab5396734d709f8a07f2cbdac5fee7f9c16e47ed8aaa",
+      "sequence": 50,
+      "share_id": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "89bc51aa0bd92207df0516d56e4000c8886d7eaaa955ae8804a0d587a9ca54b3",
+      "sequence": 51,
+      "share_id": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "fb1baea529f8132eb3d9dadbb48917d70a6ceba83a7cda18b8126df0f210024e",
+      "sequence": 52,
+      "share_id": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "96f94d9db0d3c787db9375e676edad08be9eb7f57d47d9fdba3ce8b9e78ac379",
+      "sequence": 53,
+      "share_id": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "942a9744c45feb7291e4225b3b049ee62e8e57b31e3207d1bd9a5960fac91fd1",
+      "sequence": 54,
+      "share_id": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "554b724dffb4993529761106659c4d1eca73d24b6480890f62d7d74db8ec43e5",
+      "sequence": 55,
+      "share_id": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "ac47061c172b83d0c229dc67d124590976df2ec6a842b7da37f61a087d04f712",
+      "sequence": 56,
+      "share_id": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "c31ee9ff54b121083614317006039948f9f1f95fed742ca4860c4e95cd9a9d04",
+      "sequence": 57,
+      "share_id": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "785a80af94be6c24492bca989b4ba2222888c568b0765b0aa921bf1e319d3900",
+      "sequence": 58,
+      "share_id": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "cf260d1304a79bf996a15fe654f63c8145da82143b71b51f718f56e4d0d8216f",
+      "sequence": 59,
+      "share_id": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "afd3250430f9523362b5bb62d74ae0a54715ea9d0ad68daa22b2bf60efddd26a",
+      "sequence": 60,
+      "share_id": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "c1cdaf5c63cf1e1863d3e94a9aa73d866f839de7751744de01bba71b47290fea",
+      "sequence": 61,
+      "share_id": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "06f7f9acf21b934a239e2222981dd674a4804f602b8a6077da20e922924005d1",
+      "sequence": 62,
+      "share_id": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "3d912fe946ab2eab40fa561a036bf61f42b92a2a930af0d53718ebb8d5118cf5",
+      "sequence": 63,
+      "share_id": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "9354b5fcf9c487d3ad263811f08d5162cce6fca67c45fef0292856e07b08aa7a",
+      "sequence": 64,
+      "share_id": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "85f5c022093e8a4da1e5233fff06f58050435ed7ccf0018a79557cdfe8b4dcc9",
+      "sequence": 65,
+      "share_id": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "8cecf42ce6ac9b47ad44fb4470c07ebf42244202171732d989eda5c707e5cf35",
+      "sequence": 66,
+      "share_id": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "b28deba4195bbd29385cb2fd7eae585291ee0cafb82fd4067ed4ade87e7bd6c1",
+      "sequence": 67,
+      "share_id": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "d9cfed8cb478ee2c46e0fd6c93462981c2f1497621a720decca2ea2a820c6236",
+      "sequence": 68,
+      "share_id": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "2e56fe6de2eb437a21cb879ada641894d905df59b650fcbab8f8d50cb599f9d7",
+      "sequence": 69,
+      "share_id": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "13c48cc2d4dbe1757ff1b82898d9c67473c56545e61f33364c2b6ab6f417d2e9",
+      "sequence": 70,
+      "share_id": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "ba19e43afa542e199d27a1886b6639212657d8a4eb5d05fea7e394821b75fa9e",
+      "sequence": 71,
+      "share_id": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "67b38cdc5f3ac2f57ca838a000aad047e389d91def67bafe17341b90ee724428",
+      "sequence": 72,
+      "share_id": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "9705f210324d27002e40f8398536de0f3cf0573228af482ed238aee7376b4de0",
+      "sequence": 73,
+      "share_id": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "7b8a118d9a307fd8668ef0eb42b76b3e83d35ec032d028269329ad4208132de4",
+      "sequence": 74,
+      "share_id": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "99f8fd7289106eba1483d839503dae3c70259fb0301bb8b925433887c2d1dbde",
+      "sequence": 75,
+      "share_id": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "1d0b2e461e65c535b2a08a8d9a70be8bc33c92df1c55c439ba23113e6187803b",
+      "sequence": 76,
+      "share_id": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "b178c960f89c8343a1c808e6dc1fb96b07faedf6f1e63b879ba1af5dd66af5c0",
+      "sequence": 77,
+      "share_id": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "7d9aa493d59e7f25831404337c001e4c188c925c5a95dc1c1082d7a8c71cf90b",
+      "sequence": 78,
+      "share_id": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "c3b9c69abda78867eb588b9d8abb545aa4cc551f7a9e59977810feb4a9691477",
+      "sequence": 79,
+      "share_id": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "e39fe0e011c7e6b122b9a41f01d46670e8299e4f896d3655a4bed6261bacdb56",
+      "sequence": 80,
+      "share_id": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "2f2904e6008f9fffba3fdd50ae4659bd9cc491ab46a61b962b5fa6808112c441",
+      "sequence": 81,
+      "share_id": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "2517c91f97da71725ad4b591d8c6d4a34b83b8e7640605b51e4585caaa8e1395",
+      "sequence": 82,
+      "share_id": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "62104118f89172f16ea5c1f64f5670d57bed28422f6aaad9f84f4f5d53e93e11",
+      "sequence": 83,
+      "share_id": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "23fed1abf895725be3bb31fc33fa73b3f6b66e78210dbbde5b8e3ae404ea73ce",
+      "sequence": 84,
+      "share_id": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "405969028baf5556e6bfa2e7d417a7df127dc46c6fe954e94e9abcf6a74f7ccb",
+      "sequence": 85,
+      "share_id": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "54e481adf392f307e128fa94f71758fe055294d7bf9058da66566b42cb40ab0d",
+      "sequence": 86,
+      "share_id": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "ebfcca75047e38293bc9418e5e37469e5aea4974d84681e235ba09cceaccf450",
+      "sequence": 87,
+      "share_id": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "3bca8312060f7036a52dd4fe27cc43b7dfb6f718393e8d242ff76b414bb0151f",
+      "sequence": 88,
+      "share_id": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "00182c9ae50f208006b64de6a68028b0df18262718c23941e35b1b5d450c52b4",
+      "sequence": 89,
+      "share_id": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "8f24cb84c0cee015267a4510992c6779f134f209bd345aeaab95cceb8ec99104",
+      "sequence": 90,
+      "share_id": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "e41be972ca19ec88b7bb5c84d64a86fb92618656d719d02950044df30c4342a8",
+      "sequence": 91,
+      "share_id": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "e3cf8d19e613a7b11ab2d9803e1a5afe87b62cfd4c4b272c66bfb2bf761ad1d4",
+      "sequence": 92,
+      "share_id": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "122c6a70e51f5383c4217cc3fb47bcab93849c5a778d62b2ce0afcaf910ec5f3",
+      "sequence": 93,
+      "share_id": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "f0cfbf8ca0556ae2f3115b9eaeee79a2692a3d854642c17105698aed8e9ea4d2",
+      "sequence": 94,
+      "share_id": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "f5d609cc9299cd24fad85e61999685faabb3cb30cb6dc55ffbd068d20f6ddd9b",
+      "sequence": 95,
+      "share_id": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "e37633a8c633d60a50801f4eefd649f6e77bd73afc02286b5a84eb6f16bbebb9",
+      "sequence": 96,
+      "share_id": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "0a936d270ab97672097d8906adec3bf4e5a5407c59cac64a91667e62ed59a95a",
+      "sequence": 97,
+      "share_id": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "323662247c2b48715d6da3c3b6fbbe3c0e831e26f8d573499cf8d12313ef1b37",
+      "sequence": 98,
+      "share_id": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "8f185a7260876b95df2dd334cad2b7f79aff6e02fd847bb2537096a92082cd15",
+      "sequence": 99,
+      "share_id": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "b5385e9c18c1dea858a057a6e60358fb494b482de091acfe98f098bf8681ef51",
+      "sequence": 100,
+      "share_id": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "7bb559b6331d938b26d9a5ecc998a916c77cc7fcf186e6d78eb7433ca96f57c7",
+      "sequence": 101,
+      "share_id": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "34fc580c202aa32deaa92e8d8877764c3c374b9eff059d50ffef1b9070ec1ef7",
+      "sequence": 102,
+      "share_id": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "5aec825778747ff6e4f7790f108165f2bb89b05e53ec017b05dc9399a7469ea8",
+      "sequence": 103,
+      "share_id": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "1bff386319f888a328d2de706f5a3016f66acbc4686c68da21021e61a5a2ff71",
+      "sequence": 104,
+      "share_id": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "32c8390181e547d2d72f4e587b52a3e341caf5c3413dfcea232d7665fcff8172",
+      "sequence": 105,
+      "share_id": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "39a0cb1c385b179d37ee41c962fde7f2955a0d7fa0ef6cb0ebf307c8f2b6c34b",
+      "sequence": 106,
+      "share_id": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "4ab68ec5872575d0d4c538d3604de902e4921876714f832f377e25049f41a070",
+      "sequence": 107,
+      "share_id": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "3fcb1a7806d190c7f27daec2be46592922fffaa17618387b0b433d3a9c23e3b3",
+      "sequence": 108,
+      "share_id": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "05ba46a3e842fe55133d3ec51cdb3ecba3677847697e8e8d1a8fbc85c1979337",
+      "sequence": 109,
+      "share_id": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "cea46282c0ed3b49d9ce3afd6244be813c6c696da58fc9d8de15e4b3bd5abe32",
+      "sequence": 110,
+      "share_id": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "2217d20c83ce82808d850c131ca3e3309ed4c3bd41e0ea05f864b95848d8fd64",
+      "sequence": 111,
+      "share_id": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "1c9eb003036d4c2ea7200cffb0b679a2226540aa1f4d20e3e06a911681b598c0",
+      "sequence": 112,
+      "share_id": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "7d34d5a0bdd75fb97cb039d5e53d32d455af71e4706505e561ab0e7de041a462",
+      "sequence": 113,
+      "share_id": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "bb559d872078f7a3803337c597cd2403bd1c234b1dd03cc2c59c7f886edef431",
+      "sequence": 114,
+      "share_id": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "2f59eb629313fb55aa86dbd696a7f363d83211e1f7fc4f8da3eba7aa903123d0",
+      "sequence": 115,
+      "share_id": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "9eabf4ef0467dac3111214f0a5f69155a1ab94ef970cdcb2fea8fbab5e49642c",
+      "sequence": 116,
+      "share_id": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "32d0c49dbb3a27271fcc4a19d14e8348e5ea96186c50c752a97364b2e244a96b",
+      "sequence": 117,
+      "share_id": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "0afe74b00f8fb9cfcfd5b646bee0bc2094f339f9a42ac5da0a06fc5b18d6abe9",
+      "sequence": 118,
+      "share_id": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "12796dda3fbfbb05f23ff154d1e2960889309c219d2d98dddf5b463f3a83a45e",
+      "sequence": 119,
+      "share_id": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "ac777280d8274362481068355db9b870bddd7c13fec07625d419e0bc72949e98",
+      "sequence": 120,
+      "share_id": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "c01fed3878164debacfed64c5ae9f50389d9647644320f0bb71c7922d5d48749",
+      "sequence": 121,
+      "share_id": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "dbb74e8c33211ee89c66bad5edd72c6b91c57786875a9379e33c41e81c94a28a",
+      "sequence": 122,
+      "share_id": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "34169ac8ecd4a187db8ca698440461d819346217630de7488a186a86b934aadd",
+      "sequence": 123,
+      "share_id": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "9604072b465f09a0447c57fffb368ab9079d92185fcfaf99db2b0b9e9a3850d7",
+      "sequence": 124,
+      "share_id": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "2204882d303963f2ab685e89d85e5143ec8db67e20c4d8cf02c394f6bded211c",
+      "sequence": 125,
+      "share_id": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "1ecdc857b7d960e871f85a8e371a256355c4c8729111404380a239d0ab71e4b7",
+      "sequence": 126,
+      "share_id": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "5d6f8fc9174d7bbab11e2e6709842ecd8f6b8930e23267d49634957a9921972c",
+      "sequence": 127,
+      "share_id": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "a92abc4044ab35382f2fc53e89b6d6ee36a567d3b47f7a4f96723a5d7686a8e1",
+      "sequence": 128,
+      "share_id": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "9848a7eb4fb36451ee86261269e1009c54a45367940c64e290b712634fd6436a",
+      "sequence": 129,
+      "share_id": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "d27cdb3fe99fe523bf52f17a4df474a985cf115aded9a31964c042d05c6c0c7d",
+      "sequence": 130,
+      "share_id": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "2e46667c160865c5817ac3f1de755d2ef160811d2fe9e0077dfd4a565bb2d074",
+      "sequence": 131,
+      "share_id": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "69f3d3324592f0624971387a5f43b4f1f7d09c63561bfb6b592f0e58b47c32a0",
+      "sequence": 132,
+      "share_id": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "dec0961650e7341d62357dd80282dc3f100b28af1480264d594418ff571db826",
+      "sequence": 133,
+      "share_id": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "1d64c59e8babe25aca90f7fdf4f30fc6e380797ad218190af5a85e52cd0935b5",
+      "sequence": 134,
+      "share_id": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "0f143ef8c557476e8609b1345357d346409781792acbda17446917d0059157ef",
+      "sequence": 135,
+      "share_id": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "d2375cfc29aa9229fbb4bb15290c2b52d806c9091b8f9faf5f583e324a9c1d83",
+      "sequence": 136,
+      "share_id": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "1ac8afb8b1939908909988b42ca843ea33b0c0a4020c2ab0dd6239e0391c3d69",
+      "sequence": 137,
+      "share_id": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "d5cd536ade15df933771e2707b4db8ee42a8f7bb95ed68d716884a77325cd48c",
+      "sequence": 138,
+      "share_id": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "5d397348476019aea8a4e1802c1e22393603b48dbb4aeee06a4e8cce0dab5c25",
+      "sequence": 139,
+      "share_id": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "aaaad91b9e0c1f704b8403e21048ea3ff3dac3449f0e11a0d4690dd53e7ecb30",
+      "sequence": 140,
+      "share_id": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "dc79951793fda77542d7c7333383e55c402a259082da25f64b0acb0998ec7707",
+      "sequence": 141,
+      "share_id": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "9e70e06cb937e40de5f6e73fe56fb3998181e3485776029f5ba56a68a3f9cd39",
+      "sequence": 142,
+      "share_id": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "e5f7490b82d80a13af49f27a86c5dc069fc1793f68c1445d68a7264f6c88f5c9",
+      "sequence": 143,
+      "share_id": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "5330178c6fe88da7ceec14ce446307cccb2dfefeb7bf39adbf8cdf37001f0fb9",
+      "sequence": 144,
+      "share_id": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "ee2d120c0af38b3d431e1f41986a26c16581ead013e3d064cb4aed3b8ec2603c",
+      "sequence": 145,
+      "share_id": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "664aa4286d3fcbfb3b8660fbb2b5552dbf97160809c6d933d5e38e8c3d081886",
+      "sequence": 146,
+      "share_id": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "205da8a83707c6efb5df0cee71ef31828f387a7d48a10797d7e57124c6f948b4",
+      "sequence": 147,
+      "share_id": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "f66e47e82c2d8172f5b811861d37ca27a219d16b2d2c6b6edceefea97b10a6d7",
+      "sequence": 148,
+      "share_id": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "0b8ab94cf50b50844c085e6c7f0dfd001855db60bffb38a0168e007dbe96effa",
+      "sequence": 149,
+      "share_id": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "f07077008479ab6984a41e38f8eed320368d5ee5c019d01512020f68b2b3f4b9",
+      "sequence": 150,
+      "share_id": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "79842e7962b39d8164cb1b79aa6f7596f26091a2a6c667fc09c372c76bb1eef4",
+      "sequence": 151,
+      "share_id": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "8d3287711a0438bca9c002a7407e34b2c5bea308dda39717cbe2e0e732e84f0f",
+      "sequence": 152,
+      "share_id": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "df8047238897633d81db706cc25eac6eda2da3c555c350de3f3d329118b04462",
+      "sequence": 153,
+      "share_id": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "9612e36e38e78ac0e661e6ec9c1a9815fc1e0a614b137fd5894012f0cf145221",
+      "sequence": 154,
+      "share_id": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "db086dd57acf0fe294d1dd5f99a6cbc365a03f52a7d8dc0b3cd9d08d8c3734c7",
+      "sequence": 155,
+      "share_id": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "f0a61b2190a6f2054f9a870c1db0ac890a000876e0c0f49da50484db2408c32b",
+      "sequence": 156,
+      "share_id": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "9333b0187a687a08b6a27a380687a7324feb4dce131b2622bda0b7c02e4a3198",
+      "sequence": 157,
+      "share_id": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "d389e49e4ba67b61ff278a7611d57948575e165c8b466ad9af6244d89397cf06",
+      "sequence": 158,
+      "share_id": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "784446b19dbb1ca46fb7854eb2964a17f9488a1e1c55c9e75323319f6f8f8751",
+      "sequence": 159,
+      "share_id": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "2ec46ea7031ef4eccf694d5e86da2862b5a1dd02466d853ee7ae79ef45e4fcc6",
+      "sequence": 160,
+      "share_id": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "5863246db872c13941326fa0ec161c7fee9805aefeb2f4f5cbb501c06083f4fa",
+      "sequence": 161,
+      "share_id": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "490b778a69f1ac2b20dec3ecdf2a34eaec6cfeb267d4e55023c801fe1dc50beb",
+      "sequence": 162,
+      "share_id": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "02a6b8798ec5200e9c74e4d0aef13017cb96fc74a73ba156f2007d83ca236d7b",
+      "sequence": 163,
+      "share_id": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "6427a79b488c60ea7a4c08a0cbf35b5c35a944854d9f31cf6352bab7432c2057",
+      "sequence": 164,
+      "share_id": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "67921f3e0a7299bb21935f3fde2410acac3fe2b299029da1c21a33e5791b1205",
+      "sequence": 165,
+      "share_id": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "786ef35b1ee0bef39c0f0bb59b5e9d7867ee752becb879d06f632361c8dfa6b6",
+      "sequence": 166,
+      "share_id": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "6516314169393cbc8a28d68aad642863d28091fce64817dd51563cb094284960",
+      "sequence": 167,
+      "share_id": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "a23a8903938aa453695170bb32898926b65bee63d9380f288924f00b69b316de",
+      "sequence": 168,
+      "share_id": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "592b2717a5a77ae534a9698a8d6ffccc5fb65c3dffbd8968faa2707d5c32371d",
+      "sequence": 169,
+      "share_id": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "9850ad442fcb2c8db166a147ce13e2a885968fd7ff741c92f9e33f02301396c8",
+      "sequence": 170,
+      "share_id": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "cf25d49925afe57e5d5b2846cabe205869d21f2f8445b48ee37d18eaa9583fa8",
+      "sequence": 171,
+      "share_id": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "30160a95d75de74e7e408b556f332bf55f6f178fcba350ee8b3f9e6b8730aed4",
+      "sequence": 172,
+      "share_id": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "24496d424af4342563ca5497c769ca20f50905489e0f6f7a5382598aeb0ed79f",
+      "sequence": 173,
+      "share_id": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "b51c34cd4ea2010c9460fdb39d45b95abe83f95eb4c885132b254a73e2f6c34f",
+      "sequence": 174,
+      "share_id": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "0cd42da97ce3daf5f37a4d3fd7441bf2e95a138195ea1149f11dc8f28c584b1d",
+      "sequence": 175,
+      "share_id": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c"
+    },
+    {
+      "origin_node": 0,
+      "parent_share": "a34986af77e8eb45d3a95ff4f4091d2226c7100f4fe5bed500cd314a9fe5702c",
+      "sequence": 176,
+      "share_id": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d"
+    },
+    {
+      "origin_node": 1,
+      "parent_share": "1a6eab257bc1b253948d2d8eb0c7bde5bff142a07d121d9a7c1a47ed3efc1c7d",
+      "sequence": 177,
+      "share_id": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04"
+    },
+    {
+      "origin_node": 2,
+      "parent_share": "1e92e845d0b25fc283895dde23d192efe8451d3d16baa5691a8ee3a81d3a1b04",
+      "sequence": 178,
+      "share_id": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844"
+    },
+    {
+      "origin_node": 3,
+      "parent_share": "1365cbf7b98fcad47a5551b01caffb4f88ec0fbdb250cd5e1e4f7dff1bfbb844",
+      "sequence": 179,
+      "share_id": "7a75ae003d15a4d30d1b36cfb1f3cca83d71ea14660ae050e0bc56137c0a48af"
+    }
+  ],
+  "task_id": "POOL-06-GATE",
+  "thresholds": {
+    "bandwidth_kb_s_per_node_lt": 10.0,
+    "latency_p50_ms_lt": 5000.0,
+    "latency_p99_ms_lt": 10000.0,
+    "orphan_rate_percent_lt": 20.0,
+    "propagation_completeness_percent_gte": 100.0
+  }
+}

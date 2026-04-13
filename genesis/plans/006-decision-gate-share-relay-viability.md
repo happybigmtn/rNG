@@ -40,30 +40,34 @@ This plan does not test adversarial scenarios such as share withholding attacks,
 
 ## Progress
 
-- [ ] Set up a 4-node regtest cluster with sharepool active.
-- [ ] Run a sustained share production test (target: 10 minutes of continuous share generation).
-- [ ] Measure share propagation latency across all node pairs.
-- [ ] Measure per-node bandwidth overhead from share relay.
-- [ ] Test orphan handling under node churn (stop and restart nodes mid-run).
-- [ ] Test sharechain convergence with unequal connectivity (one node connected to only one peer).
-- [ ] Test minority miner share inclusion (one miner at 10% of total share rate).
-- [ ] Write the relay performance report.
-- [ ] Record go/no-go decision in Decision Log.
+- [x] Set up a 4-node regtest cluster with sharepool active.
+- [x] Run a sustained share relay test at the active queue's requested cadence: 180 linked shares, one share every 10 seconds, over a 30-minute measured window.
+- [x] Measure share propagation latency across all nodes.
+- [x] Measure per-node bandwidth overhead from share relay.
+- [x] Measure externally visible child-before-parent share arrival order as the available orphan-rate proxy.
+- [ ] Test node-restart churn with node-native orphan counters. Deferred until a later task exposes sharechain diagnostics through RPC or equivalent instrumentation.
+- [ ] Test sharechain convergence with unequal connectivity. Deferred from this scoped queue item because the active acceptance criteria only require bandwidth, latency, orphan rate, and propagation completeness.
+- [ ] Test minority miner share inclusion. Deferred until reward-window code exists; POOL-05 only stores and relays shares.
+- [x] Write the relay performance report.
+- [x] Record go/no-go decision in Decision Log.
 
 
 ## Surprises & Discoveries
 
-No entries yet. This section will be updated as experiments run.
+- 2026-04-13: The live POOL-05 surface does not include the historical plan's `submitshare` RPC, `getsharechaininfo` RPC, or reward-window APIs. Those are assigned to later queue work. The POOL-06-GATE run therefore injected valid `CShareRecord` payloads through the functional P2P harness, observed propagation with per-node P2P observers, and measured bandwidth with existing `getpeerinfo` byte counters.
+- 2026-04-13: The node does not expose share orphan counters through RPC. The available measurement is externally visible child-before-parent arrival order at each observer. The sustained ordered run observed zero child-before-parent arrivals across 716 parented observer receipts.
+- 2026-04-13: `specs/sharepool.md` confirms a 1-second mainnet share-spacing candidate, but the active queue item explicitly requested a 30-minute run at about 10-second share intervals. This checkpoint records only the requested 10-second-cadence evidence and does not claim that 1-second relay cadence has been measured.
 
 
 ## Decision Log
 
-No entries yet. The go/no-go decision from this checkpoint will be recorded here with full rationale and evidence.
+- 2026-04-13: GO for the active POOL-06-GATE queue criteria on the current POOL-05 P2P relay implementation. A 4-node activated regtest full mesh relayed 180 linked shares over a 30-minute measured window at 10-second intervals. The measured p50 propagation-to-all-nodes latency was 58.636 ms, p99 was 79.203 ms, maximum share-relay bandwidth was 0.062695 KB/s per node, child-before-parent observer arrival rate was 0.0%, and propagation completeness was 100.0%. These are all within the active queue thresholds. The historical broader churn, star-topology, and minority-window experiments remain future measurement work because the current live tree lacks node-native share diagnostics and reward-window code.
 
 
 ## Outcomes & Retrospective
 
-No entries yet. This section will be updated when the checkpoint completes.
+- The current inventory/request/full-share relay design is viable for the measured 4-node, 10-second-cadence regtest scenario. No relay bug was found and no protocol redesign is needed before starting the payout/claim slice.
+- The next implementation slices should not treat this as proof of the confirmed 1-second mainnet share cadence. A shorter-cadence relay measurement should be repeated after the share-producing miner and sharechain RPC surfaces exist.
 
 
 ## Context and Orientation
@@ -174,7 +178,7 @@ Run the relay benchmark test:
 
     python3 test/functional/feature_sharepool_relay_benchmark.py --configfile=build/test/config.ini
 
-Expected outcome: the script runs for approximately 15-20 minutes (covering all five experiments), prints structured results, and exits with a summary.
+Expected outcome: the script runs for approximately 30 minutes after activation setup, prints structured results, and exits with a summary. Current live-code note: until `submitshare`, `getsharechaininfo`, and reward-window RPC surfaces exist, this script runs the scoped POOL-06-GATE queue measurement rather than all historical Plan 006 experiments.
 
 Expected summary format:
 
@@ -183,8 +187,7 @@ Expected summary format:
     Latency (p99):       <X> ms   (threshold: < 10000 ms)  PASS/FAIL
     Bandwidth per node:  <X> KB/s (threshold: < 10 KB/s)   PASS/FAIL
     Orphan rate:         <X>%     (threshold: < 20%)        PASS/FAIL
-    Convergence:         <X> ms   (threshold: < 10000 ms)   PASS/FAIL
-    Minority inclusion:  <X>%     (threshold: > 5%)         PASS/FAIL
+    Propagation:         <X>%     (threshold: 100%)         PASS/FAIL
     Overall:             GO / NO-GO
 
 After the benchmark completes, update this file's Decision Log and Artifacts sections with the results.
@@ -192,9 +195,9 @@ After the benchmark completes, update this file's Decision Log and Artifacts sec
 
 ## Validation and Acceptance
 
-This checkpoint is accepted when:
+The scoped POOL-06-GATE queue checkpoint is accepted when:
 
-All five experiments have been run and produced quantitative results.
+The active queue metrics have been run and produced quantitative results: bandwidth, propagation latency, orphan-rate proxy, and propagation completeness.
 
 The results are documented in the Artifacts and Notes section of this file with enough detail for another person to understand the methodology and reproduce the experiments.
 
@@ -216,15 +219,52 @@ The benchmark script should be deterministic in its share generation (using fixe
 
 ## Artifacts and Notes
 
-This section will be populated with the relay performance report after the experiments run. The report will include:
+Raw JSON artifact: `contrib/sharepool/reports/pool-06-relay-viability.json`
 
-1. Test environment description (hardware, OS, number of CPU cores, available memory).
-2. Share generation parameters (share target, generation rate, total shares produced).
-3. Network topology for each experiment.
-4. Raw measurement tables (one row per share for latency, one row per node for bandwidth).
-5. Computed metrics (p50, p99, mean, max for latency; KB/s for bandwidth; percentages for orphan rate and minority inclusion).
-6. Threshold comparison table.
-7. Go/no-go recommendation with rationale.
+Benchmark command:
+
+    python3 test/functional/feature_sharepool_relay_benchmark.py --configfile=build/test/config.ini --shares=180 --share-interval=10 --output=contrib/sharepool/reports/pool-06-relay-viability.json
+
+Environment:
+
+- Platform: Linux 6.18.13 arch x86_64, glibc 2.43
+- Python: 3.14.3
+- CPU count reported by Python: 22
+- Transport: P2P v1
+- Git baseline at measurement start: `e57aa5533c83313680c3867c73b344185a7d2b3a`
+
+Method:
+
+- Started 4 regtest nodes with `-vbparams=sharepool:0:9999999999:0`.
+- Mined six 72-block regtest periods before measuring so `sharepool` was active on every node.
+- Connected the 4 nodes as a full mesh.
+- Attached one P2P observer and one P2P seeder to each node.
+- Seeded 180 unique linked `CShareRecord` payloads over P2P at one share every 10 seconds for a 1,800-second measured window.
+- Used one mined PoW-valid block header as the reusable candidate header, with distinct parent and payout-script fields per share, because the current tree does not yet have share-producing miners or `submitshare`.
+- Measured node-to-node share relay bandwidth from `getpeerinfo` `shareinv`, `getshare`, and `share` byte deltas. Observer/seeder sockets were excluded from bandwidth totals.
+- Measured propagation as wall-clock time from seeding a share to all four observers receiving the full `share` payload.
+- Measured orphan-rate proxy as child-before-parent arrival order at observers, because node-native orphan counters are not exposed yet.
+
+Results:
+
+| Metric | Measured | Threshold | Result |
+|--------|----------|-----------|--------|
+| Latency p50 to all nodes | 58.636 ms | < 5,000 ms | PASS |
+| Latency p99 to all nodes | 79.203 ms | < 10,000 ms | PASS |
+| Max share relay bandwidth per node | 0.062695 KB/s | < 10 KB/s | PASS |
+| Child-before-parent arrival rate | 0.0% | < 20% | PASS |
+| Propagation completeness | 100.0% | 100.0% | PASS |
+
+Per-node share relay bandwidth:
+
+| Node | Peers | Sent | Received | Total | KB/s |
+|------|-------|------|----------|-------|------|
+| 0 | 3 | 57,780 bytes | 57,780 bytes | 115,560 bytes | 0.062695 |
+| 1 | 3 | 57,780 bytes | 57,780 bytes | 115,560 bytes | 0.062695 |
+| 2 | 3 | 57,780 bytes | 57,780 bytes | 115,560 bytes | 0.062695 |
+| 3 | 3 | 57,780 bytes | 57,780 bytes | 115,560 bytes | 0.062695 |
+
+Decision: GO for POOL-06-GATE as scoped by the active queue item. No threshold was breached.
 
 Decision criteria summary (repeated here for reference during analysis):
 
@@ -251,16 +291,16 @@ If minority miner is excluded: Debug the reward window construction in `src/shar
 
 ## Interfaces and Dependencies
 
-This plan depends on Plan 004 (deployment skeleton) and Plan 005 (sharechain data model, storage, and relay). Specifically, it depends on the following interfaces from Plan 005:
+This plan depends on Plan 004 (deployment skeleton) and Plan 005 (sharechain data model, storage, and relay). The scoped 2026-04-13 queue run used the interfaces that exist in the live POOL-05 tree:
 
-`submitshare` RPC in `src/rpc/mining.cpp` for injecting shares into the network.
+`share` P2P messages for injecting valid serialized shares from the functional test harness.
 
-`getsharechaininfo` RPC in `src/rpc/mining.cpp` for querying the current best tip, chain height, and orphan count.
+`shareinv` and `getshare` P2P messages for node-to-node relay and payload fetch.
 
-`RewardWindow::GetWindow()` in `src/sharechain/window.h` for reading the reward window contents (used in the minority miner experiment).
+Per-node P2P observers in the functional test harness for arrival timestamps and propagation completeness.
 
 `getpeerinfo` RPC (existing Bitcoin Core RPC) for measuring bandwidth via `bytessent` and `bytesrecv` fields.
 
-This plan does not produce new code interfaces. Its output is a performance report and a go/no-go decision that gates Plan 007. The decision is recorded in this file's Decision Log and referenced by Plan 007's dependency declaration.
+The historical `submitshare`, `getsharechaininfo`, and reward-window interfaces are not live yet; they are assigned to later queue work. This checkpoint therefore does not produce new node interfaces. Its output is a performance report and a go/no-go decision that gates Plan 007. The decision is recorded in this file's Decision Log and referenced by Plan 007's dependency declaration.
 
 Later plans that depend on this one: Plan 007 (Compact Payout Commitment and Claim Program) should not proceed until this checkpoint records a "go" decision. If the decision is "no-go," the relay protocol must be revised (likely by modifying `src/net_processing.cpp` and `src/protocol.h` from Plan 005) and this checkpoint must be re-run.
