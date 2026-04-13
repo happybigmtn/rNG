@@ -149,19 +149,19 @@ Items below are real work identified by the specs but either depend on unresolve
 - [x] `DONE-03` Network identity and P2P protocol
 
   Spec: `specs/120426-network-identity.md`
-  Codebase evidence: `src/kernel/chainparams.cpp:140-147` — magic `0xB07C010E`, port 8433, HRP `rng`, P2PKH byte 25, protocol version 70100, user agent `/RNG:3.0.0/`, data directory `~/.rng`, config `rng.conf`. Hardcoded seed peers at lines 177-180. DNS seeds at lines 170-173.
+  Codebase evidence: `src/kernel/chainparams.cpp:140-147` — magic `0xB07C010E`, port 8433, HRP `rng`, P2PKH byte 25, user agent `/RNG:3.0.0/`, data directory `~/.rng`, config `rng.conf`; `src/node/protocol_version.h` sets protocol version `70016`. Hardcoded seed peers are present in chainparams. Historical DNS seeds are absent from mainnet chainparams.
   Verification: `build/bin/rngd --version` reports correct identity. Existing P2P and RPC tests pass.
 
 - [x] `DONE-04` Consensus and chain rules
 
   Spec: `specs/120426-consensus-chain-rules.md`
-  Codebase evidence: `src/kernel/chainparams.cpp:100-131` — 2.1M halving, 120s mainnet spacing, 720-block LWMA window, 60-block cut, all BIPs active from height 0, BIP9 with 90% threshold. `src/validation.cpp:1838-1858` — `GetBlockSubsidy()` with tail emission floor at 0.6 RNG (`TAIL_EMISSION = 60000000`). Genesis hash `83a6a482...`.
+  Codebase evidence: `src/kernel/chainparams.cpp:100-139` — 2.1M halving, 120s mainnet spacing, 720-block LWMA window, 60-block cut, all BIPs active from height 0, BIP9 testdummy/taproot plus dormant sharepool. `src/validation.cpp:1947-1959` — `GetBlockSubsidy()` keeps the Bitcoin-derived halving schedule and has no tail-emission floor. Genesis hash `83a6a482...`.
   Verification: `build/bin/test_bitcoin --run_test=validation_tests` passes.
 
 - [x] `DONE-05` Wallet and RPC surface (base layer)
 
   Spec: `specs/120426-wallet-rpc-surface.md`
-  Codebase evidence: Full Bitcoin Core v29.0 wallet in `src/wallet/` (SQLite-backed descriptor wallet). All standard RPCs: `getnewaddress`, `sendtoaddress`, `getbalance`, `listtransactions`, `getwalletinfo`, `getblockchaininfo`, `getmininginfo`, `getnetworkinfo`, `getpeerinfo`, `getblocktemplate`, `submitblock`, plus RNG-specific `getinternalmininginfo`. Bech32 HRP `rng`, default address type P2WPKH.
+  Codebase evidence: Full Bitcoin Core v30.2-derived wallet in `src/wallet/` (SQLite-backed descriptor wallet). All standard RPCs: `getnewaddress`, `sendtoaddress`, `getbalance`, `listtransactions`, `getwalletinfo`, `getblockchaininfo`, `getmininginfo`, `getnetworkinfo`, `getpeerinfo`, `getblocktemplate`, `submitblock`, plus RNG-specific `getinternalmininginfo` and operator QSB RPC. Bech32 HRP `rng`, default address type P2WPKH.
   Verification: Existing wallet and RPC functional tests pass.
 
 - [x] `DONE-06` Operator onboarding scripts

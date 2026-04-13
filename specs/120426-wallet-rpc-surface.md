@@ -9,7 +9,7 @@ Define the wallet capabilities and RPC interface exposed by `rngd` and `rng-cli`
 ### Verified Facts (grounded in source code and documentation)
 
 **Wallet implementation**:
-- Bitcoin Core v29.0-derived wallet in `src/wallet/`
+- Bitcoin Core v30.2-derived wallet in `src/wallet/`
 - SQLite-backed descriptor wallet (default for new wallets)
 - Legacy (BDB) wallet support inherited from upstream
 - SegWit and Taproot address types supported from genesis
@@ -105,7 +105,7 @@ Define the wallet capabilities and RPC interface exposed by `rngd` and `rng-cli`
 - `rng-cli getinternalmininginfo` returns hashrate, blocks found, running status when mining is active
 - `rng-cli -rpcwallet=miner getnewaddress` returns a valid `rng1...` Bech32 address
 - `rng-cli -rpcwallet=miner getbalance` returns correct confirmed balance
-- `rng-cli getnetworkinfo` reports protocol version `70100` and user agent `/RNG:3.0.0/`
+- `rng-cli getnetworkinfo` reports protocol version `70016` and user agent `/RNG:3.0.0/`
 - `rng-cli getpeerinfo` shows connections on port `8433`
 - `rng-cli validateaddress rng1...` validates Bech32 addresses with HRP `rng`
 - RPC is accessible only on `127.0.0.1` by default
@@ -140,7 +140,7 @@ rng-cli getblockchaininfo | jq '{chain, blocks, headers, bestblockhash}'
 
 # Verify network info
 rng-cli getnetworkinfo | jq '{version, subversion, protocolversion}'
-# Expected: subversion "/RNG:3.0.0/", protocolversion 70100
+# Expected: subversion "/RNG:3.0.0/", protocolversion 70016
 
 # Verify mining RPC
 rng-cli getmininginfo | jq '{blocks, difficulty, networkhashps}'

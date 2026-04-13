@@ -28,7 +28,7 @@ Define the build, packaging, verification, and distribution pipeline for RNG bin
 
 **Standard build command** (from README and build-release.sh):
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
 cmake --build build -j$(nproc)
 ```
 
@@ -155,7 +155,7 @@ cmake --build build -j$(nproc)
 
 ```bash
 # Build from source
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON
 cmake --build build -j$(nproc)
 ./build/src/rngd --version
 # Expected: RNG Core v3.0.0

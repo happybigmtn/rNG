@@ -2,19 +2,21 @@
 
 ## Objective
 
-Define the operator-facing tooling for installing, bootstrapping, health-checking, and running RNG nodes and miners. Covers the install script, bootstrap assets, miner startup, health diagnostics, systemd integration, and the public node/miner setup scripts.
+Define the operator-facing tooling for bootstrapping, health-checking, and
+running RNG nodes and miners. Covers bootstrap assets, miner startup, health
+diagnostics, systemd integration, container startup, release packaging, and the
+public node/miner setup scripts.
 
 ## Evidence Status
 
 ### Verified Facts (grounded in source code and scripts)
 
-**Install script** (`scripts/install.sh`):
-- Supports two install modes: tagged release download or source build
-- Default install directory: `$HOME/.local/bin` (overridable via `$RNG_INSTALL_DIR`)
-- Default data directory: `$HOME/.rng` (overridable via `$RNG_DATA_DIR`)
-- Flags: `--force`, `--add-path`, `--bootstrap`, `--skip-deps`, `--no-verify`, `--no-config`
-- Generates `rng.conf` with random RPC password (`openssl rand -hex 16`), `server=1`, `daemon=1`, `minerandomx=fast`, and 4 hardcoded `addnode` entries
-- Installs helper scripts: `rng-load-bootstrap`, `rng-start-miner`, `rng-doctor`, `rng-install-public-node`, `rng-install-public-miner`
+**Install script**:
+- There is no repository-root `install.sh` or `scripts/install.sh` in the live
+  checkout.
+- Operator installation is currently covered by release tarballs, the
+  repository-root `Dockerfile`, `scripts/install-public-node.sh`, and
+  `scripts/install-public-miner.sh`.
 
 **Bootstrap assets** (`bootstrap/`):
 - Chain bundle: `rng-mainnet-29944-datadir.tar.gz` (height 29944)
@@ -62,7 +64,7 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 
 **Release builder** (`scripts/build-release.sh`):
 - Auto-detects version from `git describe --tags` or `CMakeLists.txt`
-- CMake flags: `-DBUILD_TESTING=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON`
+- CMake flags: `-DBUILD_TESTS=OFF -DENABLE_IPC=OFF -DWITH_ZMQ=OFF -DENABLE_WALLET=ON`
 - macOS adds: `-DOPENSSL_ROOT_DIR=$(brew --prefix openssl@3)`
 - Tarball includes: `rngd`, `rng-cli`, all helper scripts, `rngd.service`, `rng.conf.example`, `PUBLIC-NODE.md`, `COPYING`, `release-manifest.json`
 - Tarball format: `tar.gz`, PAX format, normalized owner `root:root`
@@ -90,8 +92,9 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 
 ## Acceptance Criteria
 
-- `install.sh` with no flags installs `rngd` and `rng-cli` to `$HOME/.local/bin` and creates a valid `rng.conf`
-- `install.sh --bootstrap` loads the chain bundle and the node starts syncing from height 29944
+- `rng-install-public-node` installs `rngd` and `rng-cli` to `/usr/local/bin`,
+  creates `/etc/rng/rng.conf`, and configures the systemd unit
+- `rng-load-bootstrap` loads the height-29944 bootstrap bundle and snapshot
 - `rng-start-miner` creates a wallet, derives an address, and starts `rngd` with mining enabled
 - `rng-doctor` reports PASS for genesis hash verification on a correctly synced mainnet node
 - `rng-doctor --json` outputs machine-readable JSON health report
@@ -109,12 +112,8 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 ## Verification
 
 ```bash
-# Test install flow
-./install.sh --force --add-path
-which rngd && which rng-cli
-
 # Test bootstrap
-./install.sh --bootstrap
+rng-load-bootstrap --bundle bootstrap/rng-mainnet-29944-datadir.tar.gz --snapshot bootstrap/rng-mainnet-29944.utxo
 rng-cli getblockcount
 # Should show height >= 29944
 

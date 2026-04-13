@@ -43,11 +43,10 @@ open implementation question: the current RNG `GetNextWorkRequired()` path in
 - Initial subsidy: 50 RNG.
 - Halving interval: 2,100,000 blocks on mainnet, testnet, testnet4, and signet.
 - Regtest halving interval: 150 blocks.
-- Tail emission floor: 0.6 RNG per block once halvings would otherwise drop
-  below that amount.
+- Tail emission floor: none in live consensus. `GetBlockSubsidy()` keeps the
+  Bitcoin-derived halving schedule and returns `0` once `halvings >= 64`.
 - Smallest unit: 1 roshi = 0.00000001 RNG.
-- `MAX_MONEY = 1,000,000,000 RNG` remains a consensus sanity cap, not a fixed
-  supply promise, because tail emission makes long-term supply unbounded.
+- `MAX_MONEY = 21,000,000 RNG` remains a consensus sanity cap.
 
 ## Other Consensus Rules
 
@@ -59,8 +58,8 @@ open implementation question: the current RNG `GetNextWorkRequired()` path in
 - Mainnet genesis hash:
   `83a6a482f85dc88c07387980067e9b61e5d8f61818aae9106b6bbc496d36ace4`.
 - All buried soft forks are active from height 0.
-- Current BIP9 deployments are `DEPLOYMENT_TESTDUMMY` and
-  `DEPLOYMENT_TAPROOT`; no `DEPLOYMENT_SHAREPOOL` exists yet.
+- Current BIP9 deployments are `DEPLOYMENT_TESTDUMMY`,
+  `DEPLOYMENT_TAPROOT`, and dormant `DEPLOYMENT_SHAREPOOL`.
 
 ## Open Questions
 
@@ -68,8 +67,8 @@ open implementation question: the current RNG `GetNextWorkRequired()` path in
    or is it stale configuration left over from launch and testnet defaults?
 2. Should the LWMA difficulty code deliberately use or ignore the
    min-difficulty flag? The current code ignores it.
-3. Should the published supply language be revised wherever it implies a hard
-   cap despite the 0.6 RNG tail-emission floor?
+3. Should the historical 0.6 RNG tail-emission goal be implemented in
+   consensus, or should all supply docs preserve the current no-tail behavior?
 
 ## Verification
 

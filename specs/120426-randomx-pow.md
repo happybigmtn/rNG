@@ -31,7 +31,7 @@ Define how RNG integrates RandomX as its proof-of-work algorithm, replacing Bitc
 
 ### Recommendations (intended system)
 
-- If protocol-native pooled mining is implemented, shares would use the same RandomX hash with a lower difficulty target (share_target = block_target / 12 per plan 002)
+- If protocol-native pooled mining is implemented, shares would use the same RandomX hash with a lower difficulty target. The active sharepool spec confirms `share_target = min(powLimit, block_target * 120)` for 1-second mainnet shares; the older `block_target / 12` sketch is rejected.
 - The fixed-seed policy avoids cache invalidation overhead but forecloses periodically changing the RandomX key; a future review may reconsider
 
 ### Hypotheses / Unresolved Questions

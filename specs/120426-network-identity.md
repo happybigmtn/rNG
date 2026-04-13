@@ -21,7 +21,7 @@ Define RNG's network-layer identity: magic bytes, ports, address encoding, proto
   - Testnet4 P2P: `48433`
   - Regtest P2P: `18544`
   - Regtest RPC: `18543`
-- **Protocol version**: `70100` (distinct from Bitcoin Core's protocol versioning)
+- **Protocol version**: `70016` (`PROTOCOL_VERSION` and `WTXID_RELAY_VERSION` in `src/node/protocol_version.h`)
 - **User agent**: `/RNG:3.0.0/` (from `CMakeLists.txt` version 3.0.0)
 - **Address prefixes (mainnet)**:
   - P2PKH: byte `25` → base58 prefix `B`
@@ -59,7 +59,7 @@ Define RNG's network-layer identity: magic bytes, ports, address encoding, proto
 ### Hypotheses / Unresolved Questions
 
 - Whether DNS seed domains should be provisioned later as the network grows beyond the current operator-run IPv4 seed set
-- Whether protocol version `70100` will need bumping when/if sharepool P2P messages are added
+- Whether protocol version `70016` will need bumping when/if sharepool P2P messages are added
 
 ## Acceptance Criteria
 
@@ -79,7 +79,7 @@ Define RNG's network-layer identity: magic bytes, ports, address encoding, proto
 ```bash
 # Verify network identity from a running node
 rng-cli getnetworkinfo | jq '{version, subversion, protocolversion, localaddresses}'
-# Expected: subversion "/RNG:3.0.0/", protocolversion 70100
+# Expected: subversion "/RNG:3.0.0/", protocolversion 70016
 
 # Verify mainnet genesis (confirms correct chain)
 rng-cli getblockhash 0
@@ -106,5 +106,5 @@ rng-cli getnetworkinfo | jq '.localaddresses'
 
 1. Should DNS seed domains be provisioned and reintroduced once there are enough independently operated peers to seed?
 2. Should the hardcoded seed peer list be expanded as the network grows? The current 4 IPs are all operator-run Contabo validators.
-3. Is protocol version `70100` documented anywhere as a version policy? E.g., when should it be bumped?
+3. Is protocol version `70016` documented anywhere as a version policy? E.g., when should it be bumped?
 4. Should RNG support Tor/I2P/CJDNS transports like upstream Bitcoin Core v29, or are those deprioritized?

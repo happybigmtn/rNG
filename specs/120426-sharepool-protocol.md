@@ -2,14 +2,14 @@
 
 ## Objective
 
-Define the protocol-native pooled mining system planned for RNG: public sharechain, deterministic reward windows, compact payout commitments in coinbase, and trustless post-maturity claim transactions. This spec describes the **intended future design** as laid out in the planning corpus (plans 001–012). No sharepool code exists in the current codebase.
+Define the protocol-native pooled mining system planned for RNG: public sharechain, deterministic reward windows, compact payout commitments in coinbase, and trustless post-maturity claim transactions. This spec describes the **intended future design** as laid out in the planning corpus (plans 001–012). The current codebase has the deployment boundary, sharechain storage, P2P relay, and simulator, but the payout commitment, claim program, share-producing miner, wallet integration, and sharepool RPCs remain future work.
 
 ## Evidence Status
 
 ### Verified Facts (grounded in live codebase)
 
-- **No sharepool code exists**: No `ShareRecord`, sharechain store, share relay messages, payout commitment, or claim program implementation in the inspected checkout
-- **No `DEPLOYMENT_SHAREPOOL`**: Only `DEPLOYMENT_TESTDUMMY` and `DEPLOYMENT_TAPROOT` defined in `src/consensus/params.h`
+- **Sharepool skeleton exists**: `DEPLOYMENT_SHAREPOOL`, `ShareRecord`, LevelDB-backed sharechain storage, orphan buffering, and activation-gated `shareinv`/`getshare`/`share` relay exist in the inspected checkout
+- **No payout/claim consensus code yet**: `src/consensus/sharepool.{h,cpp}` does not exist, and `src/script/interpreter.cpp` has no witness-v2 claim verifier
 - **No share-related RPCs**: `submitshare`, `getsharechaininfo`, `getrewardcommitment` do not exist in `src/rpc/`
 - **BIP9 machinery exists**: Version-bits deployment infrastructure is present and proven (used for Taproot activation from genesis)
 - **Witness versions**: SegWit and Taproot (witness v0 and v1) are active from genesis; witness v2–v16 are reserved for future soft forks
@@ -33,12 +33,12 @@ Define the protocol-native pooled mining system planned for RNG: public sharecha
 - Persistent storage: LevelDB (plan 005)
 
 **Share Target**:
-- Proposed: `block_target / 12` (yields ~10-second share spacing at 120-second block time)
-- This means ~12 shares per block on average
+- Confirmed mainnet candidate: `share_target = min(powLimit, block_target * 120)` for 1-second target share spacing at 120-second block time
+- The older `block_target / 12` sketch is rejected because RNG accepts hashes `<= target`, so easier share targets must be larger than the block target
 
 **Reward Window**:
 - Trailing range of accepted shares whose cumulative work reaches a threshold
-- Proposed: ~720 shares (~1 hour at 10-second share spacing)
+- Confirmed candidate: 7200 target-spacing shares at 1-second spacing
 - Boundaries reset with each block
 - All shares in window contribute to that block's payout split
 
@@ -46,7 +46,7 @@ Define the protocol-native pooled mining system planned for RNG: public sharecha
 - Merkle tree built from reward leaves (one per unique payout script in window)
 - Each leaf: `payout_script`, `amount_in_roshi`, `first_share_id`, `last_share_id`
 - Leaves sorted by `SHA256(payout_script)` for determinism
-- Root encoded in coinbase as witness v2 OP_RETURN output: `OP_RETURN <4-byte-tag> <32-byte-root>`
+- Root committed through a spendable witness-v2 commitment output; an auxiliary `RNGS` OP_RETURN marker is optional discovery metadata only
 - Consensus rule: blocks must include correct commitment root when sharepool is active
 
 **Claim Spend**:
@@ -58,7 +58,7 @@ Define the protocol-native pooled mining system planned for RNG: public sharecha
 
 **Activation**:
 - Version-bits (BIP9) deployment `DEPLOYMENT_SHAREPOOL`
-- Proposed BIP9 period: 2016 blocks, threshold: 1815 (95%)
+- Mainnet BIP9 period: 2016 blocks, threshold: 1916 (95%)
 - Mainnet: dormant (`NEVER_ACTIVE`) until explicitly activated
 - Regtest: immediately activatable via `-vbparams=sharepool:0:9999999999:0`
 

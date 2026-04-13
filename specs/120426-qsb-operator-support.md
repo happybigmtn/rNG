@@ -8,11 +8,12 @@ Define the Quantum-Safe Bitcoin (QSB) operator transaction support as documented
 
 ### Verified Facts (grounded in EXECPLAN.md and repository state)
 
-**Implementation exists in a separate branch**, not the inspected checkout:
-- Branch: `feat/bitcoin-30.2-port` (Bitcoin Core v30.2 port with QSB)
-- The inspected checkout (`feat/bitcoin-30-qsb`) does not contain QSB source files
-- `src/script/qsb.h`, `src/script/qsb.cpp`, `src/node/qsb_pool.h`, `src/node/qsb_pool.cpp`, `src/node/qsb_validation.h`, `src/node/qsb_validation.cpp` — referenced in EXECPLAN but **not present** in the inspected tree
-- `contrib/qsb/` (Python QSB builder) — referenced in EXECPLAN but not verified in inspected tree
+**Implementation exists in the inspected checkout on `main`:**
+- `src/script/qsb.h` and `src/script/qsb.cpp`
+- `src/node/qsb_pool.h`, `src/node/qsb_pool.cpp`, `src/node/qsb_validation.h`, and `src/node/qsb_validation.cpp`
+- `src/rpc/qsb.cpp`
+- `contrib/qsb/` Python builder and fleet submission helpers
+- `test/functional/feature_qsb_builder.py`, `test/functional/feature_qsb_rpc.py`, `test/functional/feature_qsb_mining.py`, and `src/test/qsb_tests.cpp`
 
 **Live canary proof (from EXECPLAN.md progress log)**:
 - Canary validator: `contabo-validator-01` at `95.111.227.14`
@@ -51,14 +52,13 @@ Define the Quantum-Safe Bitcoin (QSB) operator transaction support as documented
 - QSB is scoped as operator-only and must NOT change public consensus policy
 - Fleet deployment should normalize only after all validators sync to the same best block and exit IBD
 - Catch-up overrides (`minimumchainwork=0`) must be reverted before production mining resumes
-- The QSB branch should be merged to main only after fleet-wide validation is complete
+- Keep QSB scoped as operator-only after merge; future review should continue to verify that public consensus policy is unchanged for standard transactions
 
 ### Hypotheses / Unresolved Questions
 
-- Whether the QSB source files exist in the `feat/bitcoin-30.2-port` worktree (they are referenced in EXECPLAN but not present in the inspected checkout)
 - Whether QSB-enabled nodes accept QSB transactions into the regular mempool or only the local QSB candidate pool
 - Whether non-QSB nodes can validate blocks containing QSB transactions (soft-fork compatibility)
-- Whether the Bitcoin Core v30.2 port introduces breaking changes to the v29.0-based consensus
+- Whether the Bitcoin Core v30.2 port introduces breaking changes relative to the prior v29.0-based consensus
 - Whether `contrib/qsb/` Python builder is a production tool or a test harness
 - Timeline for QSB code to land on main branch
 
@@ -114,10 +114,8 @@ rng-cli getblockchaininfo | jq '.initialblockdownload'
 
 ## Open Questions
 
-1. **Branch merge timeline**: When will the `feat/bitcoin-30.2-port` branch with QSB code be merged to main? The EXECPLAN implies fleet-wide validation must complete first.
-2. **Source verification**: The QSB source files are not in the inspected checkout. Are they in the worktree branch? This spec cannot verify implementation details without reading the actual source.
-3. **Interaction with sharepool**: If sharepool claims use witness v2 and QSB uses its own script patterns, are there conflict scenarios?
-4. **Rollback plan**: What is the procedure if QSB transactions cause issues on mainnet? Can they be orphaned without chain reorg?
-5. **Public documentation**: Should QSB be documented in public-facing specs, or remain operator-internal? Currently it exists only in EXECPLAN.md.
-6. **Bitcoin Core v30.2 delta**: What consensus or P2P changes from Bitcoin Core v30.2 (vs v29.0) are included in the port? Are any of them independently valuable beyond QSB?
-7. **Validator RPC port inconsistency**: Validator-01 uses port `18435` while the standard RPC port is `8432`. Is this intentional per-validator customization?
+1. **Interaction with sharepool**: If sharepool claims use witness v2 and QSB uses its own script patterns, are there conflict scenarios?
+2. **Rollback plan**: What is the procedure if QSB transactions cause issues on mainnet? Can they be orphaned without chain reorg?
+3. **Public documentation**: Should QSB be documented in public-facing specs, or remain operator-internal?
+4. **Bitcoin Core v30.2 delta**: What consensus or P2P changes from Bitcoin Core v30.2 (vs v29.0) are included in the port? Are any of them independently valuable beyond QSB?
+5. **Validator RPC port inconsistency**: Validator-01 uses port `18435` while the standard RPC port is `8432`. Is this intentional per-validator customization?

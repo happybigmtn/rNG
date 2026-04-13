@@ -3,10 +3,12 @@
 ## Status
 
 This document is the active protocol specification for RNG's planned
-protocol-native pooled mining work. It is a specification artifact only. No
-sharepool consensus, P2P, miner, wallet, or RPC code exists in the live tree
-yet. The offline simulator exists in `contrib/sharepool/` and is the current
-economic proof surface for this protocol.
+protocol-native pooled mining work. It is a specification artifact for the
+remaining consensus, miner, wallet, and RPC work. The live tree already contains
+the dormant BIP9 deployment boundary, sharechain storage, activation-gated P2P
+share relay, and offline simulator, but it does not yet contain payout
+commitment, claim verification, share-producing miner, wallet accounting, or
+sharepool RPCs.
 
 POOL-03 decision (2026-04-13): no-go on the original candidate constants. The
 simulator reported 25.10% CV for a 10% miner over 100 blocks, above the 10%
@@ -33,15 +35,20 @@ can proceed.
 
 Current live-code facts:
 
-- `src/consensus/params.h` defines only `DEPLOYMENT_TESTDUMMY` and
-  `DEPLOYMENT_TAPROOT`; there is no `DEPLOYMENT_SHAREPOOL`.
+- `src/consensus/params.h` defines dormant `DEPLOYMENT_SHAREPOOL`; mainnet,
+  testnet, testnet4, and signet set bit 3, period 2016, and threshold 1916.
+  Regtest sets bit 3, period 144, threshold 108, and can be activated with
+  `-vbparams=sharepool:0:9999999999:0`.
 - `src/rpc/` does not implement `submitshare`, `getsharechaininfo`, or
   `getrewardcommitment`.
-- `src/protocol.h` and `src/net_processing.cpp` do not define or process
-  `shareinv`, `getshare`, or `share`.
-- `src/node/internal_miner.{h,cpp}` mines classical blocks only.
+- `src/protocol.h` and `src/net_processing.cpp` define and process `shareinv`,
+  `getshare`, and `share` while the deployment is active.
+- `src/node/sharechain.{h,cpp}` implements `ShareRecord` serialization,
+  LevelDB-backed storage, best-tip selection, and a 64-entry orphan buffer.
+- `src/node/internal_miner.{h,cpp}` mines classical blocks only; it does not
+  yet produce sharepool shares.
 - SegWit witness v0 and Taproot witness v1 are active; witness versions 2
-  through 16 remain unassigned in the current code.
+  through 16 remain unassigned in consensus claim verification code.
 - Coinbase maturity remains the existing 100-block rule.
 - `contrib/sharepool/simulate.py` implements the offline reward-window,
   payout-leaf, commitment-root, withholding, and 10% miner variance metrics.
