@@ -66,10 +66,11 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
 
 Items below are real work identified by the specs but either depend on unresolved research, are explicitly future-phase, or are blocked by decisions not yet made.
 
-- [ ] `FUTURE-01` Devnet deployment and adversarial testing (Plan 011)
+- [!] `FUTURE-01` Devnet deployment and adversarial testing (Plan 011)
 
   Spec: `specs/120426-sharepool-protocol.md`
   Why now: Not now — blocked on `CHKPT-03` (regtest proof must pass first).
+  Blocker: The explicit dependency `CHKPT-03` is still blocked by the unresolved sharepool payout/claim contract and missing miner/wallet integration. Devnet deployment cannot start until the regtest end-to-end proof exists.
   Codebase evidence: No devnet infrastructure exists.
   Owns: Multi-node devnet deployment; adversarial scenarios (eclipse attack, withholding, relay manipulation).
   Integration touchpoints: All sharepool code.
@@ -81,10 +82,11 @@ Items below are real work identified by the specs but either depend on unresolve
   Estimated scope: L
   Completion signal: Devnet stability report committed.
 
-- [ ] `FUTURE-02` Mainnet activation preparation (Plan 012)
+- [!] `FUTURE-02` Mainnet activation preparation (Plan 012)
 
   Spec: `specs/120426-sharepool-protocol.md`
   Why now: Not now — blocked on `FUTURE-01` (devnet must prove stability first).
+  Blocker: The explicit dependency `FUTURE-01` is blocked until `CHKPT-03` exists and devnet stability is proven.
   Codebase evidence: `DEPLOYMENT_SHAREPOOL` will be `NEVER_ACTIVE` until this task changes it.
   Owns: BIP9 activation parameters for mainnet (start time, timeout), updated specs, operator docs, release with activation.
   Integration touchpoints: `src/kernel/chainparams.cpp`, all operator scripts, README.md.
@@ -96,25 +98,11 @@ Items below are real work identified by the specs but either depend on unresolve
   Estimated scope: M
   Completion signal: Release tag with mainnet activation parameters.
 
-- [ ] `FUTURE-03` DNS seed operationality verification
-
-  Spec: `specs/120426-network-identity.md`
-  Why now: Not urgent — hardcoded seed peers work. But DNS seeds (`seed1.rng.network` etc.) may not resolve, leaving peer discovery dependent on 4 hardcoded IPs.
-  Codebase evidence: `src/kernel/chainparams.cpp` references `seed1.rng.network`, `seed2.rng.network`, `seed3.rng.network`. Unclear if these resolve.
-  Owns: Verify DNS seed resolution. If non-functional, either fix DNS records or remove from chainparams to avoid misleading timeout delays.
-  Integration touchpoints: `src/kernel/chainparams.cpp`.
-  Scope boundary: Verify and fix DNS or remove dead entries. Do not build new discovery infrastructure.
-  Acceptance criteria: `dig seed1.rng.network` returns valid A records, or entries removed from chainparams.
-  Verification: `dig +short seed1.rng.network seed2.rng.network seed3.rng.network`
-  Required tests: None.
-  Dependencies: None.
-  Estimated scope: XS
-  Completion signal: DNS seeds either resolve or are removed.
-
-- [ ] `FUTURE-04` Agent wallet and MCP server implementation
+- [!] `FUTURE-04` Agent wallet and MCP server implementation
 
   Spec: `specs/120426-wallet-rpc-surface.md`
   Why now: Not now — pure aspirational feature. `specs/agent-integration.md` describes `createagentwallet`, MCP tools, autonomy budgets, webhooks. None exist. Implementation depends on proven core features (wallet, mining, sharepool) being stable first.
+  Blocker: The explicit dependency `CHKPT-03` is blocked. Agent wallet/MCP scoping should wait until the core sharepool feature set has a proven regtest lifecycle.
   Codebase evidence: Zero agent-specific code in `src/`. No MCP server binary. No webhook infrastructure.
   Owns: Research task — scope the minimum viable agent wallet surface (which RPCs, which MCP tools) based on actual agent usage patterns.
   Integration touchpoints: `src/wallet/rpc/`, potential new `src/mcp/` directory.
@@ -141,10 +129,11 @@ Items below are real work identified by the specs but either depend on unresolve
   Estimated scope: M
   Completion signal: Release pipeline produces Windows tarball.
 
-- [ ] `FUTURE-06` Atomic swap protocol implementation
+- [!] `FUTURE-06` Atomic swap protocol implementation
 
   Spec: None in generated specs (referenced in `specs/swaps.md` which is not in this run's scope).
   Why now: Not now — `specs/swaps.md` describes HTLC-based P2P atomic swaps. This is a significant feature requiring new P2P messages, HTLC construction, chain monitoring, and CLI commands. Depends on stable wallet and network layers.
+  Blocker: Stable wallet/network/sharepool prerequisites are not met; `POOL-07`, `POOL-08`, `CHKPT-03`, and `FUTURE-01` remain blocked.
   Codebase evidence: No swap code exists. No HTLC construction code beyond Bitcoin Core's standard script support.
   Owns: Future implementation of `specs/swaps.md`.
   Integration touchpoints: `src/net_processing.cpp`, `src/wallet/`, new `src/swap/` module.

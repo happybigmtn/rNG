@@ -37,15 +37,14 @@ Define RNG's network-layer identity: magic bytes, ports, address encoding, proto
   - WIF: byte `239` → base58 prefix `c`
   - Extended public key: `tpub`
   - Extended private key: `tprv`
-- **DNS seeds** (from `src/kernel/chainparams.cpp`):
-  - `seed1.rng.network`
-  - `seed2.rng.network`
-  - `seed3.rng.network`
-- **Hardcoded seed peers** (operator-seeded, from scripts and chainparams):
+- **Mainnet seed peers** (from `src/kernel/chainparams.cpp`):
   - `95.111.239.142:8433`
   - `161.97.114.192:8433`
   - `185.218.126.23:8433`
   - `185.239.209.227:8433`
+- **Historical DNS seed names**:
+  - `seed1.rng.network`, `seed2.rng.network`, and `seed3.rng.network` are not present in mainnet `chainparams` in the current checkout
+  - `dig +short seed1.rng.network seed2.rng.network seed3.rng.network` returned no A records on 2026-04-13
 - **P2P message format**: Bitcoin-compatible (same serialization, same message types)
 - **Data directory**: `~/.rng` (default, changed from Bitcoin's `~/.bitcoin`)
 - **Config file**: `rng.conf` (in data directory)
@@ -55,11 +54,11 @@ Define RNG's network-layer identity: magic bytes, ports, address encoding, proto
 ### Recommendations (intended system)
 
 - Plan 005 proposes adding three new P2P message types for share relay: `shareinv`, `getshare`, `share` — these do not exist in the current codebase
-- DNS seeds should resolve to operational nodes; if `seed{1,2,3}.rng.network` do not resolve, nodes fall back to hardcoded peers
+- DNS seed domains should resolve to operational nodes before being reintroduced to mainnet `chainparams`; until then, mainnet discovery should continue to rely on the operator-run IPv4 seeds already in source
 
 ### Hypotheses / Unresolved Questions
 
-- Whether the DNS seeds (`seed{1,2,3}.rng.network`) are currently resolving to live nodes, or whether peer discovery relies entirely on hardcoded seed IPs
+- Whether DNS seed domains should be provisioned later as the network grows beyond the current operator-run IPv4 seed set
 - Whether protocol version `70100` will need bumping when/if sharepool P2P messages are added
 
 ## Acceptance Criteria
@@ -105,7 +104,7 @@ rng-cli getnetworkinfo | jq '.localaddresses'
 
 ## Open Questions
 
-1. Are the DNS seeds (`seed{1,2,3}.rng.network`) currently operational? If not, should they be removed or replaced with working entries?
+1. Should DNS seed domains be provisioned and reintroduced once there are enough independently operated peers to seed?
 2. Should the hardcoded seed peer list be expanded as the network grows? The current 4 IPs are all operator-run Contabo validators.
 3. Is protocol version `70100` documented anywhere as a version policy? E.g., when should it be bumped?
 4. Should RNG support Tor/I2P/CJDNS transports like upstream Bitcoin Core v29, or are those deprioritized?
