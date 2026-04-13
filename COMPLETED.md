@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `CHKPT-01` — Completed the read-only spec truthfulness checkpoint across `specs/*.md`, cataloged remaining spec-vs-code discrepancies in `WORKLIST.md`, and removed the checkpoint from the active queue. No blockers were found for the next task. Commit: `88f8c0b55bd7b757fb86121ceb5f4725cfc2f6cc`.
+  Validation: `rg -n "PROTOCOL_VERSION|WTXID_RELAY_VERSION" src/node/protocol_version.h`; `sed -n '1947,1962p' src/validation.cpp`; `rg -n "MAX_MONEY" src/consensus/amount.h`; `rg -n "vSeeds\\.emplace_back|seed[123]\\.rng\\.network" src/kernel/chainparams.cpp specs/120426-network-identity.md`; `git ls-files -- Dockerfile docker-compose.yml 'bootstrap/*' scripts/install.sh install.sh .github/workflows/release.yml .github/workflows/ghcr.yml`; `rg --files src contrib test | rg '(^|/)qsb'`; `rg -n "Bitcoin Core|QSB support means" README.md`; `rg -n "1815|95%|90%" specs/120426-sharepool-protocol.md specs/120426-consensus-chain-rules.md src/kernel/chainparams.cpp`; `git diff --check`; `cmake --build build -j$(nproc)`.
+
 - `TRUTH-01` — Added canonical `specs/randomx.md` documenting the fixed genesis seed for all block heights, cleaned stale RandomX schedule claims from `specs/120426-randomx-pow.md`, and corrected the RandomX unit-test comment that cited the missing spec as the source for legacy constants. Commit: `1663ead0eb43d22b1f6788837bf243d26bf510a8`.
   Validation: `if grep -i "2048\|rotation\|epoch" specs/randomx.md; then exit 1; else echo "no stale seed-schedule terms in specs/randomx.md"; fi`; `grep "fixed\|genesis.*seed\|all.*height" specs/randomx.md`; `cmake --build build -j$(nproc)`; `build/bin/test_bitcoin --run_test=randomx_tests`.
 
