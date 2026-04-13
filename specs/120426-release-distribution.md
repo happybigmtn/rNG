@@ -78,15 +78,16 @@ cmake --build build -j$(nproc)
 - Exists in `scripts/` directory
 
 **Container image** (`Dockerfile`):
-- Build stage: Ubuntu 22.04
-- Runtime stage: Ubuntu 22.04, non-root user `rng`
-- Runtime dependencies: `libboost-filesystem1.74.0`, `libboost-thread1.74.0`, `libevent-2.1-7`, `libevent-pthreads-2.1-7`, `libsqlite3-0`, `libssl3`
+- Build stage: Ubuntu 24.04
+- Runtime stage: Ubuntu 24.04, non-root user `rng`
+- Runtime dependencies: `libevent-2.1-7t64`, `libevent-extra-2.1-7t64`, `libevent-pthreads-2.1-7t64`, `libsqlite3-0`, `libstdc++6`
 - Exposed ports: `8432` (RPC), `8433` (P2P)
-- Entrypoint: `rngd`, default CMD: `-printtoconsole`
-- RandomX submodule clone: `https://github.com/tevador/RandomX.git`, branch `v1.2.1`
+- Entrypoint: `rng-docker-entrypoint`, default command: `rngd -printtoconsole`
+- `rngd --version` works without secrets; daemon startup requires `RNG_RPC_PASSWORD` so the image has no hardcoded RPC password
+- RandomX submodule: vendored at `src/crypto/randomx/` (`v1.2.1`)
 
 **Docker Compose** (`docker-compose.yml`):
-- Present in repository root (confirms container workflow is supported)
+- Not present in repository root
 
 **Bootstrap assets** (bundled in release and repository):
 - Chain bundle: `bootstrap/rng-mainnet-29944-datadir.tar.gz`
@@ -115,7 +116,6 @@ cmake --build build -j$(nproc)
 ### Hypotheses / Unresolved Questions
 
 - Whether reproducible builds are fully achievable (PAX format + source_date_epoch + normalized ownership suggest intent, but not verified end-to-end)
-- Whether the Dockerfile's Boost version pinning (`1.74.0`) will cause issues on newer Ubuntu versions
 - Whether cross-compilation (e.g., ARM64 on x86_64) is supported via the `depends/` system
 
 ## Acceptance Criteria

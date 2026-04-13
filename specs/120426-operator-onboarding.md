@@ -71,12 +71,13 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 - Platform detection: `linux-x86_64`, `linux-arm64`, `macos-x86_64`, `macos-arm64`
 
 **Container** (`Dockerfile`):
-- Build stage: Ubuntu 22.04, same CMake flags as release script
-- Runtime stage: Ubuntu 22.04, non-root user `rng`
-- Runtime deps: `libboost-filesystem1.74.0`, `libboost-thread1.74.0`, `libevent-2.1-7`, `libevent-pthreads-2.1-7`, `libsqlite3-0`, `libssl3`
+- Build stage: Ubuntu 24.04 with `BUILD_TESTS=OFF`, `BUILD_GUI=OFF`, `ENABLE_IPC=OFF`, `WITH_ZMQ=OFF`, and `ENABLE_WALLET=ON`
+- Runtime stage: Ubuntu 24.04, non-root user `rng`
+- Runtime deps: `libevent-2.1-7t64`, `libevent-extra-2.1-7t64`, `libevent-pthreads-2.1-7t64`, `libsqlite3-0`, `libstdc++6`
 - Exposed ports: `8432` (RPC), `8433` (P2P)
-- Entrypoint: `rngd`, default CMD: `-printtoconsole`
-- Default config: `server=1`, `rpcuser=agent`, `rpcpassword=changeme`, `minerandomx=fast`, 4 addnode entries
+- Entrypoint: `rng-docker-entrypoint`, default command: `rngd -printtoconsole`
+- The entrypoint writes `rng.conf` on first daemon start and requires `RNG_RPC_PASSWORD`; metadata commands such as `rngd --version` do not require a password
+- Default config when `RNG_RPC_PASSWORD` is set: `server=1`, `rpcbind=127.0.0.1`, `rpcallowip=127.0.0.1`, `rpcuser=${RNG_RPC_USER:-agent}`, `rpcpassword=$RNG_RPC_PASSWORD`, `minerandomx=fast`, and 4 addnode entries
 
 ### Recommendations (intended system)
 
@@ -85,7 +86,6 @@ Define the operator-facing tooling for installing, bootstrapping, health-checkin
 
 ### Hypotheses / Unresolved Questions
 
-- Whether the Dockerfile's hardcoded `rpcpassword=changeme` is a security concern for production container deployments
 - How frequently the bootstrap assets should be refreshed as the chain grows (current bundle is at height 29944)
 
 ## Acceptance Criteria
@@ -156,7 +156,7 @@ sha256sum bootstrap/rng-mainnet-29944.utxo
 ## Open Questions
 
 1. Should bootstrap assets be versioned and hosted at a stable URL, or continue shipping in-repo? As chain grows, the bundle size increases.
-2. Is the Dockerfile's default `rpcpassword=changeme` acceptable? Production containers should generate random credentials.
+2. Should the container entrypoint support generating and printing a one-time random RPC password when `RNG_RPC_PASSWORD` is absent, or is fail-closed startup the correct operator default?
 3. Should `rng-doctor` verify the RandomX seed/salt in addition to genesis hash? This would catch misconfigured builds.
 4. Should the install script support unattended/non-interactive mode for CI/CD pipelines?
 5. How should operator scripts handle the transition to pooled mining (plan 008)? E.g., should `rng-start-miner` gain a `--pool` flag?

@@ -26,10 +26,11 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Estimated scope: L
   Completion signal: Commitment and claim tests pass; solo mining with commitment works on regtest.
 
-- [ ] `POOL-08` Extend internal miner and wallet for sharepool integration
+- [!] `POOL-08` Extend internal miner and wallet for sharepool integration
 
   Spec: `specs/120426-internal-miner.md`, `specs/120426-wallet-rpc-surface.md`
   Why now: Corpus Plan 008. The miner must produce shares alongside block attempts, and the wallet must track pooled rewards. This is the user-facing integration layer.
+  Blocker: The task's explicit dependency `POOL-07` is still blocked. Live code now contains the sharepool deployment boundary and sharechain/P2P relay from POOL-04/POOL-05/POOL-06 (`src/consensus/params.h`, `src/node/sharechain.{h,cpp}`, `src/net_processing.cpp`), but there is still no `src/consensus/sharepool.{h,cpp}` payout commitment implementation and no witness-v2 claim accounting model. Wallet auto-claim behavior and reward commitment RPCs cannot be truthfully implemented until the consensus payout/claim contract is specified and landed.
   Codebase evidence: `src/node/internal_miner.h:230-234` defines constants including `HASH_BATCH_SIZE = 10000` and `STALENESS_CHECK_INTERVAL = 1000`. Workers check one target (block difficulty) per hash. Extension adds second target (share difficulty). `src/rpc/mining.cpp:519` defines `getinternalmininginfo`. `src/wallet/rpc/coins.cpp` defines `getbalances`.
   Owns: Modifications to `src/node/internal_miner.{h,cpp}` (dual-target: share + block), new `m_shares_found` counter, share construction and relay on share-meeting hash. Modifications to `src/wallet/` (scan coinbase for v2 commitment, record `PooledRewardEntry`, auto-claim on maturity). New/extended RPCs: `submitshare`, `getsharechaininfo`, `getrewardcommitment`. Extended `getmininginfo` with sharepool fields. Extended `getbalances` with `pooled.pending/claimable`.
   Integration touchpoints: `src/node/sharechain.{h,cpp}` (from POOL-05), `src/consensus/sharepool.{h,cpp}` (from POOL-07), `src/rpc/mining.cpp`, `src/wallet/rpc/coins.cpp`.
@@ -55,23 +56,6 @@ Main: `8e33f25b30` (ahead of current branch; includes Bitcoin Core v30.2 port wi
   Dependencies: `POOL-08`.
   Estimated scope: M
   Completion signal: Reproducible regtest proof passes; review document committed.
-
-### Tier 4: Operator Onboarding Hardening
-
-- [ ] `OPS-02` Harden Dockerfile default RPC password
-
-  Spec: `specs/120426-operator-onboarding.md`
-  Why now: Dockerfile contains `rpcpassword=changeme` — a hardcoded default that becomes a security vulnerability if any container is exposed beyond localhost.
-  Codebase evidence: `Dockerfile` contains `rpcpassword=changeme` in the default CMD or entrypoint config.
-  Owns: `Dockerfile` — replace hardcoded password with generated random password at container startup, or require environment variable.
-  Integration touchpoints: `docker-compose.yml` (may reference password).
-  Scope boundary: Fix the default. Do not redesign container architecture.
-  Acceptance criteria: `grep "changeme" Dockerfile` returns zero matches. Container either generates random password on first run or errors if `RNG_RPC_PASSWORD` env var is not set.
-  Verification: `docker build -t rng-test . && docker run --rm rng-test rngd --version` succeeds. `grep "changeme" Dockerfile` returns nothing.
-  Required tests: None (build verification only).
-  Dependencies: None.
-  Estimated scope: XS
-  Completion signal: No hardcoded password in Dockerfile.
 
 ### Tier 5: Release and Distribution
 
