@@ -2,6 +2,9 @@
 
 ## 2026-04-13
 
+- `POOL-03` — Completed the simulator decision gate with a no-go result for the current sharepool constants. The checked withholding metric is 0.0% advantage, but the simulator reports 25.10% CV for a 10% miner over 100 blocks, above the 10% threshold. Added `genesis/plans/003-decision-report.md`, left `specs/sharepool.md` constants unconfirmed, and re-entered the POOL-01/POOL-02/POOL-03 revision loop in `IMPLEMENTATION_PLAN.md`. Commit: `a364a86d604d05714a3c9a4d6a1a568e9f5f8087`.
+  Validation: `python3 -m pytest contrib/sharepool/test_simulate.py`; `cd contrib/sharepool && python3 simulate.py --scenario baseline --verbose`; `cd contrib/sharepool && python3 simulate.py --trace examples/two_miners_90_10.json --verbose`; `cd contrib/sharepool && python3 simulate.py --scenario baseline > /tmp/rng-pool03-run1.json && python3 simulate.py --scenario baseline > /tmp/rng-pool03-run2.json && diff -u /tmp/rng-pool03-run1.json /tmp/rng-pool03-run2.json`; `cmake --build build -j$(nproc)`.
+
 - `POOL-02` — Added the offline sharepool economic simulator in `contrib/sharepool/`. The simulator accepts JSON and CSV traces, expands compact share runs, constructs work-based reward windows, emits deterministic payout leaves and Merkle commitment roots, reports pending entitlement before block discovery, measures share-withholding impact, and measures deterministic 10% miner variance across 100 blocks. The checked example trace produces a 90.00% / 10.00% reward split and records the current variance metric in the simulator README. Commit: `f7c27c8a2fe87e8b196e7c8fe67cf19560cd294f`.
   Validation: `python3 -m pytest contrib/sharepool/test_simulate.py`; `cd contrib/sharepool && python3 simulate.py --trace examples/two_miners_90_10.json --verbose`; `python3 contrib/sharepool/simulate.py --scenario baseline`; `python3 -m py_compile contrib/sharepool/simulate.py contrib/sharepool/test_simulate.py`.
 
